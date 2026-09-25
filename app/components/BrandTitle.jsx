@@ -3,8 +3,11 @@
 import FuzzyText from "./FuzzyText";
 import "./BrandTitle.css";
 
+// Font size for the entire brand title
 const FONT_SIZE = 32;
 const FONT_WEIGHT = 700;
+
+// FuzzyText padding range
 const FUZZ_RANGE = 6;
 
 export default function BrandTitle({ fontSize = FONT_SIZE }) {
@@ -12,7 +15,10 @@ export default function BrandTitle({ fontSize = FONT_SIZE }) {
     <div className="brand-title">
       <span
         className="brand-title__static"
-        style={{ fontSize, fontWeight: FONT_WEIGHT }}
+        style={{
+          fontSize,
+          fontWeight: FONT_WEIGHT,
+        }}
       >
         raided
       </span>

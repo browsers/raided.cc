@@ -5,8 +5,8 @@
   line-height: 1;
   user-select: none;
 
-  /* Move the whole title down, without moving the code slots */
-  transform: translateY(52px);
+  /* Move the entire title upward */
+  transform: translateY(42px);
 }
 
 .brand-title__static {
@@ -18,8 +18,14 @@
 }
 
 .brand-title__fuzzy {
-  /* Compensate for FuzzyText canvas padding */
-  margin-left: -26px;
+  /*
+   * FuzzyText adds (fuzzRange + 20px) of canvas padding
+   * on both sides.
+   *
+   * Pull the left side further in so ".cc" sits closer
+   * to the "d" in "raided".
+   */
+  margin-left: -30px;
   margin-right: -26px;
 
   display: block;
@@ -27,6 +33,6 @@
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: default;
 
-  /* Tiny adjustment so .cc sits level with "raided" */
+  /* Tiny vertical alignment adjustment */
   transform: translateY(1px);
 }
