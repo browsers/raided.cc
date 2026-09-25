@@ -42,7 +42,7 @@ export default function CodeSlots({
   accentColor = '#f5f5f5',
   inkColor = '#f5f5f5',
   slotColor = '#27272a',
-  digitColor = '#18181b',
+  digitColor = '#f5f5f5',
   dangerColor = '#ff3b30',
   slotSize = 44,
   gap = 8,
