@@ -35,7 +35,7 @@ export default function Home() {
             onChange={() => setStatus("idle")}
             onComplete={handleComplete}
             autoFocus
-            accentColor="#c9f5a8"
+            accentColor="rgb(254, 254, 254)"
             inkColor="#eaf0e6"
             slotColor="rgba(20, 24, 18, 0.45)"
             digitColor="#12180f"
