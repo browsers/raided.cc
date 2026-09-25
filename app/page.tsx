@@ -3,6 +3,7 @@
 import { useState } from "react";
 import CodeSlots from "./components/CodeSlots";
 import SpecularButton from "./components/SpecularButton";
+import BrandTitle from "./components/BrandTitle";
 
 export default function Home() {
   const [status, setStatus] = useState("idle");
@@ -28,6 +29,7 @@ export default function Home() {
         </video>
       </div>
       <div className="center-content">
+        <BrandTitle />
         <div style={{ marginTop: 48 }}>
           <CodeSlots
             length={6}
