@@ -27,7 +27,7 @@ export default function Home() {
         </video>
       </div>
       <div className="center-content">
-        <div style={{ transform: "translateY(48px)" }}>
+        <div style={{ marginTop: 48 }}>
           <CodeSlots
             length={6}
             value={undefined}
@@ -45,6 +45,9 @@ export default function Home() {
             radius={8}
           />
         </div>
+        <button type="button" className="request-access-btn">
+          Request access
+        </button>
       </div>
       {/* nav goes here later */}
     </main>

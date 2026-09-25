@@ -33,6 +33,34 @@ body {
   z-index: 1;
   height: 100dvh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.request-access-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 16px;
+  margin-top: 18px;
+  border: none;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #12180f;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.request-access-btn:hover {
+  background: #eaeaea;
+}
+
+.request-access-btn:active {
+  transform: scale(0.97);
 }
