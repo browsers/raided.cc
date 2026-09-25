@@ -1,9 +1,12 @@
 .brand-title {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   line-height: 1;
   user-select: none;
+
+  /* Move the whole title down, without moving the code slots */
+  transform: translateY(52px);
 }
 
 .brand-title__static {
@@ -15,13 +18,15 @@
 }
 
 .brand-title__fuzzy {
-  /* FuzzyText pads its canvas by (fuzzRange + 20)px on each side so the
-     jitter never clips. Pull that padding back on both sides so ".cc" sits
-     right up against "raided" and the whole row stays visually centered.
-     Keep -26px in sync with FUZZ_RANGE in BrandTitle.jsx (fuzzRange + 20). */
+  /* Compensate for FuzzyText canvas padding */
   margin-left: -26px;
   margin-right: -26px;
+
   display: block;
+
   font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, sans-serif;
   cursor: default;
+
+  /* Tiny adjustment so .cc sits level with "raided" */
+  transform: translateY(1px);
 }
