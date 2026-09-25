@@ -61,6 +61,7 @@ export default function Home() {
           followMouse
           proximity={220}
           tintOpacity={0}
+          onClick={() => {}}
         >
           Request access
         </SpecularButton>
