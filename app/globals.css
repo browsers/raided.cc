@@ -46,20 +46,30 @@ body {
   height: 27px;
   padding: 0 13px;
   margin-top: 18px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 10px;
-  background: #ffffff;
-  color: #12180f;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 8px 18px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.25);
+  color: #f5f5f5;
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background-color 150ms ease, transform 150ms ease;
+  transition: background-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
 }
 
 .request-access-btn:hover {
-  background: #eaeaea;
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 10px 22px rgba(0, 0, 0, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
 .request-access-btn:active {
