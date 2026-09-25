@@ -14,7 +14,8 @@
     "react-dom": "^18",
     "motion": "^11.15.0",
     "@hugeicons/react": "^1.0.4",
-    "@hugeicons/core-free-icons": "^1.0.11"
+    "@hugeicons/core-free-icons": "^1.0.11",
+    "ogl": "^1.0.6"
   },
   "devDependencies": {
     "typescript": "^5",

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import CodeSlots from "./components/CodeSlots";
+import SpecularButton from "./components/SpecularButton";
 
 export default function Home() {
   const [status, setStatus] = useState("idle");
@@ -45,9 +46,24 @@ export default function Home() {
             radius={8}
           />
         </div>
-        <button type="button" className="request-access-btn">
+        <SpecularButton
+          className="request-access-btn"
+          size="sm"
+          radius={10}
+          textColor="#f5f5f5"
+          lineColor="#ffffff"
+          baseColor="#8a8a8a"
+          intensity={1}
+          shineSize={10}
+          shineFade={40}
+          thickness={1}
+          speed={0.35}
+          followMouse
+          proximity={220}
+          tintOpacity={0}
+        >
           Request access
-        </button>
+        </SpecularButton>
       </div>
       {/* nav goes here later */}
     </main>
