@@ -41,7 +41,7 @@ export default function Home() {
             accentColor="rgb(254, 254, 254)"
             inkColor="#eaf0e6"
             slotColor="rgba(20, 24, 18, 0.45)"
-            digitColor="#12180f"
+            digitColor="#f5f5f5"
             dangerColor="#ff5c4d"
             slotSize={36}
             gap={8}
