@@ -27,22 +27,24 @@ export default function Home() {
         </video>
       </div>
       <div className="center-content">
-        <CodeSlots
-          length={6}
-          value={undefined}
-          status={status}
-          onChange={() => setStatus("idle")}
-          onComplete={handleComplete}
-          autoFocus
-          accentColor="#c9f5a8"
-          inkColor="#eaf0e6"
-          slotColor="rgba(20, 24, 18, 0.45)"
-          digitColor="#12180f"
-          dangerColor="#ff5c4d"
-          slotSize={48}
-          gap={10}
-          radius={10}
-        />
+        <div style={{ transform: "translateY(48px)" }}>
+          <CodeSlots
+            length={6}
+            value={undefined}
+            status={status}
+            onChange={() => setStatus("idle")}
+            onComplete={handleComplete}
+            autoFocus
+            accentColor="#c9f5a8"
+            inkColor="#eaf0e6"
+            slotColor="rgba(20, 24, 18, 0.45)"
+            digitColor="#12180f"
+            dangerColor="#ff5c4d"
+            slotSize={36}
+            gap={8}
+            radius={8}
+          />
+        </div>
       </div>
       {/* nav goes here later */}
     </main>
