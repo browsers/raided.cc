@@ -113,10 +113,10 @@
   color: var(--dash-text-primary);
   background: linear-gradient(
     90deg,
-    rgba(255, 59, 48, 0.16),
-    rgba(255, 59, 48, 0.05)
+    rgba(0, 229, 255, 0.16),
+    rgba(0, 229, 255, 0.05)
   );
-  border-color: rgba(255, 59, 48, 0.25);
+  border-color: rgba(0, 229, 255, 0.25);
   box-shadow: inset 2px 0 0 var(--dash-accent);
 }
 
@@ -182,8 +182,8 @@
   font-size: 14px;
   font-weight: 700;
   color: #f5f5f5;
-  background: linear-gradient(135deg, #3a1414, #1a0d0d);
-  border: 1px solid rgba(255, 59, 48, 0.3);
+  background: linear-gradient(135deg, #0d3438, #081a1c);
+  border: 1px solid rgba(0, 229, 255, 0.3);
 }
 
 .dash-account-card__meta {

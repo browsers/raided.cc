@@ -56,8 +56,8 @@ export default function ViewsChart({ data }) {
       >
         <defs>
           <linearGradient id="viewsFade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ff3b30" stopOpacity="0.45" />
-            <stop offset="100%" stopColor="#ff3b30" stopOpacity="0" />
+            <stop offset="0%" stopColor="#00e5ff" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#00e5ff" stopOpacity="0" />
           </linearGradient>
         </defs>
 
@@ -77,7 +77,7 @@ export default function ViewsChart({ data }) {
         })}
 
         <path d={areaPath} fill="url(#viewsFade)" stroke="none" />
-        <path d={linePath} fill="none" stroke="#ff3b30" strokeWidth="2" />
+        <path d={linePath} fill="none" stroke="#00e5ff" strokeWidth="2" />
 
         {yTicks.map((tick) => {
           const y = PADDING_TOP + plotHeight * (1 - tick / niceMax);
