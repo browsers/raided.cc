@@ -2,7 +2,7 @@
 
 import "./TopBar.css";
 
-export default function TopBar({ breadcrumb, title, saved = true, onSave }) {
+export default function TopBar({ breadcrumb, title, saved = true, onSave = () => {} }) {
   return (
     <div className="dash-topbar">
       <div>
