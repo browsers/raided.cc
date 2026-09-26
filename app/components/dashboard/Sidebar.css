@@ -17,14 +17,35 @@
 .dash-brand-mark {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 14px;
 }
 
-.dash-brand-mark__text {
-  font-size: 20px;
+.dash-brand-mark__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  user-select: none;
+}
+
+.dash-brand-mark__static {
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--dash-text-primary);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.dash-brand-mark__fuzzy {
+  /* FuzzyText adds (fuzzRange + 20px) of canvas padding on both
+     sides — pull it back in so ".cc" sits close to the "d". */
+  margin-left: -30px;
+  margin-right: -30px;
+  display: block;
+  cursor: default;
+  transform: translateY(1px);
 }
 
 .dash-brand-mark__rule {

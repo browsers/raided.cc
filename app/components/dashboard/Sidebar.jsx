@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import FuzzyText from "../FuzzyText";
 import "./Sidebar.css";
 import {
   HomeIcon,
@@ -91,7 +92,22 @@ export default function Sidebar() {
 function BrandMark() {
   return (
     <div className="dash-brand-mark">
-      <span className="dash-brand-mark__text">raided.cc</span>
+      <div className="dash-brand-mark__title">
+        <span className="dash-brand-mark__static">raided</span>
+        <FuzzyText
+          fontSize={28}
+          fontWeight={700}
+          color="#f5f5f5"
+          enableHover
+          baseIntensity={0.12}
+          hoverIntensity={0.55}
+          fuzzRange={6}
+          transitionDuration={12}
+          className="dash-brand-mark__fuzzy"
+        >
+          .cc
+        </FuzzyText>
+      </div>
       <span className="dash-brand-mark__rule" />
     </div>
   );
