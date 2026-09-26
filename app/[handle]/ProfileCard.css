@@ -74,7 +74,7 @@
   justify-content: center;
   gap: 6px;
   margin-top: 4px;
-  padding: 2px 5px;
+  padding: 6px 10px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -87,8 +87,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 34px;
+  height: 34px;
 }
 
 .public-profile-card__badge img {
@@ -96,26 +96,6 @@
   height: 100%;
   object-fit: contain;
   display: block;
-}
-
-.public-profile-card__badge--owner {
-  width: 30px;
-  height: 30px;
-}
-
-.public-profile-card__badge--owner img {
-  width: 70%;
-  height: 70%;
-}
-
-.public-profile-card__badge--developer {
-  width: 30px;
-  height: 30px;
-}
-
-.public-profile-card__badge--developer img {
-  width: 70%;
-  height: 70%;
 }
 
 .public-profile-card__bio {
