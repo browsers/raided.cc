@@ -11,11 +11,11 @@ export default function RedirectCard({ text = "Redirecting you now" }) {
       glowColor="0 0 100"
       backgroundColor="rgba(18, 20, 16, 0.55)"
       borderRadius={12}
-      glowRadius={18}
-      glowIntensity={0.6}
+      glowRadius={14}
+      glowIntensity={0.3}
       coneSpread={35}
-      fillOpacity={0.25}
-      colors={["rgba(255,255,255,0.55)", "rgba(255,255,255,0.4)", "rgba(255,255,255,0.3)"]}
+      fillOpacity={0.08}
+      colors={["rgba(255,255,255,0.45)", "rgba(255,255,255,0.3)", "rgba(255,255,255,0.2)"]}
     >
       <div className="redirect-card">
         <span className="redirect-card__text">{text}</span>
