@@ -175,6 +175,12 @@
   opacity: 0.8;
 }
 
+.dash-pill-link__icon[src] {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .dash-account-card {
   display: flex;
   align-items: center;

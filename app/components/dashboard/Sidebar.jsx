@@ -5,7 +5,7 @@ import FuzzyText from "../FuzzyText";
 import { supabase } from "../../lib/supabaseClient";
 import { onDisplayNameChange } from "../../lib/profileBus";
 import "./Sidebar.css";
-import { ExternalLinkIcon, DiscordIcon } from "./icons";
+import { ExternalLinkIcon } from "./icons";
 
 const NAV_ITEMS = [
   { key: "overview", label: "Overview", icon: "/icons/overview.png" },
@@ -131,7 +131,7 @@ export default function Sidebar({ activeTab, onSelectTab }) {
         </a>
         <a className="dash-pill-link" href="#" target="_blank" rel="noreferrer">
           <span className="dash-pill-link__dot" />
-          <DiscordIcon className="dash-pill-link__icon" />
+          <img src="/icons/discord.png" alt="" className="dash-pill-link__icon" />
           <span>Discord</span>
         </a>
 
