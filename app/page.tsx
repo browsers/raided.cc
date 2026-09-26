@@ -7,6 +7,7 @@ import SpecularButton from "./components/SpecularButton";
 import BrandTitle from "./components/BrandTitle";
 import ClaimHandleForm from "./components/ClaimHandleForm";
 import RedirectCard from "./components/RedirectCard";
+import { supabase } from "./lib/supabaseClient";
 
 // How long to let the checkmark sit on screen before the code step fades
 // out and the claim-handle step takes over.
@@ -149,7 +150,14 @@ export default function Home() {
 }
 
 async function verifyInviteCode(code: string): Promise<boolean> {
-  // Placeholder — wire this up to your Supabase invite_codes table.
-  // Temporary valid code for testing: 123123
-  return code === "123123";
+  const { data, error } = await supabase.rpc("redeem_invite_code", {
+    p_code: code,
+  });
+
+  if (error) {
+    console.error(error);
+    return false;
+  }
+
+  return Boolean(data);
 }

@@ -2,10 +2,17 @@
 
 import { useState } from "react";
 import SpecularButton from "./SpecularButton";
+import { supabase } from "../lib/supabaseClient";
 import "./ClaimHandleForm.css";
 
 const HANDLE_PATTERN = /^[a-z0-9_-]{3,20}$/;
 const MIN_PASSWORD_LENGTH = 8;
+
+// Handles sign up with just a handle + password (no email field in this
+// form). Supabase auth still needs *something* to sign up with, so we
+// synthesize one from the handle. Swap this out if/when a real email
+// gets collected (e.g. later in Settings).
+const SYNTHETIC_EMAIL_DOMAIN = "users.raided.cc";
 
 export default function ClaimHandleForm({ onComplete }) {
   const [handle, setHandle] = useState("");
@@ -114,14 +121,42 @@ export default function ClaimHandleForm({ onComplete }) {
 }
 
 async function claimHandle(handle, password) {
-  // TODO: wire this up to Supabase:
-  //   1. supabase.auth.signUp({ ... }, { data: { handle } }) (or whatever
-  //      auth strategy this ends up using, since there's no email field
-  //      in this form yet)
-  //   2. insert { handle, user_id } into the profiles table — handle
-  //      should have a unique constraint so this can report "handle taken"
-  //   3. return { ok: false, message } on any failure so the form can
-  //      show it inline instead of throwing
-  await new Promise((resolve) => setTimeout(resolve, 600));
+  // TODO: once Cloudflare Turnstile is wired in above, verify the token
+  // server-side (e.g. an API route) before letting this call through.
+
+  const email = `${handle}@${SYNTHETIC_EMAIL_DOMAIN}`;
+
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (signUpError) {
+    if (signUpError.message?.toLowerCase().includes("already registered")) {
+      return { ok: false, message: "That handle is already taken." };
+    }
+    return { ok: false, message: signUpError.message };
+  }
+
+  const userId = data.user?.id;
+  if (!userId) {
+    return {
+      ok: false,
+      message: "Something went wrong creating your account. Try again.",
+    };
+  }
+
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .insert({ id: userId, handle });
+
+  if (profileError) {
+    // 23505 = unique_violation — the handles unique constraint caught a race
+    if (profileError.code === "23505") {
+      return { ok: false, message: "That handle is already taken." };
+    }
+    return { ok: false, message: profileError.message };
+  }
+
   return { ok: true };
 }
