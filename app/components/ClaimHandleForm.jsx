@@ -8,6 +8,34 @@ import "./ClaimHandleForm.css";
 const HANDLE_PATTERN = /^[a-z0-9_-]{3,20}$/;
 const MIN_PASSWORD_LENGTH = 8;
 
+// Password strength meter: 3 bars, scored 0-3.
+// 1 = weak (red), 2 = medium (yellow), 3 = strong (green).
+const STRENGTH_LEVELS = [
+  null,
+  { label: "Weak", color: "#ff5c4d" },
+  { label: "Medium", color: "#ffcc4d" },
+  { label: "Strong", color: "#4ade80" },
+];
+
+function getPasswordStrength(password) {
+  if (!password) return 0;
+
+  let score = 0;
+  const hasLower = /[a-z]/.test(password);
+  const hasUpper = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^a-zA-Z0-9]/.test(password);
+  const variety = [hasLower, hasUpper, hasNumber, hasSymbol].filter(
+    Boolean
+  ).length;
+
+  if (password.length >= MIN_PASSWORD_LENGTH) score++;
+  if (password.length >= 12 && variety >= 2) score++;
+  if (password.length >= 12 && variety >= 3) score++;
+
+  return Math.min(score, 3);
+}
+
 // Handles sign up with just a handle + password (no email field in this
 // form). Supabase auth still needs *something* to sign up with, so we
 // synthesize one from the handle. Swap this out if/when a real email
@@ -17,24 +45,31 @@ const SYNTHETIC_EMAIL_DOMAIN = "users.raided.cc";
 export default function ClaimHandleForm({ onComplete }) {
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
+  const [handleError, setHandleError] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleValid = HANDLE_PATTERN.test(handle);
   const passwordValid = password.length >= MIN_PASSWORD_LENGTH;
   const canSubmit = handleValid && passwordValid && !submitting;
+  const passwordStrength = getPasswordStrength(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
 
     setSubmitting(true);
+    setHandleError(null);
     setError(null);
 
     const result = await claimHandle(handle, password);
 
     if (!result.ok) {
-      setError(result.message);
+      if (result.field === "handle") {
+        setHandleError(result.message);
+      } else {
+        setError(result.message);
+      }
       setSubmitting(false);
       return;
     }
@@ -61,14 +96,18 @@ export default function ClaimHandleForm({ onComplete }) {
             placeholder="yourname"
             maxLength={20}
             value={handle}
-            onChange={(e) =>
+            onChange={(e) => {
               setHandle(
                 e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "")
-              )
-            }
+              );
+              if (handleError) setHandleError(null);
+            }}
             disabled={submitting}
           />
         </div>
+        {handleError ? (
+          <span className="claim-form__error">{handleError}</span>
+        ) : null}
       </div>
 
       <div className="claim-form__field">
@@ -85,6 +124,28 @@ export default function ClaimHandleForm({ onComplete }) {
           onChange={(e) => setPassword(e.target.value)}
           disabled={submitting}
         />
+        {password ? (
+          <div
+            className="claim-form__strength"
+            role="img"
+            aria-label={`Password strength: ${
+              STRENGTH_LEVELS[passwordStrength]?.label ?? "Too short"
+            }`}
+          >
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="claim-form__strength-bar"
+                style={{
+                  background:
+                    i < passwordStrength
+                      ? STRENGTH_LEVELS[passwordStrength].color
+                      : "rgba(255, 255, 255, 0.14)",
+                }}
+              />
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {error ? <span className="claim-form__error">{error}</span> : null}
@@ -133,7 +194,11 @@ async function claimHandle(handle, password) {
 
   if (signUpError) {
     if (signUpError.message?.toLowerCase().includes("already registered")) {
-      return { ok: false, message: "That handle is already taken." };
+      return {
+        ok: false,
+        field: "handle",
+        message: "Username already taken.",
+      };
     }
     return { ok: false, message: signUpError.message };
   }
@@ -153,7 +218,11 @@ async function claimHandle(handle, password) {
   if (profileError) {
     // 23505 = unique_violation — the handles unique constraint caught a race
     if (profileError.code === "23505") {
-      return { ok: false, message: "That handle is already taken." };
+      return {
+        ok: false,
+        field: "handle",
+        message: "Username already taken.",
+      };
     }
     return { ok: false, message: profileError.message };
   }
