@@ -88,6 +88,20 @@
 
 .dash-nav-item__icon {
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  /* Icons are solid black PNGs — invert to white so they read on the
+     dark background, then dim/brighten to mimic the old currentColor
+     secondary/primary swap on hover and active. */
+  filter: brightness(0) invert(1);
+  opacity: 0.65;
+  transition: opacity 0.15s ease;
+}
+
+.dash-nav-item:hover .dash-nav-item__icon,
+.dash-nav-item--active .dash-nav-item__icon {
+  opacity: 1;
 }
 
 .dash-nav-item--active {

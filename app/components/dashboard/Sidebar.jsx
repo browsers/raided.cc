@@ -1,40 +1,56 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import FuzzyText from "../FuzzyText";
+import { supabase } from "../../lib/supabaseClient";
 import "./Sidebar.css";
-import {
-  HomeIcon,
-  UserIcon,
-  PaletteIcon,
-  LinkIcon,
-  EmbedIcon,
-  BadgeIcon,
-  SettingsIcon,
-  ExternalLinkIcon,
-  DiscordIcon,
-} from "./icons";
-
-// TODO: swap for the authenticated user's row from Supabase.
-const CURRENT_USER = {
-  displayName: "vvs",
-  handle: "@x",
-  avatarInitial: "V",
-};
+import { ExternalLinkIcon, DiscordIcon } from "./icons";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: HomeIcon },
-  { href: "/dashboard/profile", label: "Profile", icon: UserIcon },
-  { href: "/dashboard/appearance", label: "Appearance", icon: PaletteIcon },
-  { href: "/dashboard/links", label: "Links", icon: LinkIcon },
-  { href: "/dashboard/embed", label: "Embed", icon: EmbedIcon },
-  { href: "/dashboard/badges", label: "Badges", icon: BadgeIcon },
-  { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon },
+  { href: "/dashboard", label: "Overview", icon: "/icons/overview.png" },
+  { href: "/dashboard/profile", label: "Profile", icon: "/icons/profile.png" },
+  { href: "/dashboard/appearance", label: "Appearance", icon: "/icons/appearance.png" },
+  { href: "/dashboard/links", label: "Links", icon: "/icons/links.png" },
+  { href: "/dashboard/embed", label: "Embed", icon: "/icons/embed.png" },
+  { href: "/dashboard/badges", label: "Badges", icon: "/icons/badges.png" },
+  { href: "/dashboard/settings", label: "Settings", icon: "/icons/settings.png" },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("handle")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (cancelled || error || !profile) return;
+
+      setCurrentUser({
+        displayName: profile.handle,
+        handle: `@${profile.handle}`,
+        avatarInitial: profile.handle.charAt(0).toUpperCase(),
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <aside className="dash-sidebar">
@@ -43,7 +59,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="dash-sidebar__nav">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.map(({ href, label, icon }) => {
           const active = pathname === href;
           return (
             <Link
@@ -51,7 +67,7 @@ export default function Sidebar() {
               href={href}
               className={`dash-nav-item${active ? " dash-nav-item--active" : ""}`}
             >
-              <Icon className="dash-nav-item__icon" />
+              <img src={icon} alt="" className="dash-nav-item__icon" />
               <span>{label}</span>
             </Link>
           );
@@ -72,14 +88,14 @@ export default function Sidebar() {
 
         <div className="dash-account-card">
           <div className="dash-account-card__avatar">
-            {CURRENT_USER.avatarInitial}
+            {currentUser?.avatarInitial ?? ""}
           </div>
           <div className="dash-account-card__meta">
             <span className="dash-account-card__name">
-              {CURRENT_USER.displayName}
+              {currentUser?.displayName ?? "…"}
             </span>
             <span className="dash-account-card__handle">
-              {CURRENT_USER.handle}
+              {currentUser?.handle ?? ""}
             </span>
           </div>
           <ExternalLinkIcon className="dash-account-card__action" />
