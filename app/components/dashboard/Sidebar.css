@@ -114,9 +114,8 @@
   color: var(--dash-text-primary);
   background: linear-gradient(
     90deg,
-    rgba(0, 229, 255, 0.18),
-    rgba(0, 229, 255, 0.05) 45%,
-    transparent 70%
+    rgba(0, 229, 255, 0.16),
+    rgba(0, 229, 255, 0.05)
   );
   box-shadow: inset 2px 0 0 var(--dash-accent);
 }
@@ -124,9 +123,8 @@
 .dash-nav-item--active:hover {
   background: linear-gradient(
     90deg,
-    rgba(0, 229, 255, 0.24),
-    rgba(0, 229, 255, 0.08) 45%,
-    transparent 70%
+    rgba(0, 229, 255, 0.22),
+    rgba(0, 229, 255, 0.08)
   );
 }
 
