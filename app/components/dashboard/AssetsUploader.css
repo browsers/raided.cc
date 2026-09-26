@@ -159,6 +159,24 @@
   color: var(--dash-text-tertiary);
 }
 
+.asset-tile__hint--saving {
+  color: var(--dash-accent);
+}
+
+.asset-tile__hint--error {
+  color: #ff6b6b;
+}
+
+.asset-tile--filled .asset-tile__hint--saving {
+  color: var(--dash-accent);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.asset-tile--filled .asset-tile__hint--error {
+  color: #ff8a8a;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
 /* Wallpaper / Color segmented toggle, sits in the Background tile's
    corner in place of the static file-type badge. */
 .asset-tile__toggle {
