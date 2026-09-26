@@ -177,7 +177,11 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
         {hasBadges ? (
           <div className="public-profile-card__badges">
             {badges.map((badge) => (
-              <span key={badge.id} className="public-profile-card__badge" title={badge.label}>
+              <span
+                key={badge.id}
+                className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                title={badge.label}
+              >
                 <img src={badge.icon} alt={badge.label ?? ""} />
               </span>
             ))}

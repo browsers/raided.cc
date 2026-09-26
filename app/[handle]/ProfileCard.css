@@ -98,6 +98,11 @@
   display: block;
 }
 
+.public-profile-card__badge--owner {
+  width: 30px;
+  height: 30px;
+}
+
 .public-profile-card__bio {
   margin-top: 16px;
   font-size: 17px;
