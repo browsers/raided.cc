@@ -90,6 +90,17 @@
   justify-content: center;
   width: 26px;
   height: 26px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.public-profile-card__badge:hover {
+  transform: translateY(-3px) scale(1.12);
+}
+
+.public-profile-card__badge:active {
+  transform: translateY(-1px) scale(0.9);
+  transition: transform 0.08s ease;
 }
 
 .public-profile-card__badge img {
