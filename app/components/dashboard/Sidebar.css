@@ -49,10 +49,14 @@
 }
 
 .dash-brand-mark__rule {
-  width: 64px;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--dash-accent);
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
 }
 
 .dash-sidebar__nav {
