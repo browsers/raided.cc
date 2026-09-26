@@ -82,11 +82,13 @@ function useTypewriter(lines, active) {
   return text;
 }
 
-export default function ProfileCard({ profile, bioLines }) {
+// badges: [{ id, icon (image url), label (alt/tooltip) }, ...]
+// Not wired to a data source yet — dashboard/badges is still "coming soon" —
+// so this always renders empty for now. Pass real data in once that's built.
+export default function ProfileCard({ profile, bioLines, badges = [] }) {
   const {
     handle,
     display_name: displayName,
-    avatar_url: avatarUrl,
     background_url: backgroundUrl,
     background_type: backgroundType,
     background_color: backgroundColor,
@@ -104,6 +106,7 @@ export default function ProfileCard({ profile, bioLines }) {
 
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
+  const hasBadges = badges.length > 0;
 
   const bio =
     lines.length > 0 ? (
@@ -148,29 +151,26 @@ export default function ProfileCard({ profile, bioLines }) {
       {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
       <div className="public-profile-card">
-        <div className="public-profile-card__header">
-          <div className="public-profile-card__avatar">
-            {avatarUrl ? (
-              <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
-            ) : (
-              <img
-                className="public-profile-card__avatar-icon"
-                src="/icons/profile.png"
-                alt=""
-              />
-            )}
-          </div>
+        <h1
+          className="public-profile-card__name"
+          style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
+        >
+          {name}
+        </h1>
 
-          <div className="public-profile-card__info">
-            <h1
-              className="public-profile-card__name"
-              style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
-            >
-              {name}
-            </h1>
-            {bio}
+        {hasBadges ? (
+          <div className="public-profile-card__badges">
+            {badges.map((badge) => (
+              <span key={badge.id} className="public-profile-card__badge" title={badge.label}>
+                <img src={badge.icon} alt={badge.label ?? ""} />
+              </span>
+            ))}
           </div>
-        </div>
+        ) : null}
+
+        {bio}
+
+        {/* Links go here once that section is built. */}
       </div>
     </main>
   );
