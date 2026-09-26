@@ -85,6 +85,13 @@ function useTypewriter(lines, active) {
 // badges: [{ id, icon (image url), label (alt/tooltip) }, ...]
 // Passed in from page.tsx, already filtered to this profile's enabled
 // badges and mapped through the shared badge catalog.
+/**
+ * @param {{
+ *   profile: any,
+ *   bioLines?: { line: string }[],
+ *   badges?: { id: string, icon: string, label?: string }[],
+ * }} props
+ */
 export default function ProfileCard({ profile, bioLines, badges = [] }) {
   const {
     handle,
