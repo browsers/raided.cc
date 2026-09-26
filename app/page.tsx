@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import CodeSlots from "./components/CodeSlots";
 import SpecularButton from "./components/SpecularButton";
@@ -13,12 +14,12 @@ import { supabase } from "./lib/supabaseClient";
 // out and the claim-handle step takes over.
 const REDIRECT_DELAY = 1200;
 
-// How long the redirect card stays up. Nothing happens when this
-// fires yet — wire in the real navigation (e.g. router.push) here
-// once there's somewhere to send people.
+// How long the redirect card stays up before sending the user to
+// their dashboard.
 const REDIRECT_DURATION = 5000;
 
 export default function Home() {
+  const router = useRouter();
   const [status, setStatus] = useState("idle");
   // 'code' -> entering the invite code
   // 'claim' -> claiming a handle + password (post Cloudflare Turnstile + Supabase)
@@ -46,11 +47,10 @@ export default function Home() {
   useEffect(() => {
     if (step !== "redirect") return;
     afterRedirectTimer.current = setTimeout(() => {
-      // TODO: actually redirect once there's a destination, e.g.
-      // window.location.href = "https://...";
+      router.push("/dashboard");
     }, REDIRECT_DURATION);
     return () => clearTimeout(afterRedirectTimer.current);
-  }, [step]);
+  }, [step, router]);
 
   useEffect(() => {
     return () => {
