@@ -181,8 +181,6 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
                 key={badge.id}
                 className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
                 data-tooltip={badge.label}
-                role="button"
-                tabIndex={0}
               >
                 <img src={badge.icon} alt={badge.label ?? ""} />
               </span>
