@@ -40,12 +40,12 @@ export default async function PublicProfilePage({
       .eq("enabled", true),
   ]);
 
-  const badges = (badgeRows ?? [])
+  const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
     .map((row) => {
       const meta = getBadgeMeta(row.badge_key);
       return meta ? { id: row.badge_key, icon: meta.icon, label: meta.label } : null;
     })
-    .filter(Boolean);
+    .filter((b): b is { id: string; icon: string; label: string } => b !== null);
 
   return <ProfileCard profile={profile} bioLines={bioLines ?? []} badges={badges} />;
 }
