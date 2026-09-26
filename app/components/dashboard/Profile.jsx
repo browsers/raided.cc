@@ -3,6 +3,7 @@
 import TopBar from "./TopBar";
 import Card from "./Card";
 import AssetsUploader from "./AssetsUploader";
+import Identity from "./Identity";
 import "./Profile.css";
 
 export default function Profile() {
@@ -17,7 +18,11 @@ export default function Profile() {
           <AssetsUploader />
         </Card>
 
-        {/* Identity + Bio sections go here next. */}
+        <Card className="dash-profile-section">
+          <div className="dash-card__eyebrow">IDENTITY</div>
+          <h3 className="dash-profile-section__title">Identity</h3>
+          <Identity />
+        </Card>
       </div>
     </div>
   );
