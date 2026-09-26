@@ -5,7 +5,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding: 12vh 20px 32px;
+  padding: 20vh 20px 32px;
   overflow: hidden;
   /* Default page background until a wallpaper/color is set. */
   background: #0a0a0b;
