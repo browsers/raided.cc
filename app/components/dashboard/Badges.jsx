@@ -2,20 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { BADGE_CATALOG } from "../../lib/badgeCatalog";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Badges.css";
 
-// Badge catalog. Icons live at /public/badges/<key>.png — rename the paths
-// below if your files end up named differently.
-const BADGE_CATALOG = [
-  { key: "owner", label: "Owner", icon: "/badges/owner.png" },
-  { key: "staff", label: "Staff", icon: "/badges/staff.png" },
-  { key: "partner", label: "Partner", icon: "/badges/partner.png" },
-  { key: "bug-hunter", label: "Bug Hunter", icon: "/badges/bug-hunter.png" },
-  { key: "verified", label: "Verified", icon: "/badges/verified.png" },
-  { key: "developer", label: "Developer", icon: "/badges/developer.png" },
-];
 
 // Badges are granted by SQL only — see the migration for the
 // profile_badges table. There is no self-serve "earn a badge" flow, and

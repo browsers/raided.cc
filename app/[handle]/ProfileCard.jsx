@@ -83,8 +83,8 @@ function useTypewriter(lines, active) {
 }
 
 // badges: [{ id, icon (image url), label (alt/tooltip) }, ...]
-// Not wired to a data source yet — dashboard/badges is still "coming soon" —
-// so this always renders empty for now. Pass real data in once that's built.
+// Passed in from page.tsx, already filtered to this profile's enabled
+// badges and mapped through the shared badge catalog.
 export default function ProfileCard({ profile, bioLines, badges = [] }) {
   const {
     handle,
