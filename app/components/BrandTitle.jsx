@@ -1,6 +1,7 @@
 "use client";
 
 import FuzzyText from "./FuzzyText";
+import InfoButton from "./InfoButton";
 import "./BrandTitle.css";
 
 // Font size for the entire brand title
@@ -36,6 +37,10 @@ export default function BrandTitle({ fontSize = FONT_SIZE }) {
       >
         .cc
       </FuzzyText>
+
+      <div className="brand-title__info">
+        <InfoButton />
+      </div>
     </div>
   );
 }
