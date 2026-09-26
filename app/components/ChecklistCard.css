@@ -1,0 +1,50 @@
+.dash-checklist__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  margin-bottom: 6px;
+}
+
+.dash-checklist__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-checklist__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--dash-border);
+}
+
+.dash-checklist__item:last-child {
+  border-bottom: none;
+}
+
+.dash-checklist__icon {
+  color: var(--dash-text-tertiary);
+  flex-shrink: 0;
+}
+
+.dash-checklist__label {
+  font-size: 13.5px;
+  color: var(--dash-text-primary);
+  flex: 1;
+}
+
+.dash-checklist__status {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--dash-text-tertiary);
+  flex-shrink: 0;
+}
+
+.dash-checklist__status--done {
+  border-color: var(--dash-success);
+  background: var(--dash-success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+}
