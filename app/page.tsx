@@ -5,10 +5,11 @@ import { AnimatePresence, motion } from "motion/react";
 import CodeSlots from "./components/CodeSlots";
 import SpecularButton from "./components/SpecularButton";
 import BrandTitle from "./components/BrandTitle";
+import ClaimHandleForm from "./components/ClaimHandleForm";
 import RedirectCard from "./components/RedirectCard";
 
-// How long to let the checkmark sit on screen before the whole form
-// fades out and the redirect card takes over.
+// How long to let the checkmark sit on screen before the code step fades
+// out and the claim-handle step takes over.
 const REDIRECT_DELAY = 1200;
 
 // How long the redirect card stays up. Nothing happens when this
@@ -18,8 +19,11 @@ const REDIRECT_DURATION = 5000;
 
 export default function Home() {
   const [status, setStatus] = useState("idle");
-  const [redirecting, setRedirecting] = useState(false);
-  const toRedirectTimer = useRef<ReturnType<typeof setTimeout>>();
+  // 'code' -> entering the invite code
+  // 'claim' -> claiming a handle + password (post Cloudflare Turnstile + Supabase)
+  // 'redirect' -> account created, showing the redirect card
+  const [step, setStep] = useState("code");
+  const toClaimTimer = useRef<ReturnType<typeof setTimeout>>();
   const afterRedirectTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const handleComplete = async (code: string) => {
@@ -28,24 +32,28 @@ export default function Home() {
     setStatus(ok ? "success" : "error");
 
     if (ok) {
-      toRedirectTimer.current = setTimeout(() => {
-        setRedirecting(true);
+      toClaimTimer.current = setTimeout(() => {
+        setStep("claim");
       }, REDIRECT_DELAY);
     }
   };
 
+  const handleClaimed = () => {
+    setStep("redirect");
+  };
+
   useEffect(() => {
-    if (!redirecting) return;
+    if (step !== "redirect") return;
     afterRedirectTimer.current = setTimeout(() => {
       // TODO: actually redirect once there's a destination, e.g.
       // window.location.href = "https://...";
     }, REDIRECT_DURATION);
     return () => clearTimeout(afterRedirectTimer.current);
-  }, [redirecting]);
+  }, [step]);
 
   useEffect(() => {
     return () => {
-      clearTimeout(toRedirectTimer.current);
+      clearTimeout(toClaimTimer.current);
       clearTimeout(afterRedirectTimer.current);
     };
   }, []);
@@ -66,7 +74,7 @@ export default function Home() {
       </div>
       <div className="center-content">
         <AnimatePresence mode="wait">
-          {!redirecting ? (
+          {step === "code" ? (
             <motion.div
               key="form"
               className="auth-stack"
@@ -111,6 +119,20 @@ export default function Home() {
               >
                 Request access
               </SpecularButton>
+            </motion.div>
+          ) : step === "claim" ? (
+            <motion.div
+              key="claim"
+              className="auth-stack"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <BrandTitle fontSize={26} />
+              <div style={{ marginTop: 40 }}>
+                <ClaimHandleForm onComplete={handleClaimed} />
+              </div>
             </motion.div>
           ) : (
             <motion.div
