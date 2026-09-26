@@ -1,5 +1,31 @@
-import ComingSoon from "../components/dashboard/ComingSoon";
+"use client";
 
-export default function DashboardOverviewPage() {
-  return <ComingSoon label="Coming soon" />;
+import { useState } from "react";
+import Sidebar from "../components/dashboard/Sidebar";
+import ComingSoon from "../components/dashboard/ComingSoon";
+import "./dashboard.css";
+
+// Sidebar items are tabs, not routes — switching one just swaps what
+// renders here, the URL always stays at /dashboard.
+const TAB_CONTENT: Record<string, React.ReactNode> = {
+  overview: <ComingSoon label="Coming soon" />,
+  profile: <ComingSoon label="Coming soon" />,
+  appearance: <ComingSoon label="Coming soon" />,
+  links: <ComingSoon label="Coming soon" />,
+  embed: <ComingSoon label="Coming soon" />,
+  badges: <ComingSoon label="Coming soon" />,
+  settings: <ComingSoon label="Coming soon" />,
+};
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  return (
+    <div className="dash-shell">
+      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <main className="dash-content">
+        {TAB_CONTENT[activeTab] ?? TAB_CONTENT.overview}
+      </main>
+    </div>
+  );
 }

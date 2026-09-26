@@ -1,25 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
 import FuzzyText from "../FuzzyText";
 import { supabase } from "../../lib/supabaseClient";
 import "./Sidebar.css";
 import { ExternalLinkIcon, DiscordIcon } from "./icons";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: "/icons/overview.png" },
-  { href: "/dashboard/profile", label: "Profile", icon: "/icons/profile.png" },
-  { href: "/dashboard/appearance", label: "Appearance", icon: "/icons/appearance.png" },
-  { href: "/dashboard/links", label: "Links", icon: "/icons/links.png" },
-  { href: "/dashboard/embed", label: "Embed", icon: "/icons/embed.png" },
-  { href: "/dashboard/badges", label: "Badges", icon: "/icons/badges.png" },
-  { href: "/dashboard/settings", label: "Settings", icon: "/icons/settings.png" },
+  { key: "overview", label: "Overview", icon: "/icons/overview.png" },
+  { key: "profile", label: "Profile", icon: "/icons/profile.png" },
+  { key: "appearance", label: "Appearance", icon: "/icons/appearance.png" },
+  { key: "links", label: "Links", icon: "/icons/links.png" },
+  { key: "embed", label: "Embed", icon: "/icons/embed.png" },
+  { key: "badges", label: "Badges", icon: "/icons/badges.png" },
+  { key: "settings", label: "Settings", icon: "/icons/settings.png" },
 ];
 
-export default function Sidebar() {
-  const pathname = usePathname();
+export default function Sidebar({ activeTab, onSelectTab }) {
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
@@ -59,17 +56,18 @@ export default function Sidebar() {
       </div>
 
       <nav className="dash-sidebar__nav">
-        {NAV_ITEMS.map(({ href, label, icon }) => {
-          const active = pathname === href;
+        {NAV_ITEMS.map(({ key, label, icon }) => {
+          const active = activeTab === key;
           return (
-            <Link
-              key={href}
-              href={href}
+            <button
+              key={key}
+              type="button"
+              onClick={() => onSelectTab?.(key)}
               className={`dash-nav-item${active ? " dash-nav-item--active" : ""}`}
             >
               <img src={icon} alt="" className="dash-nav-item__icon" />
               <span>{label}</span>
-            </Link>
+            </button>
           );
         })}
       </nav>

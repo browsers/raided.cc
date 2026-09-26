@@ -1,6 +1,3 @@
-import Sidebar from "../components/dashboard/Sidebar";
-import "./dashboard.css";
-
 export const metadata = {
   title: "Dashboard / raided.cc",
 };
@@ -10,10 +7,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="dash-shell">
-      <Sidebar />
-      <main className="dash-content">{children}</main>
-    </div>
-  );
+  // Just metadata + passthrough now — the sidebar/content shell lives in
+  // page.tsx so nav switches can swap content without changing routes.
+  return <>{children}</>;
 }
