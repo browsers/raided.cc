@@ -1,7 +1,8 @@
-/* One outer frame holding the topbar + every card row, sized to exactly
-   fill the space next to the sidebar (so it matches the sidebar's height)
-   and never scrolls — the rows below share out whatever height is left
-   after the topbar and the welcome/stats rows take their natural size. */
+/* One outer frame holding the topbar + every card row. flex:1 + min-height:0
+   makes it exactly fill the space next to the sidebar, so its top AND
+   bottom edges always line up with the sidebar's — regardless of how much
+   content is inside. overflow:hidden here means the SHELL itself never
+   grows and never causes the page to scroll. */
 .dash-overview-shell {
   flex: 1;
   min-height: 0;
@@ -14,18 +15,39 @@
   overflow: hidden;
 }
 
+/* The top bar keeps its natural size and never shrinks or scrolls away —
+   only the body below it (dash-overview-body) scrolls. */
+.dash-overview-shell > .dash-topbar {
+  flex: 0 0 auto;
+}
+
 .dash-overview-body {
   flex: 1;
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
+  /* Small gutter so the scrollbar doesn't sit flush against the cards. */
+  padding-right: 6px;
+  margin-right: -6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
 
-/* Last row (chart + checklist) gets whatever space is left, and its two
-   cards stretch to fill that row's full height evenly. */
+.dash-overview-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dash-overview-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+}
+
+/* Chart + checklist row: let the two cards match each other's height
+   (whichever is taller) instead of each sizing independently. */
 .dash-bottom-row.dash-overview-body__bottom {
-  min-height: 0;
   align-items: stretch;
 }
 
