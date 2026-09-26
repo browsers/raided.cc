@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FuzzyText from "../FuzzyText";
 import { supabase } from "../../lib/supabaseClient";
+import { onDisplayNameChange } from "../../lib/profileBus";
 import "./Sidebar.css";
 import { ExternalLinkIcon, DiscordIcon } from "./icons";
 
@@ -59,14 +60,15 @@ export default function Sidebar({ activeTab, onSelectTab }) {
 
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("handle, avatar_url")
+        .select("handle, avatar_url, display_name")
         .eq("id", user.id)
         .maybeSingle();
 
       if (cancelled || error || !profile) return;
 
       setCurrentUser({
-        displayName: profile.handle,
+        // Falls back to the handle until a display name is set.
+        displayName: profile.display_name?.trim() || profile.handle,
         handle: `@${profile.handle}`,
         avatarUrl: profile.avatar_url ?? null,
       });
@@ -75,6 +77,16 @@ export default function Sidebar({ activeTab, onSelectTab }) {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Live-update the name shown here as soon as it's edited in the
+  // Profile tab's Identity section, without waiting for a refetch.
+  useEffect(() => {
+    return onDisplayNameChange((name) => {
+      setCurrentUser((prev) =>
+        prev ? { ...prev, displayName: name.trim() || prev.handle.slice(1) } : prev
+      );
+    });
   }, []);
 
   return (

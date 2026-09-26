@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { emitDisplayNameChange } from "../../lib/profileBus";
 import { PaletteIcon } from "./icons";
 import "./Identity.css";
 
@@ -121,6 +122,9 @@ export default function Identity() {
   // --- Display name (debounced save while typing) -----------------------
   function handleNameChange(value) {
     setDisplayName(value);
+    // Update anywhere else the name shows (e.g. the Sidebar account card)
+    // immediately, ahead of the debounced save below.
+    emitDisplayNameChange(value);
     if (!userId) return;
     setNameStatus("saving");
     clearTimeout(nameSaveTimer.current);
