@@ -2,10 +2,16 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  /* Match the CodeSlots box height (slotSize={36} in page.tsx) so the
+     icon centers exactly against the slots instead of drifting off
+     the flex row's own baseline. */
+  height: 36px;
   cursor: default;
 }
 
 .info-button__icon {
+  display: block;
   width: 16px;
   height: 16px;
   object-fit: contain;
