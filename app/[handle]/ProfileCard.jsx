@@ -1,193 +1,136 @@
-"use client";
-
-import { useEffect, useRef, useState } from "react";
-import "./ProfileCard.css";
-
-const GLOW_SHADOWS = {
-  off: "none",
-  low: (c) => `0 0 6px ${c}`,
-  mid: (c) => `0 0 6px ${c}, 0 0 16px ${c}`,
-  high: (c) => `0 0 8px ${c}, 0 0 20px ${c}, 0 0 40px ${c}`,
-};
-
-function glowTextShadow(style, color) {
-  const fn = GLOW_SHADOWS[style] ?? GLOW_SHADOWS.mid;
-  return typeof fn === "function" ? fn(color || "#ffffff") : fn;
+.public-profile-page {
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20vh 20px 32px;
+  overflow: hidden;
+  /* Default page background until a wallpaper/color is set. */
+  background: #0a0a0b;
 }
 
-function isVideoUrl(url) {
-  if (!url) return false;
-  return /\.(mp4|webm|mov)$/i.test(url.split("?")[0]);
+.public-profile-page__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
 }
 
-// Cycles through bio lines one at a time, typing each one out and
-// deleting it before moving to the next. Pure client-side timer loop —
-// no external deps needed for something this small.
-function useTypewriter(lines, active) {
-  const [text, setText] = useState("");
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    if (!active || lines.length === 0) {
-      setText("");
-      return;
-    }
-
-    let lineIndex = 0;
-    let charIndex = 0;
-    let phase = "typing"; // "typing" | "holding" | "deleting"
-
-    const TYPE_MS = 45;
-    const DELETE_MS = 25;
-    const HOLD_MS = 1400;
-    const GAP_MS = 300;
-
-    function tick() {
-      const line = lines[lineIndex] ?? "";
-
-      if (phase === "typing") {
-        charIndex += 1;
-        setText(line.slice(0, charIndex));
-        if (charIndex >= line.length) {
-          phase = "holding";
-          timerRef.current = setTimeout(tick, HOLD_MS);
-        } else {
-          timerRef.current = setTimeout(tick, TYPE_MS);
-        }
-        return;
-      }
-
-      if (phase === "holding") {
-        phase = "deleting";
-        timerRef.current = setTimeout(tick, DELETE_MS);
-        return;
-      }
-
-      // deleting
-      charIndex -= 1;
-      setText(line.slice(0, charIndex));
-      if (charIndex <= 0) {
-        lineIndex = (lineIndex + 1) % lines.length;
-        phase = "typing";
-        timerRef.current = setTimeout(tick, GAP_MS);
-      } else {
-        timerRef.current = setTimeout(tick, DELETE_MS);
-      }
-    }
-
-    timerRef.current = setTimeout(tick, GAP_MS);
-    return () => clearTimeout(timerRef.current);
-  }, [lines, active]);
-
-  return text;
+.public-profile-page__bg-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-// badges: [{ id, icon (image url), label (alt/tooltip) }, ...]
-// Passed in from page.tsx, already filtered to this profile's enabled
-// badges and mapped through the shared badge catalog.
-/**
- * @param {{
- *   profile: any,
- *   bioLines?: { line: string }[],
- *   badges?: { id: string, icon: string, label?: string }[],
- * }} props
- */
-export default function ProfileCard({ profile, bioLines, badges = [] }) {
-  const {
-    handle,
-    display_name: displayName,
-    avatar_url: avatarUrl,
-    background_url: backgroundUrl,
-    background_type: backgroundType,
-    background_color: backgroundColor,
-    glow_color: glowColor,
-    glow_style: glowStyle,
-    font,
-    // TODO: profile.avatar_disabled (or similar) once that toggle exists —
-    // reference has a "disable pfp" setting we haven't built yet.
-  } = profile;
+.public-profile-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  /* No box, no background — floats straight over the wallpaper. */
+}
 
-  const lines = (bioLines ?? []).map((l) => l.line).filter(Boolean);
-  const isTypewriter = profile.bio_mode !== "static";
-  const typedText = useTypewriter(lines, isTypewriter && lines.length > 0);
+.public-profile-card__avatar {
+  width: 152px;
+  height: 152px;
+  flex-shrink: 0;
+  border-radius: 30px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background: #1c1c1f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
 
-  const name = displayName?.trim() || handle;
-  const fontFamily = font ? `"${font}", var(--font-sans), sans-serif` : undefined;
+.public-profile-card__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
-  const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
-  const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
-  const hasBadges = badges.length > 0;
+.public-profile-card__name {
+  font-size: 38px;
+  font-weight: 800;
+  color: #f5f5f5;
+  line-height: 1.15;
+  word-break: break-word;
+  letter-spacing: 0.01em;
+}
 
-  const bio =
-    lines.length > 0 ? (
-      isTypewriter ? (
-        <div className="public-profile-card__bio" style={{ fontFamily }}>
-          {typedText}
-          <span className="public-profile-card__caret" />
-        </div>
-      ) : (
-        <div
-          className="public-profile-card__bio public-profile-card__bio--static"
-          style={{ fontFamily }}
-        >
-          {lines.map((line, i) => (
-            <div key={i} className="public-profile-card__bio-line">
-              {line}
-            </div>
-          ))}
-        </div>
-      )
-    ) : null;
+.public-profile-card__badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
 
-  return (
-    <main
-      className="public-profile-page"
-      style={hasColorBg ? { background: backgroundColor } : undefined}
-    >
-      {hasWallpaper ? (
-        isVideoUrl(backgroundUrl) ? (
-          <video
-            className="public-profile-page__bg"
-            src={backgroundUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
-        ) : (
-          <img className="public-profile-page__bg" src={backgroundUrl} alt="" />
-        )
-      ) : null}
-      {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
+.public-profile-card__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
 
-      <div className="public-profile-card">
-        {avatarUrl ? (
-          <div className="public-profile-card__avatar">
-            <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
-          </div>
-        ) : null}
+.public-profile-card__badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 
-        <h1
-          className="public-profile-card__name"
-          style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
-        >
-          {name}
-        </h1>
+.public-profile-card__bio {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.5;
+  color: rgba(245, 245, 245, 0.7);
+  min-height: 22px;
+}
 
-        {hasBadges ? (
-          <div className="public-profile-card__badges">
-            {badges.map((badge) => (
-              <span key={badge.id} className="public-profile-card__badge" title={badge.label}>
-                <img src={badge.icon} alt={badge.label ?? ""} />
-              </span>
-            ))}
-          </div>
-        ) : null}
+.public-profile-card__bio-line {
+  margin-bottom: 2px;
+}
 
-        {bio}
+.public-profile-card__bio-line:last-child {
+  margin-bottom: 0;
+}
 
-        {/* Links go here once that section is built. */}
-      </div>
-    </main>
-  );
+.public-profile-card__caret {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  margin-left: 2px;
+  vertical-align: -1px;
+  background: rgba(245, 245, 245, 0.6);
+  animation: profile-caret-blink 1s step-end infinite;
+}
+
+@keyframes profile-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
