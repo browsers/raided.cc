@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import FuzzyText from "../FuzzyText";
 import { supabase } from "../../lib/supabaseClient";
 import "./Sidebar.css";
@@ -18,6 +18,34 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ activeTab, onSelectTab }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const navRef = useRef(null);
+  const itemRefs = useRef({});
+  const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
+
+  // Measure the active button's position relative to the nav container
+  // so the sliding indicator can animate to it. Re-runs whenever the
+  // active tab changes, and once more on resize in case row height
+  // ever varies (e.g. wrapped labels on a narrower sidebar).
+  useLayoutEffect(() => {
+    const measure = () => {
+      const navEl = navRef.current;
+      const activeEl = itemRefs.current[activeTab];
+      if (!navEl || !activeEl) return;
+
+      const navRect = navEl.getBoundingClientRect();
+      const itemRect = activeEl.getBoundingClientRect();
+
+      setIndicator({
+        top: itemRect.top - navRect.top,
+        height: itemRect.height,
+        ready: true,
+      });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [activeTab]);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,13 +83,24 @@ export default function Sidebar({ activeTab, onSelectTab }) {
         <BrandMark />
       </div>
 
-      <nav className="dash-sidebar__nav">
+      <nav className="dash-sidebar__nav" ref={navRef}>
+        <div
+          className="dash-nav-indicator"
+          style={{
+            transform: `translateY(${indicator.top}px)`,
+            height: indicator.height,
+            opacity: indicator.ready ? 1 : 0,
+          }}
+        />
         {NAV_ITEMS.map(({ key, label, icon }) => {
           const active = activeTab === key;
           return (
             <button
               key={key}
               type="button"
+              ref={(el) => {
+                itemRefs.current[key] = el;
+              }}
               onClick={() => onSelectTab?.(key)}
               className={`dash-nav-item${active ? " dash-nav-item--active" : ""}`}
             >
