@@ -59,7 +59,7 @@ export default function Sidebar({ activeTab, onSelectTab }) {
 
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("handle")
+        .select("handle, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -68,7 +68,7 @@ export default function Sidebar({ activeTab, onSelectTab }) {
       setCurrentUser({
         displayName: profile.handle,
         handle: `@${profile.handle}`,
-        avatarInitial: profile.handle.charAt(0).toUpperCase(),
+        avatarUrl: profile.avatar_url ?? null,
       });
     })();
 
@@ -125,7 +125,19 @@ export default function Sidebar({ activeTab, onSelectTab }) {
 
         <div className="dash-account-card">
           <div className="dash-account-card__avatar">
-            {currentUser?.avatarInitial ?? ""}
+            {currentUser?.avatarUrl ? (
+              <img
+                src={currentUser.avatarUrl}
+                alt=""
+                className="dash-account-card__avatar-img"
+              />
+            ) : (
+              <img
+                src="/icons/profile.png"
+                alt=""
+                className="dash-account-card__avatar-icon"
+              />
+            )}
           </div>
           <div className="dash-account-card__meta">
             <span className="dash-account-card__name">
