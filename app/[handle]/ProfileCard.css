@@ -84,6 +84,7 @@
 }
 
 .public-profile-card__badge {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,6 +97,48 @@
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+.public-profile-card__badge::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(20, 20, 20, 0.92);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 7px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  z-index: 3;
+}
+
+.public-profile-card__badge::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border: 5px solid transparent;
+  border-top-color: rgba(20, 20, 20, 0.92);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 3;
+}
+
+.public-profile-card__badge:hover::after,
+.public-profile-card__badge:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 .public-profile-card__bio {

@@ -180,7 +180,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
               <span
                 key={badge.id}
                 className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
-                title={badge.label}
+                data-tooltip={badge.label}
               >
                 <img src={badge.icon} alt={badge.label ?? ""} />
               </span>
