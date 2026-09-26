@@ -447,8 +447,9 @@ export default function CodeSlots({
           <motion.span className="code-slots__check" style={{ transform: checkTransform, opacity: checkOpacity }}>
             <HugeiconsIcon
               icon={washKind === 'error' ? Cancel01Icon : Tick02Icon}
-              size={Math.round(slotSize * 0.6)}
-              strokeWidth={2.2}
+              size={Math.round(slotSize * 0.85)}
+              strokeWidth={3}
+              color={washKind === 'error' ? '#ffffff' : '#18181b'}
             />
           </motion.span>
         </motion.span>
