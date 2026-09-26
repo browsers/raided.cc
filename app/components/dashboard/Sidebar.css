@@ -120,6 +120,14 @@
   box-shadow: inset 2px 0 0 var(--dash-accent);
 }
 
+.dash-nav-item--active:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 229, 255, 0.22),
+    rgba(0, 229, 255, 0.08)
+  );
+}
+
 .dash-sidebar__footer {
   display: flex;
   flex-direction: column;
