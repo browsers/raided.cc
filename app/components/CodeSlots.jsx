@@ -8,14 +8,14 @@ import { Tick02Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 import './CodeSlots.css';
 
 const EASE_OUT = [0.23, 1, 0.32, 1];
-const WASH_IN = 0.3;
-const WASH_OUT = 0.2;
+const WASH_IN = 0.55;
+const WASH_OUT = 0.4;
 const SINK_DELAY = 0.06;
 const SINK_STEP = 0.03;
-const CHECK_DELAY = 0.28;
+const CHECK_DELAY = 0.5;
 const CHECK_RISE = 8;
 const SINK_FADE = 0.6;
-const ERROR_HOLD = 900;
+const ERROR_HOLD = 2200;
 
 const clamp01 = v => Math.min(1, Math.max(0, v));
 const digitsOf = raw => String(raw ?? '').replace(/\D/g, '');
@@ -297,7 +297,7 @@ export default function CodeSlots({
     const was = statusRef.current;
     const L = live.current;
     const closeWash = delay => {
-      animate(checkMv, 0, { duration: 0.15, ease: EASE_OUT });
+      animate(checkMv, 0, { duration: 0.25, ease: EASE_OUT });
       animate(openMv, 0, { duration: WASH_OUT, ease: EASE_OUT, delay }).then(() => {
         if (openMv.get() === 0) setVeiled(false);
       });
@@ -327,7 +327,7 @@ export default function CodeSlots({
           animate(d, 1, { type: 'spring', duration: 0.3, bounce: 0, delay: SINK_DELAY + k * SINK_STEP })
         );
       }
-      animate(checkMv, 1, { type: 'spring', duration: 0.35, bounce: L.bounce, delay: CHECK_DELAY });
+      animate(checkMv, 1, { type: 'spring', duration: 0.5, bounce: L.bounce, delay: CHECK_DELAY });
       if (isError) {
         errorCloseTimer.current = setTimeout(() => closeWash(0), ERROR_HOLD);
       }
