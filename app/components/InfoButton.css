@@ -1,12 +1,13 @@
 .info-button-wrap {
   position: relative;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  /* Match the CodeSlots box height (slotSize={36} in page.tsx) so the
-     icon centers exactly against the slots instead of drifting off
-     the flex row's own baseline. */
-  height: 36px;
+  /* Stretch to the full height of the row (matching whatever height
+     CodeSlots actually renders at) instead of guessing a fixed px
+     value, then center the icon inside that — keeps it dead-center
+     against the slots no matter their real rendered height. */
+  align-self: stretch;
   cursor: default;
 }
 
