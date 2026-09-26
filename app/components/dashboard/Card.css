@@ -1,7 +1,7 @@
 .dash-card {
   background: var(--dash-surface);
   border: 1px solid var(--dash-border);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 24px;
 }
 
