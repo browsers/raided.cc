@@ -20,7 +20,6 @@ const STRENGTH_LEVELS = [
 function getPasswordStrength(password) {
   if (!password) return 0;
 
-  let score = 0;
   const hasLower = /[a-z]/.test(password);
   const hasUpper = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
@@ -29,11 +28,14 @@ function getPasswordStrength(password) {
     Boolean
   ).length;
 
-  if (password.length >= MIN_PASSWORD_LENGTH) score++;
-  if (password.length >= 12 && variety >= 2) score++;
-  if (password.length >= 12 && variety >= 3) score++;
+  // Any input at all lights the first (weak/red) bar immediately, so the
+  // meter reacts as soon as you start typing instead of waiting until the
+  // minimum length is hit.
+  let score = 1;
+  if (password.length >= MIN_PASSWORD_LENGTH && variety >= 2) score = 2;
+  if (password.length >= 12 && variety >= 3) score = 3;
 
-  return Math.min(score, 3);
+  return score;
 }
 
 // Handles sign up with just a handle + password (no email field in this
@@ -48,11 +50,13 @@ export default function ClaimHandleForm({ onComplete }) {
   const [handleError, setHandleError] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleValid = HANDLE_PATTERN.test(handle);
   const passwordValid = password.length >= MIN_PASSWORD_LENGTH;
   const canSubmit = handleValid && passwordValid && !submitting;
   const passwordStrength = getPasswordStrength(password);
+  const strengthVisible = passwordFocused || password.length > 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,30 +126,32 @@ export default function ClaimHandleForm({ onComplete }) {
           placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
           disabled={submitting}
         />
-        {password ? (
-          <div
-            className="claim-form__strength"
-            role="img"
-            aria-label={`Password strength: ${
-              STRENGTH_LEVELS[passwordStrength]?.label ?? "Too short"
-            }`}
-          >
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className="claim-form__strength-bar"
-                style={{
-                  background:
-                    i < passwordStrength
-                      ? STRENGTH_LEVELS[passwordStrength].color
-                      : "rgba(255, 255, 255, 0.14)",
-                }}
-              />
-            ))}
-          </div>
-        ) : null}
+        <div
+          className={`claim-form__strength${
+            strengthVisible ? " claim-form__strength--visible" : ""
+          }`}
+          role="img"
+          aria-label={`Password strength: ${
+            STRENGTH_LEVELS[passwordStrength]?.label ?? "Empty"
+          }`}
+        >
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className="claim-form__strength-bar"
+              style={{
+                background:
+                  i < passwordStrength
+                    ? STRENGTH_LEVELS[passwordStrength].color
+                    : "rgba(255, 255, 255, 0.14)",
+              }}
+            />
+          ))}
+        </div>
       </div>
 
       {error ? <span className="claim-form__error">{error}</span> : null}
