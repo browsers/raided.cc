@@ -99,13 +99,23 @@
 }
 
 .public-profile-card__badge--owner {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+}
+
+.public-profile-card__badge--owner img {
+  width: 70%;
+  height: 70%;
 }
 
 .public-profile-card__badge--developer {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
+}
+
+.public-profile-card__badge--developer img {
+  width: 70%;
+  height: 70%;
 }
 
 .public-profile-card__bio {
