@@ -1,12 +1,11 @@
 import Card from "./Card";
-import { ChartIcon, LinkIcon, UserIcon, HashIcon } from "./icons";
 import "./StatCards.css";
 
-function StatCard({ icon: Icon, label, value, sub }) {
+function StatCard({ iconSrc, label, value, sub }) {
   return (
     <Card className="dash-stat-card">
       <div className="dash-card__eyebrow">
-        <Icon width={14} height={14} />
+        <img src={iconSrc} alt="" className="dash-card__eyebrow-icon" />
         {label}
       </div>
       <div className="dash-stat-card__value">{value}</div>
@@ -19,25 +18,25 @@ export default function StatCards({ totalViews, uid, alias, accountAgeLabel, acc
   return (
     <div className="dash-stat-row">
       <StatCard
-        icon={ChartIcon}
+        iconSrc="/icons/graph.png"
         label="Total Views"
         value={totalViews.toLocaleString()}
         sub="All time"
       />
       <StatCard
-        icon={HashIcon}
+        iconSrc="/icons/hashtag.png"
         label="UID"
         value={uid != null ? `#${uid}` : "—"}
         sub="Signup number"
       />
       <StatCard
-        icon={LinkIcon}
+        iconSrc="/icons/at.png"
         label="Alias"
         value={`@${alias}`}
         sub="Public handle"
       />
       <StatCard
-        icon={UserIcon}
+        iconSrc="/icons/profile.png"
         label="Account Age"
         value={accountAgeLabel}
         sub={accountAgeDate}
