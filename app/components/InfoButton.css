@@ -5,33 +5,14 @@
   cursor: default;
 }
 
-.info-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  background: rgba(20, 25, 20, 0.28) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.info-button-wrap:hover .info-button {
-  border-color: rgba(255, 255, 255, 0.4) !important;
-  background: rgba(20, 25, 20, 0.45) !important;
-}
-
 .info-button__icon {
   width: 16px;
   height: 16px;
   object-fit: contain;
   /* Icon is a dark PNG glyph — invert so it reads light on this dark
-     glass background. Drop this line if your info.png is already light. */
+     background. Drop this line if your info.png is already light. */
   filter: brightness(0) invert(1);
-  opacity: 0.75;
+  opacity: 0.7;
   transition: opacity 0.15s ease;
 }
 

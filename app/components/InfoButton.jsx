@@ -20,13 +20,11 @@ export default function InfoButton({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <span className="info-button">
-        <img
-          src="/icons/info.png"
-          alt={label}
-          className="info-button__icon"
-        />
-      </span>
+      <img
+        src="/icons/info.png"
+        alt={label}
+        className="info-button__icon"
+      />
 
       <AnimatePresence>
         {hovered ? (

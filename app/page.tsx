@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import CodeSlots from "./components/CodeSlots";
 import SpecularButton from "./components/SpecularButton";
 import BrandTitle from "./components/BrandTitle";
+import InfoButton from "./components/InfoButton";
 import ClaimHandleForm from "./components/ClaimHandleForm";
 import RedirectCard from "./components/RedirectCard";
 import { supabase } from "./lib/supabaseClient";
@@ -83,7 +84,14 @@ export default function Home() {
               transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
             >
               <BrandTitle />
-              <div style={{ marginTop: 48 }}>
+              <div
+                style={{
+                  marginTop: 48,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
                 <CodeSlots
                   length={6}
                   value={undefined}
@@ -100,6 +108,7 @@ export default function Home() {
                   gap={8}
                   radius={8}
                 />
+                <InfoButton />
               </div>
               <SpecularButton
                 className="request-access-btn"
