@@ -6,7 +6,7 @@ import "./InfoButton.css";
 
 // Swap this out for whatever the real blurb should say.
 const DEFAULT_DESCRIPTION =
-  "raided.cc is an invite-only exclusive biolink created by @hamfy, if you looking to create you own page on here message me on discord / @hamfy";
+  "raided.cc is a bio-link profile page — one link that brings together your socials, music, and highlights in one place.";
 
 export default function InfoButton({
   label = "What is raided.cc?",
@@ -20,11 +20,13 @@ export default function InfoButton({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <img
-        src="/icons/info.png"
-        alt={label}
-        className="info-button__icon"
-      />
+      <span className="info-button">
+        <img
+          src="/icons/info.png"
+          alt={label}
+          className="info-button__icon"
+        />
+      </span>
 
       <AnimatePresence>
         {hovered ? (

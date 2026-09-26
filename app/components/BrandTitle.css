@@ -41,7 +41,7 @@
   /* Fuzzy text's canvas has ~26px of invisible padding past the visible
      ".cc" glyph (see the note above), so pull most of that back in to
      sit the icon close to the letters without covering them. */
-  margin-left: 16px;
+  margin-left: 12px;
   display: flex;
   align-items: center;
 }
