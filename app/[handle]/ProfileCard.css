@@ -3,9 +3,9 @@
   min-height: 100dvh;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: 32px 20px;
+  padding: 12vh 20px 32px;
   overflow: hidden;
   /* Default page background until a wallpaper/color is set. */
   background: #0a0a0b;
@@ -41,12 +41,12 @@
 }
 
 .public-profile-card__avatar {
-  width: 84px;
-  height: 84px;
+  width: 176px;
+  height: 176px;
   flex-shrink: 0;
-  border-radius: 18px;
+  border-radius: 32px;
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 22px;
   background: #1c1c1f;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -60,7 +60,7 @@
 }
 
 .public-profile-card__name {
-  font-size: 34px;
+  font-size: 46px;
   font-weight: 800;
   color: #f5f5f5;
   line-height: 1.15;
@@ -73,10 +73,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 6px 10px;
-  border-radius: 10px;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 8px 14px;
+  border-radius: 12px;
   background: rgba(20, 20, 22, 0.55);
   backdrop-filter: blur(6px);
 }
@@ -85,8 +85,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
 }
 
 .public-profile-card__badge img {
@@ -97,11 +97,11 @@
 }
 
 .public-profile-card__bio {
-  margin-top: 12px;
-  font-size: 14px;
+  margin-top: 16px;
+  font-size: 17px;
   line-height: 1.5;
   color: rgba(245, 245, 245, 0.7);
-  min-height: 18px;
+  min-height: 22px;
 }
 
 .public-profile-card__bio-line {
