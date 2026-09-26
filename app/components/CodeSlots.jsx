@@ -69,8 +69,6 @@ export default function CodeSlots({
   const checkMv = useMotionValue(status === 'success' || status === 'error' ? 1 : 0);
   const glide = useRef(new Set());
   const target = useRef([]);
-  const draining = useRef(false);
-  const drainTimer = useRef(undefined);
   const errorCloseTimer = useRef(undefined);
   const statusRef = useRef(status);
   const emitted = useRef(digitsOf(value ?? defaultValue).slice(0, length));
@@ -196,7 +194,7 @@ export default function CodeSlots({
     if (stepBack) moveActive(i, [i]);
   };
 
-  const busy = disabled || draining.current || status === 'success';
+  const busy = disabled || veiled || status === 'success';
   const onKeyDown = e => {
     if (busy || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
@@ -239,7 +237,7 @@ export default function CodeSlots({
     if (disabled) return;
     e.preventDefault();
     const row = rowRef.current;
-    if (row && !draining.current && status !== 'success') {
+    if (row && !veiled && status !== 'success') {
       const rect = row.getBoundingClientRect();
       const zoom = rect.width / (row.offsetWidth || rect.width) || 1;
       const i = Math.floor((e.clientX - rect.left) / zoom / pitch);
@@ -308,6 +306,22 @@ export default function CodeSlots({
       setWashKind(status);
       setVeiled(true);
       clearTimeout(errorCloseTimer.current);
+
+      if (isError) {
+        // Hide the rejected digits under the wash now, but don't actually
+        // clear the code (and fire onChange) until the wash closes below —
+        // otherwise a parent that resets status on onChange cuts this
+        // animation short before the X has had time to show.
+        const filled = slotsRef.current.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
+        filled.reverse();
+        const step = L.reduce ? 0 : L.cascade;
+        filled.forEach((i, k) => drive(i, 0, k * step));
+        moveActive(
+          0,
+          slotsRef.current.map((_, j) => j)
+        );
+      }
+
       if (L.reduce) {
         openMv.jump(1);
         checkMv.jump(1);
@@ -317,6 +331,7 @@ export default function CodeSlots({
             openMv.jump(0);
             checkMv.jump(0);
             setVeiled(false);
+            commit(Array.from({ length }, () => ''));
           }, ERROR_HOLD);
         }
         return;
@@ -329,7 +344,10 @@ export default function CodeSlots({
       }
       animate(checkMv, 1, { type: 'spring', duration: 0.5, bounce: L.bounce, delay: CHECK_DELAY });
       if (isError) {
-        errorCloseTimer.current = setTimeout(() => closeWash(0), ERROR_HOLD);
+        errorCloseTimer.current = setTimeout(() => {
+          closeWash(0);
+          commit(Array.from({ length }, () => ''));
+        }, ERROR_HOLD);
       }
       return;
     }
@@ -346,34 +364,9 @@ export default function CodeSlots({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
   useEffect(() => () => clearTimeout(errorCloseTimer.current), []);
-
-  useEffect(() => {
-    if (status !== 'error') return;
-    const filled = slotsRef.current.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
-    if (!filled.length) return;
-    filled.reverse();
-    draining.current = true;
-    const L = live.current;
-    const step = L.reduce ? 0 : L.cascade;
-    filled.forEach((i, k) => drive(i, 0, k * step));
-    moveActive(
-      0,
-      slotsRef.current.map((_, j) => j)
-    );
-    clearTimeout(drainTimer.current);
-    drainTimer.current = setTimeout(
-      () => {
-        draining.current = false;
-        commit(Array.from({ length }, () => ''));
-      },
-      L.reduce ? 300 : (filled.length - 1) * step + L.settle * 1000
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
   useEffect(() => {
     statusRef.current = status;
   }, [status]);
-  useEffect(() => () => clearTimeout(drainTimer.current), []);
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
   }, [autoFocus]);
