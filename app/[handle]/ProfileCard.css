@@ -8,7 +8,7 @@
   padding: 32px 20px;
   overflow: hidden;
   /* Default page background until a wallpaper/color is set. */
-  background: #18181b;
+  background: #0a0a0b;
 }
 
 .public-profile-page__bg {
@@ -32,31 +32,32 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
+  padding: 26px;
+  border-radius: 14px;
+  /* Default card fill until it's themeable — always this dark grey for now. */
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.public-profile-card__header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  padding: 36px 26px 30px;
-  border-radius: 16px;
-  /* Default card fill until it's themeable — always grey for now. */
-  background: #201f22;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+  gap: 16px;
 }
 
 .public-profile-card__avatar {
-  width: 96px;
-  height: 96px;
+  width: 72px;
+  height: 72px;
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2a2a2e;
+  background: #1c1c1f;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-bottom: 18px;
 }
 
 .public-profile-card__avatar-img {
@@ -67,38 +68,38 @@
 }
 
 .public-profile-card__avatar-icon {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   opacity: 0.55;
   /* Same solid-black-PNG-to-white treatment used in the dashboard. */
   filter: brightness(0) invert(1);
 }
 
+.public-profile-card__info {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
 .public-profile-card__name {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 700;
   color: #f5f5f5;
   line-height: 1.25;
   word-break: break-word;
 }
 
-.public-profile-card__handle {
-  margin-top: 4px;
-  margin-bottom: 18px;
-  font-size: 13.5px;
-  color: rgba(245, 245, 245, 0.45);
-}
-
 .public-profile-card__bio {
-  font-size: 13.5px;
+  margin-top: 4px;
+  font-size: 13px;
   line-height: 1.5;
-  color: rgba(245, 245, 245, 0.72);
-  min-height: 20px;
+  color: rgba(245, 245, 245, 0.6);
+  min-height: 18px;
 }
 
 .public-profile-card__bio-line {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .public-profile-card__bio-line:last-child {
@@ -108,9 +109,9 @@
 .public-profile-card__caret {
   display: inline-block;
   width: 2px;
-  height: 13px;
+  height: 12px;
   margin-left: 2px;
-  vertical-align: -2px;
+  vertical-align: -1px;
   background: rgba(245, 245, 245, 0.6);
   animation: profile-caret-blink 1s step-end infinite;
 }

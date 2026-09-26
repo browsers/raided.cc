@@ -105,6 +105,27 @@ export default function ProfileCard({ profile, bioLines }) {
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
 
+  const bio =
+    lines.length > 0 ? (
+      isTypewriter ? (
+        <div className="public-profile-card__bio" style={{ fontFamily }}>
+          {typedText}
+          <span className="public-profile-card__caret" />
+        </div>
+      ) : (
+        <div
+          className="public-profile-card__bio public-profile-card__bio--static"
+          style={{ fontFamily }}
+        >
+          {lines.map((line, i) => (
+            <div key={i} className="public-profile-card__bio-line">
+              {line}
+            </div>
+          ))}
+        </div>
+      )
+    ) : null;
+
   return (
     <main
       className="public-profile-page"
@@ -127,42 +148,29 @@ export default function ProfileCard({ profile, bioLines }) {
       {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
       <div className="public-profile-card">
-        <div className="public-profile-card__avatar">
-          {avatarUrl ? (
-            <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
-          ) : (
-            <img
-              className="public-profile-card__avatar-icon"
-              src="/icons/profile.png"
-              alt=""
-            />
-          )}
+        <div className="public-profile-card__header">
+          <div className="public-profile-card__avatar">
+            {avatarUrl ? (
+              <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
+            ) : (
+              <img
+                className="public-profile-card__avatar-icon"
+                src="/icons/profile.png"
+                alt=""
+              />
+            )}
+          </div>
+
+          <div className="public-profile-card__info">
+            <h1
+              className="public-profile-card__name"
+              style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
+            >
+              {name}
+            </h1>
+            {bio}
+          </div>
         </div>
-
-        <h1
-          className="public-profile-card__name"
-          style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
-        >
-          {name}
-        </h1>
-        <div className="public-profile-card__handle">@{handle}</div>
-
-        {lines.length > 0 ? (
-          isTypewriter ? (
-            <div className="public-profile-card__bio" style={{ fontFamily }}>
-              {typedText}
-              <span className="public-profile-card__caret" />
-            </div>
-          ) : (
-            <div className="public-profile-card__bio public-profile-card__bio--static" style={{ fontFamily }}>
-              {lines.map((line, i) => (
-                <div key={i} className="public-profile-card__bio-line">
-                  {line}
-                </div>
-              ))}
-            </div>
-          )
-        ) : null}
       </div>
     </main>
   );
