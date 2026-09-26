@@ -70,8 +70,13 @@
 }
 
 .claim-form__handle-input .claim-form__input {
+  flex: 1;
+  min-width: 0;
   border: none;
+  border-radius: 0;
   background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   padding-left: 2px;
 }
 
