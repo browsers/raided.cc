@@ -58,6 +58,11 @@
   pointer-events: none;
 }
 
+.code-slots__wash[data-kind='error'] {
+  background: var(--cs-danger);
+  color: #fff;
+}
+
 .code-slots__check {
   display: grid;
   place-items: center;

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { animate, motion, motionValue, useMotionValue, useReducedMotion, useTransform } from 'motion/react';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Tick02Icon } from '@hugeicons/core-free-icons';
+import { Tick02Icon, Cancel01Icon } from '@hugeicons/core-free-icons';
 
 import './CodeSlots.css';
 
@@ -15,6 +15,7 @@ const SINK_STEP = 0.03;
 const CHECK_DELAY = 0.28;
 const CHECK_RISE = 8;
 const SINK_FADE = 0.6;
+const ERROR_HOLD = 900;
 
 const clamp01 = v => Math.min(1, Math.max(0, v));
 const digitsOf = raw => String(raw ?? '').replace(/\D/g, '');
@@ -61,14 +62,16 @@ export default function CodeSlots({
   const [slots, setSlots] = useState(() => toSlots(value ?? defaultValue, length));
   const [active, setActive] = useState(() => firstEmptyOf(slots));
   const [focused, setFocused] = useState(false);
-  const [veiled, setVeiled] = useState(status === 'success');
+  const [veiled, setVeiled] = useState(status === 'success' || status === 'error');
+  const [washKind, setWashKind] = useState(status === 'error' ? 'error' : 'success');
   const activeMv = useMotionValue(active);
-  const openMv = useMotionValue(status === 'success' ? 1 : 0);
-  const checkMv = useMotionValue(status === 'success' ? 1 : 0);
+  const openMv = useMotionValue(status === 'success' || status === 'error' ? 1 : 0);
+  const checkMv = useMotionValue(status === 'success' || status === 'error' ? 1 : 0);
   const glide = useRef(new Set());
   const target = useRef([]);
   const draining = useRef(false);
   const drainTimer = useRef(undefined);
+  const errorCloseTimer = useRef(undefined);
   const statusRef = useRef(status);
   const emitted = useRef(digitsOf(value ?? defaultValue).slice(0, length));
   const slotsRef = useRef(slots);
@@ -293,22 +296,45 @@ export default function CodeSlots({
   useEffect(() => {
     const was = statusRef.current;
     const L = live.current;
-    if (status === 'success') {
+    const closeWash = delay => {
+      animate(checkMv, 0, { duration: 0.15, ease: EASE_OUT });
+      animate(openMv, 0, { duration: WASH_OUT, ease: EASE_OUT, delay }).then(() => {
+        if (openMv.get() === 0) setVeiled(false);
+      });
+      drops.forEach(d => animate(d, 0, { type: 'spring', duration: 0.3, bounce: 0, delay: 0.1 }));
+    };
+    if (status === 'success' || status === 'error') {
+      const isError = status === 'error';
+      setWashKind(status);
       setVeiled(true);
+      clearTimeout(errorCloseTimer.current);
       if (L.reduce) {
         openMv.jump(1);
-        drops.forEach(d => d.jump(1));
         checkMv.jump(1);
+        drops.forEach(d => d.jump(isError ? 0 : 1));
+        if (isError) {
+          errorCloseTimer.current = setTimeout(() => {
+            openMv.jump(0);
+            checkMv.jump(0);
+            setVeiled(false);
+          }, ERROR_HOLD);
+        }
         return;
       }
       animate(openMv, 1, { duration: WASH_IN, ease: EASE_OUT });
-      drops.forEach((d, k) =>
-        animate(d, 1, { type: 'spring', duration: 0.3, bounce: 0, delay: SINK_DELAY + k * SINK_STEP })
-      );
+      if (!isError) {
+        drops.forEach((d, k) =>
+          animate(d, 1, { type: 'spring', duration: 0.3, bounce: 0, delay: SINK_DELAY + k * SINK_STEP })
+        );
+      }
       animate(checkMv, 1, { type: 'spring', duration: 0.35, bounce: L.bounce, delay: CHECK_DELAY });
+      if (isError) {
+        errorCloseTimer.current = setTimeout(() => closeWash(0), ERROR_HOLD);
+      }
       return;
     }
-    if (was !== 'success') return;
+    if (was !== 'success' && was !== 'error') return;
+    clearTimeout(errorCloseTimer.current);
     if (L.reduce) {
       openMv.jump(0);
       checkMv.jump(0);
@@ -316,13 +342,10 @@ export default function CodeSlots({
       setVeiled(false);
       return;
     }
-    animate(checkMv, 0, { duration: 0.15, ease: EASE_OUT });
-    animate(openMv, 0, { duration: WASH_OUT, ease: EASE_OUT, delay: 0.06 }).then(() => {
-      if (openMv.get() === 0) setVeiled(false);
-    });
-    drops.forEach(d => animate(d, 0, { type: 'spring', duration: 0.3, bounce: 0, delay: 0.1 }));
+    closeWash(0.06);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
+  useEffect(() => () => clearTimeout(errorCloseTimer.current), []);
 
   useEffect(() => {
     if (status !== 'error') return;
@@ -414,9 +437,18 @@ export default function CodeSlots({
             sink={Math.round(height * 0.5)}
           />
         ))}
-        <motion.span className="code-slots__wash" aria-hidden="true" style={{ clipPath: washClip }}>
+        <motion.span
+          className="code-slots__wash"
+          aria-hidden="true"
+          data-kind={washKind}
+          style={{ clipPath: washClip }}
+        >
           <motion.span className="code-slots__check" style={{ transform: checkTransform, opacity: checkOpacity }}>
-            <HugeiconsIcon icon={Tick02Icon} size={Math.round(slotSize * 0.6)} strokeWidth={2.2} />
+            <HugeiconsIcon
+              icon={washKind === 'error' ? Cancel01Icon : Tick02Icon}
+              size={Math.round(slotSize * 0.6)}
+              strokeWidth={2.2}
+            />
           </motion.span>
         </motion.span>
         <motion.span
@@ -429,7 +461,11 @@ export default function CodeSlots({
         </motion.span>
       </div>
       <span id={`${uid}-count`} className="code-slots__sr" aria-live="polite">
-        {status === 'success' ? 'Code accepted' : `${view.filter(Boolean).length} of ${length} digits entered`}
+        {status === 'success'
+          ? 'Code accepted'
+          : status === 'error'
+            ? 'Code incorrect'
+            : `${view.filter(Boolean).length} of ${length} digits entered`}
       </span>
     </div>
   );
