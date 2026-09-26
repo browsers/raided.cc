@@ -91,7 +91,23 @@ async function replaceFile(bucket, userId, prevUrl, file) {
 // One upload tile. Shows a live preview (image/gif/video) once a file
 // is loaded, with the label + hint sitting on top of a dark scrim so
 // they stay readable over any artwork. Falls back to a custom icon +
-// label when empty.
+// label when empty. Accepts files either by click-to-pick or by
+// dragging them straight onto the tile.
+
+// Matches a dropped file against an `accept` string like "image/*" or
+// "audio/*,.mp3" the same way a native file input would, so a drag-drop
+// doesn't let through something the click-to-pick flow wouldn't.
+function fileMatchesAccept(file, accept) {
+  if (!accept) return true;
+  return accept.split(",").some((raw) => {
+    const pattern = raw.trim();
+    if (!pattern) return false;
+    if (pattern.endsWith("/*")) return file.type.startsWith(pattern.slice(0, -1));
+    if (pattern.startsWith(".")) return file.name.toLowerCase().endsWith(pattern.toLowerCase());
+    return file.type === pattern;
+  });
+}
+
 function AssetTile({
   label,
   hint,
@@ -111,16 +127,51 @@ function AssetTile({
   onClear,
 }) {
   const inputRef = useRef(null);
+  const dragCounter = useRef(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   const showPreview = Boolean(previewUrl) || (inputType === "color" && Boolean(colorValue));
+  const acceptsDrop = inputType !== "color";
+
+  function handleDroppedFiles(fileList) {
+    const files = Array.from(fileList).filter((f) => fileMatchesAccept(f, accept));
+    if (!files.length) return;
+    onFiles?.(multiple ? files : [files[0]]);
+  }
 
   return (
     <div
-      className={`asset-tile${showPreview ? " asset-tile--filled" : ""}`}
+      className={`asset-tile${showPreview ? " asset-tile--filled" : ""}${
+        isDragOver ? " asset-tile--dragover" : ""
+      }`}
       role="button"
       tabIndex={0}
       onClick={() => inputRef.current?.click()}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") inputRef.current?.click();
+      }}
+      onDragEnter={(e) => {
+        if (!acceptsDrop) return;
+        e.preventDefault();
+        dragCounter.current += 1;
+        setIsDragOver(true);
+      }}
+      onDragOver={(e) => {
+        if (!acceptsDrop) return;
+        // Required for onDrop to fire at all.
+        e.preventDefault();
+      }}
+      onDragLeave={(e) => {
+        if (!acceptsDrop) return;
+        e.preventDefault();
+        dragCounter.current = Math.max(0, dragCounter.current - 1);
+        if (dragCounter.current === 0) setIsDragOver(false);
+      }}
+      onDrop={(e) => {
+        if (!acceptsDrop) return;
+        e.preventDefault();
+        dragCounter.current = 0;
+        setIsDragOver(false);
+        if (e.dataTransfer.files?.length) handleDroppedFiles(e.dataTransfer.files);
       }}
     >
       {inputType === "color" ? (
@@ -144,6 +195,7 @@ function AssetTile({
           }}
         />
       )}
+
 
       {previewUrl ? (
         previewKind === "video" ? (

@@ -26,6 +26,15 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+.asset-tile--dragover {
+  border-color: var(--dash-accent);
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.asset-tile--dragover.asset-tile--filled {
+  background: rgba(0, 229, 255, 0.06);
+}
+
 .asset-tile:focus-visible {
   outline: 2px solid var(--dash-accent);
   outline-offset: 2px;
