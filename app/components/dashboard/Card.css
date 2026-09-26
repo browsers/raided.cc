@@ -20,3 +20,14 @@
 .dash-card__eyebrow svg {
   opacity: 0.7;
 }
+
+.dash-card__eyebrow-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+  opacity: 0.7;
+  /* Icons are solid black PNGs (same set the sidebar nav uses) — invert
+     to white so they read on the dark card background. */
+  filter: brightness(0) invert(1);
+}
