@@ -1,7 +1,4 @@
 .dash-topbar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
   margin-bottom: 24px;
 }
 
@@ -18,40 +15,4 @@
   font-size: 26px;
   font-weight: 700;
   color: var(--dash-text-primary);
-}
-
-.dash-topbar__actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.dash-topbar__saved {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--dash-text-tertiary);
-}
-
-.dash-save-btn {
-  padding: 9px 22px;
-  border-radius: 9px;
-  border: 1px solid var(--dash-border);
-  background: var(--dash-surface-raised);
-  color: var(--dash-text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
-}
-
-.dash-save-btn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.dash-save-btn:disabled {
-  opacity: 0.45;
-  cursor: default;
 }

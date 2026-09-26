@@ -9,7 +9,7 @@ import "./Profile.css";
 export default function Profile() {
   return (
     <div className="dash-profile-shell">
-      <TopBar breadcrumb="RAIDED.CC / EDIT" title="Profile" saved />
+      <TopBar breadcrumb="RAIDED.CC / EDIT" title="Profile" />
 
       <div className="dash-profile-body">
         <Card className="dash-profile-section">

@@ -146,7 +146,7 @@ export default function Overview() {
 
   return (
     <div className="dash-overview-shell">
-      <TopBar breadcrumb="RAIDED.CC / EDIT" title="Overview" saved />
+      <TopBar breadcrumb="RAIDED.CC / EDIT" title="Overview" />
 
       <div className="dash-overview-body">
         <OverviewRow
