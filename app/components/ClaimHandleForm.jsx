@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import SpecularButton from "./SpecularButton";
 import { supabase } from "../lib/supabaseClient";
 import "./ClaimHandleForm.css";
@@ -47,30 +47,70 @@ const SYNTHETIC_EMAIL_DOMAIN = "users.raided.cc";
 export default function ClaimHandleForm({ onComplete }) {
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
-  const [handleError, setHandleError] = useState(null);
+  // { type: "checking" | "available" | "taken", message } | null
+  const [handleStatus, setHandleStatus] = useState(null);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const checkTimer = useRef();
+  const checkId = useRef(0);
 
   const handleValid = HANDLE_PATTERN.test(handle);
   const passwordValid = password.length >= MIN_PASSWORD_LENGTH;
-  const canSubmit = handleValid && passwordValid && !submitting;
+  const canSubmit =
+    handleValid && passwordValid && handleStatus?.type !== "taken" && !submitting;
   const passwordStrength = getPasswordStrength(password);
   const strengthVisible = passwordFocused || password.length > 0;
+
+  // Live handle-availability check, debounced so it doesn't fire on every
+  // keystroke. Guards against out-of-order responses with checkId so a
+  // slow lookup for an earlier value can't overwrite a newer one.
+  useEffect(() => {
+    if (!HANDLE_PATTERN.test(handle)) {
+      setHandleStatus(null);
+      return;
+    }
+
+    setHandleStatus({ type: "checking" });
+    const thisCheck = ++checkId.current;
+
+    clearTimeout(checkTimer.current);
+    checkTimer.current = setTimeout(async () => {
+      const { data, error: lookupError } = await supabase
+        .from("profiles")
+        .select("handle")
+        .eq("handle", handle)
+        .maybeSingle();
+
+      if (thisCheck !== checkId.current) return; // stale — handle changed since
+
+      if (lookupError) {
+        setHandleStatus(null);
+        return;
+      }
+
+      setHandleStatus(
+        data
+          ? { type: "taken", message: "Username already taken." }
+          : { type: "available", message: "Username available." }
+      );
+    }, 400);
+
+    return () => clearTimeout(checkTimer.current);
+  }, [handle]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmit) return;
 
     setSubmitting(true);
-    setHandleError(null);
     setError(null);
 
     const result = await claimHandle(handle, password);
 
     if (!result.ok) {
       if (result.field === "handle") {
-        setHandleError(result.message);
+        setHandleStatus({ type: "taken", message: result.message });
       } else {
         setError(result.message);
       }
@@ -100,17 +140,18 @@ export default function ClaimHandleForm({ onComplete }) {
             placeholder="yourname"
             maxLength={20}
             value={handle}
-            onChange={(e) => {
+            onChange={(e) =>
               setHandle(
                 e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "")
-              );
-              if (handleError) setHandleError(null);
-            }}
+              )
+            }
             disabled={submitting}
           />
         </div>
-        {handleError ? (
-          <span className="claim-form__error">{handleError}</span>
+        {handleStatus?.type === "taken" ? (
+          <span className="claim-form__error">{handleStatus.message}</span>
+        ) : handleStatus?.type === "available" ? (
+          <span className="claim-form__success">{handleStatus.message}</span>
         ) : null}
       </div>
 
