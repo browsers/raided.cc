@@ -39,6 +39,12 @@ body {
   justify-content: center;
 }
 
+.auth-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* .request-access-btn styling now lives in
    app/components/SpecularButton.css, scoped to
    .specular-button.request-access-btn */
