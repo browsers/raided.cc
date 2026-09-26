@@ -179,6 +179,8 @@
   width: 16px;
   height: 16px;
   object-fit: contain;
+  /* PNG is solid black — same treatment as the rest of the dashboard's icon PNGs. */
+  filter: brightness(0) invert(1);
 }
 
 .dash-account-card {
