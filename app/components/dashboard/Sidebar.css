@@ -4,9 +4,10 @@
   width: 264px;
   flex-shrink: 0;
   height: 100%;
-  padding: 28px 20px 20px;
+  padding: 24px 18px 18px;
   background: var(--dash-surface);
-  border-right: 1px solid var(--dash-border);
+  border: 1px solid var(--dash-border);
+  border-radius: 14px;
 }
 
 .dash-sidebar__brand {
