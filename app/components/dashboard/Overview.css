@@ -1,0 +1,37 @@
+/* One outer frame holding the topbar + every card row, sized to exactly
+   fill the space next to the sidebar (so it matches the sidebar's height)
+   and never scrolls — the rows below share out whatever height is left
+   after the topbar and the welcome/stats rows take their natural size. */
+.dash-overview-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-border);
+  border-radius: 6px;
+  padding: 24px 28px 28px;
+  overflow: hidden;
+}
+
+.dash-overview-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 20px;
+}
+
+/* Last row (chart + checklist) gets whatever space is left, and its two
+   cards stretch to fill that row's full height evenly. */
+.dash-bottom-row.dash-overview-body__bottom {
+  min-height: 0;
+  align-items: stretch;
+}
+
+.dash-overview-body__bottom .dash-card {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}

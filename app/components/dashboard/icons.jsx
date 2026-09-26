@@ -139,6 +139,17 @@ export function BioIcon(props) {
   );
 }
 
+export function HashIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 4 7 20" />
+      <path d="M17 4 15 20" />
+      <path d="M4 9h16" />
+      <path d="M3 15h16" />
+    </svg>
+  );
+}
+
 export function ContainerIcon(props) {
   return (
     <svg {...base} {...props}>

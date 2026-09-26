@@ -1,5 +1,5 @@
 import Card from "./Card";
-import { ChartIcon, LinkIcon, UserIcon } from "./icons";
+import { ChartIcon, LinkIcon, UserIcon, HashIcon } from "./icons";
 import "./StatCards.css";
 
 function StatCard({ icon: Icon, label, value, sub }) {
@@ -15,7 +15,7 @@ function StatCard({ icon: Icon, label, value, sub }) {
   );
 }
 
-export default function StatCards({ totalViews, alias, accountAgeLabel, accountAgeDate }) {
+export default function StatCards({ totalViews, uid, alias, accountAgeLabel, accountAgeDate }) {
   return (
     <div className="dash-stat-row">
       <StatCard
@@ -23,6 +23,12 @@ export default function StatCards({ totalViews, alias, accountAgeLabel, accountA
         label="Total Views"
         value={totalViews.toLocaleString()}
         sub="All time"
+      />
+      <StatCard
+        icon={HashIcon}
+        label="UID"
+        value={uid != null ? `#${uid}` : "—"}
+        sub="Signup number"
       />
       <StatCard
         icon={LinkIcon}

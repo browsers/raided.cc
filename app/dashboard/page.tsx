@@ -3,12 +3,13 @@
 import { useState } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import ComingSoon from "../components/dashboard/ComingSoon";
+import Overview from "../components/dashboard/Overview";
 import "./dashboard.css";
 
 // Sidebar items are tabs, not routes — switching one just swaps what
 // renders here, the URL always stays at /dashboard.
 const TAB_CONTENT: Record<string, React.ReactNode> = {
-  overview: <ComingSoon label="Coming soon" />,
+  overview: <Overview />,
   profile: <ComingSoon label="Coming soon" />,
   appearance: <ComingSoon label="Coming soon" />,
   links: <ComingSoon label="Coming soon" />,
