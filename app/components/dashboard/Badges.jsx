@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Badges.css";
@@ -13,28 +14,84 @@ const BADGE_CATALOG = [
   { key: "partner", label: "Partner", icon: "/badges/partner.png" },
   { key: "bug-hunter", label: "Bug Hunter", icon: "/badges/bug-hunter.png" },
   { key: "verified", label: "Verified", icon: "/badges/verified.png" },
-  { key: "ims", label: "IMS", icon: "/badges/ims.png" },
+  { key: "developer", label: "Developer", icon: "/badges/developer.png" },
 ];
 
-// TODO: none of this is wired to Supabase yet — there's no table tracking
-// which badges a profile has earned or which are toggled visible. Everything
-// here is local state so the page works end-to-end to build against; swap
-// in a real fetch/save (e.g. a profile_badges table) once that exists.
+// Badges are granted by SQL only — see the migration for the
+// profile_badges table. There is no self-serve "earn a badge" flow, and
+// nothing in this file ever inserts a row into that table. All a user can
+// do here is toggle visibility (enabled) on a badge they've already been
+// given.
 export default function Badges() {
-  // Stand-in for "earned" badges until real data exists — treating the
-  // whole catalog as earned for now.
-  const [earnedKeys] = useState(() => new Set(BADGE_CATALOG.map((b) => b.key)));
-  const [enabledKeys, setEnabledKeys] = useState(
-    () => new Set(BADGE_CATALOG.map((b) => b.key))
-  );
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [earnedKeys, setEarnedKeys] = useState(() => new Set());
+  const [enabledKeys, setEnabledKeys] = useState(() => new Set());
 
-  function toggleEnabled(key) {
+  // Load whatever's actually been granted to this profile on mount.
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      if (cancelled) return;
+      setUserId(user.id);
+
+      const { data: rows } = await supabase
+        .from("profile_badges")
+        .select("badge_key, enabled")
+        .eq("profile_id", user.id);
+
+      if (cancelled) return;
+
+      if (rows) {
+        setEarnedKeys(new Set(rows.map((r) => r.badge_key)));
+        setEnabledKeys(new Set(rows.filter((r) => r.enabled).map((r) => r.badge_key)));
+      }
+
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function toggleEnabled(key) {
+    if (!userId) return;
+
+    const wasEnabled = enabledKeys.has(key);
+    const nextEnabled = !wasEnabled;
+
     setEnabledKeys((prev) => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      if (nextEnabled) next.add(key);
+      else next.delete(key);
       return next;
     });
+
+    const { error } = await supabase
+      .from("profile_badges")
+      .update({ enabled: nextEnabled })
+      .eq("profile_id", userId)
+      .eq("badge_key", key);
+
+    if (error) {
+      // Revert on failure.
+      setEnabledKeys((prev) => {
+        const next = new Set(prev);
+        if (wasEnabled) next.add(key);
+        else next.delete(key);
+        return next;
+      });
+    }
   }
 
   const earnedBadges = BADGE_CATALOG.filter((b) => earnedKeys.has(b.key));
@@ -48,7 +105,11 @@ export default function Badges() {
           <div className="dash-card__eyebrow">MY BADGES</div>
           <h3 className="dash-profile-section__title">Enabled On Profile</h3>
 
-          {earnedBadges.length > 0 ? (
+          {!loading && earnedBadges.length === 0 ? (
+            <p className="dash-badges-empty">
+              No badges granted to your account yet.
+            </p>
+          ) : (
             <div className="dash-badges-grid">
               {earnedBadges.map((badge) => {
                 const enabled = enabledKeys.has(badge.key);
@@ -77,10 +138,6 @@ export default function Badges() {
                 );
               })}
             </div>
-          ) : (
-            <p className="dash-badges-empty">
-              You haven't earned any badges yet — browse the catalog below.
-            </p>
           )}
         </Card>
 
