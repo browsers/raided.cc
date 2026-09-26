@@ -12,7 +12,7 @@
 
 .asset-tile {
   position: relative;
-  height: 210px;
+  height: 170px;
   border-radius: 6px;
   border: 1px solid var(--dash-border);
   background: var(--dash-surface-raised);
@@ -124,19 +124,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 20px;
+  gap: 6px;
+  padding: 16px;
   text-align: center;
 }
 
 /* Custom upload / music icon, swapped in per-tile via the `icon` prop.
-   Hidden automatically once a preview is showing. */
+   Forced to pure white via filter regardless of the source PNG's own
+   color, so it reads clean on the dark tile. Hidden automatically once
+   a preview is showing. */
 .asset-tile__icon {
-  width: 40px;
-  height: 40px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
   flex-shrink: 0;
-  opacity: 0.85;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
 }
 
 .asset-tile__label {
