@@ -74,10 +74,10 @@
   justify-content: center;
   gap: 8px;
   margin-top: 4px;
-  padding: 7px 12px;
+  padding: 6px 10px;
   border-radius: 12px;
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
