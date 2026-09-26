@@ -75,6 +75,6 @@ export default function Home() {
 
 async function verifyInviteCode(code: string): Promise<boolean> {
   // Placeholder — wire this up to your Supabase invite_codes table.
-  console.log("checking invite code:", code);
-  return false;
+  // Temporary valid code for testing: 123123
+  return code === "123123";
 }
