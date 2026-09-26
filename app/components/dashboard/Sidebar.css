@@ -81,10 +81,10 @@
   text-align: left;
   text-decoration: none;
   background: none;
-  border: 1px solid transparent;
+  border: none;
   cursor: pointer;
   outline: none;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
 .dash-nav-item:hover {
@@ -115,7 +115,7 @@
   background: linear-gradient(
     90deg,
     rgba(0, 229, 255, 0.16),
-    rgba(0, 229, 255, 0.05)
+    rgba(0, 229, 255, 0.02)
   );
   box-shadow: inset 2px 0 0 var(--dash-accent);
 }
@@ -124,7 +124,7 @@
   background: linear-gradient(
     90deg,
     rgba(0, 229, 255, 0.22),
-    rgba(0, 229, 255, 0.08)
+    rgba(0, 229, 255, 0.04)
   );
 }
 
