@@ -99,13 +99,13 @@
 }
 
 .public-profile-card__badge--owner {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
 }
 
 .public-profile-card__badge--developer {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
 }
 
 .public-profile-card__bio {
