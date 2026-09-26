@@ -2,51 +2,27 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-.info-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(20, 25, 20, 0.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  color: rgba(245, 245, 245, 0.6);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-}
-
-.info-button:hover,
-.info-button[aria-expanded="true"] {
-  color: #f5f5f5;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(20, 25, 20, 0.45);
+  cursor: default;
 }
 
 .info-button__icon {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
   object-fit: contain;
   /* Icon is a dark PNG glyph — invert so it reads light on this dark
-     glass background. Drop this line if your info.png is already light. */
+     background. Drop this line if your info.png is already light. */
   filter: brightness(0) invert(1);
-  opacity: 0.75;
+  opacity: 0.7;
   transition: opacity 0.15s ease;
 }
 
-.info-button:hover .info-button__icon,
-.info-button[aria-expanded="true"] .info-button__icon {
+.info-button-wrap:hover .info-button__icon {
   opacity: 1;
 }
 
 .info-popover {
   position: absolute;
-  top: calc(100% + 10px);
+  bottom: calc(100% + 10px);
   left: 50%;
   transform: translateX(-50%);
   width: 220px;
@@ -58,6 +34,7 @@
   -webkit-backdrop-filter: blur(16px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   z-index: 10;
+  pointer-events: none;
 }
 
 .info-popover__text {

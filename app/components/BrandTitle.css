@@ -38,9 +38,10 @@
 }
 
 .brand-title__info {
-  /* Pull back in from the fuzzy canvas's own right-side padding
-     (see the note above) so the button sits close to ".cc". */
-  margin-left: 36px;
+  /* Fuzzy text's canvas has ~26px of invisible padding past the visible
+     ".cc" glyph (see the note above), so pull most of that back in to
+     sit the icon close to the letters without covering them. */
+  margin-left: 16px;
   display: flex;
   align-items: center;
 }
