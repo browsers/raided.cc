@@ -299,7 +299,20 @@ export default function CodeSlots({
       animate(openMv, 0, { duration: WASH_OUT, ease: EASE_OUT, delay }).then(() => {
         if (openMv.get() === 0) setVeiled(false);
       });
-      drops.forEach(d => animate(d, 0, { type: 'spring', duration: 0.3, bounce: 0, delay: 0.1 }));
+    };
+    const clearDigits = () => {
+      const filled = slotsRef.current.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
+      filled.reverse();
+      const step = L.reduce ? 0 : L.cascade;
+      filled.forEach((i, k) => {
+        drive(i, 0, k * step);
+        if (L.reduce) drops[i]?.jump(0);
+        else animate(drops[i], 0, { type: 'spring', duration: 0.3, bounce: 0, delay: (k * step) / 1000 });
+      });
+      moveActive(
+        0,
+        slotsRef.current.map((_, j) => j)
+      );
     };
     if (status === 'success' || status === 'error') {
       const isError = status === 'error';
@@ -312,28 +325,20 @@ export default function CodeSlots({
         // clear the code (and fire onChange) until the wash closes below —
         // otherwise a parent that resets status on onChange cuts this
         // animation short before the X has had time to show.
-        const filled = slotsRef.current.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
-        filled.reverse();
-        const step = L.reduce ? 0 : L.cascade;
-        filled.forEach((i, k) => drive(i, 0, k * step));
-        moveActive(
-          0,
-          slotsRef.current.map((_, j) => j)
-        );
+        clearDigits();
       }
 
       if (L.reduce) {
         openMv.jump(1);
         checkMv.jump(1);
         drops.forEach(d => d.jump(isError ? 0 : 1));
-        if (isError) {
-          errorCloseTimer.current = setTimeout(() => {
-            openMv.jump(0);
-            checkMv.jump(0);
-            setVeiled(false);
-            commit(Array.from({ length }, () => ''));
-          }, ERROR_HOLD);
-        }
+        errorCloseTimer.current = setTimeout(() => {
+          if (!isError) clearDigits();
+          openMv.jump(0);
+          checkMv.jump(0);
+          setVeiled(false);
+          commit(Array.from({ length }, () => ''));
+        }, ERROR_HOLD);
         return;
       }
       animate(openMv, 1, { duration: WASH_IN, ease: EASE_OUT });
@@ -343,12 +348,14 @@ export default function CodeSlots({
         );
       }
       animate(checkMv, 1, { type: 'spring', duration: 0.5, bounce: L.bounce, delay: CHECK_DELAY });
-      if (isError) {
-        errorCloseTimer.current = setTimeout(() => {
-          closeWash(0);
-          commit(Array.from({ length }, () => ''));
-        }, ERROR_HOLD);
-      }
+      // Both success and error reset back to an empty, idle-looking state
+      // after the hold — the code (and the fired onChange('')) only clears
+      // once we start closing, so nothing external can cut this short.
+      errorCloseTimer.current = setTimeout(() => {
+        if (!isError) clearDigits();
+        closeWash(0);
+        commit(Array.from({ length }, () => ''));
+      }, ERROR_HOLD);
       return;
     }
     if (was !== 'success' && was !== 'error') return;
@@ -360,6 +367,7 @@ export default function CodeSlots({
       setVeiled(false);
       return;
     }
+    clearDigits();
     closeWash(0.06);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
