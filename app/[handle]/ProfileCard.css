@@ -75,8 +75,8 @@
   gap: 6px;
   margin-top: 4px;
   padding: 5px 8px;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.35);
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.4);
   border: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
