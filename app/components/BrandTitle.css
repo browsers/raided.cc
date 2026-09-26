@@ -1,3 +1,9 @@
+.brand-title-wrap {
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+}
+
 .brand-title {
   display: flex;
   align-items: center;
@@ -35,4 +41,31 @@
 
   /* Tiny vertical alignment adjustment */
   transform: translateY(1px);
+}
+
+.brand-title__popover {
+  position: absolute;
+  /* .brand-title itself is shifted down 42px via translateY, so anchor
+     relative to that instead of the wrap's own (untranslated) box. */
+  top: calc(100% + 42px + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 19, 15, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.brand-title__popover-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(245, 245, 245, 0.85);
+  text-align: center;
 }
