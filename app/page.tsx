@@ -25,8 +25,28 @@ export default function Home() {
   // 'claim' -> claiming a handle + password (post Cloudflare Turnstile + Supabase)
   // 'redirect' -> account created, showing the redirect card
   const [step, setStep] = useState("code");
+  // Whether the browser already holds a valid Supabase session, i.e. the
+  // person has signed up/in before on this device. Starts null while we
+  // check, so the button doesn't flash the wrong label.
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
   const toClaimTimer = useRef<ReturnType<typeof setTimeout>>();
   const afterRedirectTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Check once on mount, then keep it live in case auth state changes
+  // (e.g. they sign out in another tab).
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setHasSession(Boolean(data.session));
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setHasSession(Boolean(session));
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   const handleComplete = async (code: string) => {
     // TODO: replace with a real check against your Supabase invite_codes table
@@ -116,9 +136,11 @@ export default function Home() {
                 followMouse
                 proximity={220}
                 tintOpacity={0}
-                onClick={() => {}}
+                onClick={() => {
+                  if (hasSession) router.push("/dashboard");
+                }}
               >
-                Request access
+                {hasSession ? "Dashboard" : "Request access"}
               </SpecularButton>
             </motion.div>
           ) : step === "claim" ? (
