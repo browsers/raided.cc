@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/dashboard/Sidebar";
 import ComingSoon from "../components/dashboard/ComingSoon";
 import Overview from "../components/dashboard/Overview";
+import Profile from "../components/dashboard/Profile";
 import NoAccessCard from "../components/NoAccessCard";
 import { supabase } from "../lib/supabaseClient";
 import "./dashboard.css";
@@ -12,7 +13,7 @@ import "./dashboard.css";
 // renders here, the URL always stays at /dashboard.
 const TAB_CONTENT: Record<string, React.ReactNode> = {
   overview: <Overview />,
-  profile: <ComingSoon label="Coming soon" />,
+  profile: <Profile />,
   appearance: <ComingSoon label="Coming soon" />,
   links: <ComingSoon label="Coming soon" />,
   embed: <ComingSoon label="Coming soon" />,
