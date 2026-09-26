@@ -89,12 +89,15 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
   const {
     handle,
     display_name: displayName,
+    avatar_url: avatarUrl,
     background_url: backgroundUrl,
     background_type: backgroundType,
     background_color: backgroundColor,
     glow_color: glowColor,
     glow_style: glowStyle,
     font,
+    // TODO: profile.avatar_disabled (or similar) once that toggle exists —
+    // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
 
   const lines = (bioLines ?? []).map((l) => l.line).filter(Boolean);
@@ -151,6 +154,12 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
       {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
       <div className="public-profile-card">
+        {avatarUrl ? (
+          <div className="public-profile-card__avatar">
+            <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
+          </div>
+        ) : null}
+
         <h1
           className="public-profile-card__name"
           style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
