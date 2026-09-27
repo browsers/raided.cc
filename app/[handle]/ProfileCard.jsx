@@ -219,7 +219,16 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
         {hasBadges ? (
           badgesAnimated ? (
-            <div className="public-profile-card__badges-marquee">
+            <div
+              className="public-profile-card__badges-marquee"
+              style={{
+                // Pin the visible window to exactly the width a static
+                // pill would be for this many badges — the track behind
+                // it holds two copies and is twice as wide, so this is
+                // what actually gives overflow something to clip/scroll.
+                width: `${6 + badges.length * 32}px`,
+              }}
+            >
               <div className="public-profile-card__badges-track">
                 {[0, 1].map((copy) =>
                   badges.map((badge) => (
