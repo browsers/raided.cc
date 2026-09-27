@@ -8,6 +8,7 @@
   --dash-text-secondary: rgba(245, 245, 245, 0.55);
   --dash-text-tertiary: rgba(245, 245, 245, 0.4);
   --dash-accent: #8685c5;
+  --dash-accent-rgb: 134, 133, 197;
   --dash-success: #22c55e;
 }
 

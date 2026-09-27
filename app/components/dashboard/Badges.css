@@ -158,7 +158,7 @@
 
 .dash-badge-tile--earned {
   opacity: 1;
-  border-color: rgba(0, 229, 255, 0.25);
+  border-color: rgba(var(--dash-accent-rgb), 0.25);
 }
 
 .dash-badge-tile__icon {

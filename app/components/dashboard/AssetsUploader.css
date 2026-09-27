@@ -28,11 +28,11 @@
 
 .asset-tile--dragover {
   border-color: var(--dash-accent);
-  background: rgba(0, 229, 255, 0.06);
+  background: rgba(var(--dash-accent-rgb), 0.06);
 }
 
 .asset-tile--dragover.asset-tile--filled {
-  background: rgba(0, 229, 255, 0.06);
+  background: rgba(var(--dash-accent-rgb), 0.06);
 }
 
 .asset-tile:focus-visible {
