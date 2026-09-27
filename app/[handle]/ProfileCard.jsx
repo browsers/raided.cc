@@ -116,7 +116,24 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
 
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
+  const hasVideoBg = hasWallpaper && isVideoUrl(backgroundUrl);
   const hasBadges = badges.length > 0;
+
+  // Video backgrounds autoplay muted (browsers block audio without a user
+  // gesture). We gate the card behind a "click to enter" overlay so the
+  // click itself can unmute + (re)play the video with sound.
+  const videoRef = useRef(null);
+  const [entered, setEntered] = useState(false);
+
+  function handleEnter() {
+    setEntered(true);
+    const video = videoRef.current;
+    if (video) {
+      video.muted = false;
+      video.volume = 1;
+      video.play().catch(() => {});
+    }
+  }
 
   const bio =
     lines.length > 0 ? (
@@ -147,6 +164,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
       {hasWallpaper ? (
         isVideoUrl(backgroundUrl) ? (
           <video
+            ref={videoRef}
             className="public-profile-page__bg"
             src={backgroundUrl}
             autoPlay
@@ -160,7 +178,13 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
       ) : null}
       {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
-      <div className="public-profile-card">
+      <div
+        className={
+          hasVideoBg && !entered
+            ? "public-profile-card public-profile-card--hidden"
+            : "public-profile-card"
+        }
+      >
         {avatarUrl ? (
           <div className="public-profile-card__avatar">
             <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
@@ -192,6 +216,37 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
 
         {/* Links go here once that section is built. */}
       </div>
+
+      {hasVideoBg && !entered ? (
+        <button
+          type="button"
+          className="public-profile-enter"
+          onClick={handleEnter}
+        >
+          <span className="public-profile-enter__icon">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+              <path
+                d="M4 9v6h4l5 5V4L8 9H4z"
+                fill="currentColor"
+              />
+              <path
+                d="M16.5 8.5a5 5 0 0 1 0 7"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+              <path
+                d="M19 6a9 9 0 0 1 0 12"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                opacity="0.6"
+              />
+            </svg>
+          </span>
+          <span className="public-profile-enter__label">click to enter</span>
+        </button>
+      ) : null}
     </main>
   );
 }
