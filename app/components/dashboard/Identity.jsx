@@ -471,7 +471,8 @@ export default function Identity() {
         </div>
 
         {bioMode === "typewriter" ? (
-          <div className="identity-field-row identity-field-row--three identity-bio-tuning">
+          <>
+            <div className="identity-field-row identity-field-row--three identity-bio-tuning">
             <div className="identity-field">
               <span className="identity-field__label">
                 Typing Speed (ms) <SaveHint status={bioTuningStatus} />
@@ -561,6 +562,7 @@ export default function Identity() {
               />
             </div>
           </div>
+          </>
         ) : null}
 
         <div className="identity-bio-add">
