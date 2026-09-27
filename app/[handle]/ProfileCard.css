@@ -139,6 +139,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  text-shadow: none;
   padding: 5px 10px;
   border-radius: 7px;
   white-space: nowrap;
