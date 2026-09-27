@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
+import { getDiscordGuildTag } from "../lib/discord";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -18,14 +19,14 @@ export default async function PublicProfilePage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, handle, display_name, avatar_url, avatar_hidden, background_url, background_type, background_color, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, uid, audio_muted, badges_animated, badge_color, username_effect"
+      "id, handle, display_name, avatar_url, avatar_hidden, background_url, background_type, background_color, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, uid, audio_muted, badges_animated, badge_color, username_effect, discord_user_id"
     )
     .eq("handle", handle)
     .maybeSingle();
 
   if (!profile) notFound();
 
-  const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }] = await Promise.all([
+  const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
       .select("line, position")
@@ -43,6 +44,7 @@ export default async function PublicProfilePage({
       .select("url, title")
       .eq("profile_id", profile.id)
       .order("position", { ascending: true }),
+    getDiscordGuildTag(profile.discord_user_id),
   ]);
 
   const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
@@ -58,6 +60,7 @@ export default async function PublicProfilePage({
       bioLines={bioLines ?? []}
       badges={badges}
       tracks={trackRows ?? []}
+      discordTag={discordTag}
     />
   );
 }

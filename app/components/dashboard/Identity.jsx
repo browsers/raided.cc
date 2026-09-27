@@ -139,6 +139,9 @@ export default function Identity() {
   const [font, setFont] = useState("Poppins");
   const [fontStatus, setFontStatus] = useState("idle");
 
+  const [discordUserId, setDiscordUserId] = useState("");
+  const [discordIdStatus, setDiscordIdStatus] = useState("idle");
+
   const [fontTarget, setFontTarget] = useState("both");
   const [fontTargetStatus, setFontTargetStatus] = useState("idle");
 
@@ -160,6 +163,7 @@ export default function Identity() {
   const [bioTuningStatus, setBioTuningStatus] = useState("idle");
 
   const nameSaveTimer = useRef(null);
+  const discordIdSaveTimer = useRef(null);
   const bioTypeSpeedTimer = useRef(null);
   const bioDeleteHoldTimer = useRef(null);
   const bioDeleteSpeedTimer = useRef(null);
@@ -184,7 +188,7 @@ export default function Identity() {
         supabase
           .from("profiles")
           .select(
-            "display_name, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect"
+            "display_name, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect, discord_user_id"
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -203,6 +207,7 @@ export default function Identity() {
         setGlowStyle(profile.glow_style ?? "mid");
         setFont(profile.font ?? "Poppins");
         setFontTarget(profile.font_target ?? "both");
+        setDiscordUserId(profile.discord_user_id ?? "");
         setUsernameEffect(profile.username_effect ?? "none");
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
         setBioTypeSpeed(String(profile.bio_type_speed_ms ?? 45));
@@ -218,6 +223,7 @@ export default function Identity() {
     return () => {
       cancelled = true;
       clearTimeout(nameSaveTimer.current);
+      clearTimeout(discordIdSaveTimer.current);
       clearTimeout(bioTypeSpeedTimer.current);
       clearTimeout(bioDeleteHoldTimer.current);
       clearTimeout(bioDeleteSpeedTimer.current);
@@ -239,6 +245,24 @@ export default function Identity() {
         .update({ display_name: value })
         .eq("id", userId);
       setNameStatus(error ? "error" : "idle");
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  // --- Discord user ID (debounced save while typing) --------------------
+  // Just the raw snowflake — server tag is looked up live from Discord
+  // using this ID, nothing else gets stored.
+  function handleDiscordIdChange(value) {
+    const digitsOnly = value.replace(/[^0-9]/g, "");
+    setDiscordUserId(digitsOnly);
+    if (!userId) return;
+    setDiscordIdStatus("saving");
+    clearTimeout(discordIdSaveTimer.current);
+    discordIdSaveTimer.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ discord_user_id: digitsOnly || null })
+        .eq("id", userId);
+      setDiscordIdStatus(error ? "error" : "idle");
     }, SAVE_DEBOUNCE_MS);
   }
 
@@ -443,6 +467,23 @@ export default function Identity() {
             value={displayName}
             disabled={!userId}
             onChange={(e) => handleNameChange(e.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="identity-field-row">
+        <label className="identity-field">
+          <span className="identity-field__label">
+            Discord User ID <SaveHint status={discordIdStatus} />
+          </span>
+          <input
+            type="text"
+            inputMode="numeric"
+            className="identity-input"
+            placeholder="e.g. 80351110224678912"
+            value={discordUserId}
+            disabled={!userId}
+            onChange={(e) => handleDiscordIdChange(e.target.value)}
           />
         </label>
       </div>

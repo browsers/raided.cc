@@ -119,7 +119,7 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   tracks?: { url: string, title?: string }[],
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [] }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null }) {
   const {
     handle,
     display_name: displayName,
@@ -340,54 +340,69 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           </div>
         ) : null}
 
-        <h1
-          className="public-profile-card__name"
-          style={
-            usernameEffect === "fuzzy" || usernameEffect === "warp"
-              ? { fontFamily: usernameFontFamily, "--tooltip-font": tooltipFontFamily }
-              : {
-                  fontFamily: usernameFontFamily,
-                  textShadow: glowTextShadow(glowStyle, glowColor),
-                  "--tooltip-font": tooltipFontFamily,
-                }
-          }
-          data-tooltip={uid != null ? `UID: ${uid}` : undefined}
-        >
-          {usernameEffect === "fuzzy" ? (
-            <span
-              className="public-profile-card__name-fuzzy"
-              style={{ filter: glowDropShadow(glowStyle, glowColor) }}
-            >
-              <FuzzyText
-                fontSize={38}
-                fontWeight={800}
-                color="#f5f5f5"
-                enableHover
-                baseIntensity={0.12}
-                hoverIntensity={0.5}
-                fuzzRange={12}
-                transitionDuration={12}
+        <div className="public-profile-card__name-row">
+          <h1
+            className="public-profile-card__name"
+            style={
+              usernameEffect === "fuzzy" || usernameEffect === "warp"
+                ? { fontFamily: usernameFontFamily, "--tooltip-font": tooltipFontFamily }
+                : {
+                    fontFamily: usernameFontFamily,
+                    textShadow: glowTextShadow(glowStyle, glowColor),
+                    "--tooltip-font": tooltipFontFamily,
+                  }
+            }
+            data-tooltip={uid != null ? `UID: ${uid}` : undefined}
+          >
+            {usernameEffect === "fuzzy" ? (
+              <span
+                className="public-profile-card__name-fuzzy"
+                style={{ filter: glowDropShadow(glowStyle, glowColor) }}
               >
-                {name}
-              </FuzzyText>
+                <FuzzyText
+                  fontSize={38}
+                  fontWeight={800}
+                  color="#f5f5f5"
+                  enableHover
+                  baseIntensity={0.12}
+                  hoverIntensity={0.5}
+                  fuzzRange={12}
+                  transitionDuration={12}
+                >
+                  {name}
+                </FuzzyText>
+              </span>
+            ) : usernameEffect === "warp" ? (
+              <span
+                className="public-profile-card__name-warp"
+                style={{ filter: glowDropShadow(glowStyle, glowColor) }}
+              >
+                <WarpText
+                  text={name}
+                  color="#f5f5f5"
+                  fontSize={38}
+                  fontWeight={800}
+                  fontFamily={usernameFontFamily}
+                />
+              </span>
+            ) : (
+              name
+            )}
+          </h1>
+
+          {discordTag ? (
+            <span className="public-profile-card__discord-tag">
+              {discordTag.badgeUrl ? (
+                <img
+                  className="public-profile-card__discord-tag-badge"
+                  src={discordTag.badgeUrl}
+                  alt=""
+                />
+              ) : null}
+              {discordTag.tag}
             </span>
-          ) : usernameEffect === "warp" ? (
-            <span
-              className="public-profile-card__name-warp"
-              style={{ filter: glowDropShadow(glowStyle, glowColor) }}
-            >
-              <WarpText
-                text={name}
-                color="#f5f5f5"
-                fontSize={38}
-                fontWeight={800}
-                fontFamily={usernameFontFamily}
-              />
-            </span>
-          ) : (
-            name
-          )}
-        </h1>
+          ) : null}
+        </div>
 
         {hasBadges ? (
           badgesAnimated ? (
