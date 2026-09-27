@@ -26,13 +26,15 @@ function SaveHint({ status }) {
   return null;
 }
 
-// Renders a badge's icon. With no override, it's just the artwork as
-// exported (which is why "Verified" is blue, "Bug Hunter" is green,
-// etc). Once a badge_color override is set, every badge is redrawn as
-// a flat silhouette in that one color instead — done by using the PNG
-// purely as an alpha mask over a solid background-color, which is also
-// why any inner shading (e.g. the checkmark cutout on "Verified") is
-// lost in tinted mode.
+// Renders a badge's icon. With no color passed, it's just the artwork
+// as exported (which is why "Verified" is blue, "Bug Hunter" is green,
+// etc). With a color passed, the badge is redrawn as a flat silhouette
+// in that one color instead, done by using the PNG purely as an alpha
+// mask over a solid background-color, which is also why any inner
+// shading (e.g. the checkmark cutout on "Verified") is lost in tinted
+// mode. Only the preview strip below the color picker ever gets a
+// color here, the badge rows and catalog above always show real
+// artwork so the dashboard itself doesn't change.
 function BadgeGlyph({ src, color }) {
   if (!color) return <img src={src} alt="" />;
   return (
@@ -214,7 +216,7 @@ export default function Badges() {
                 return (
                   <div key={badge.key} className="dash-badge-row">
                     <span className="dash-badge-row__icon">
-                      <BadgeGlyph src={badge.icon} color={badgeColor} />
+                      <img src={badge.icon} alt="" />
                     </span>
                     <div className="dash-badge-row__meta">
                       <span className="dash-badge-row__label">{badge.label}</span>
@@ -252,7 +254,7 @@ export default function Badges() {
                   className={`dash-badge-tile${earned ? " dash-badge-tile--earned" : ""}`}
                 >
                   <span className="dash-badge-tile__icon">
-                    <BadgeGlyph src={badge.icon} color={badgeColor} />
+                    <img src={badge.icon} alt="" />
                   </span>
                   <span className="dash-badge-tile__label">{badge.label}</span>
                   <span className="dash-badge-tile__status">
@@ -270,9 +272,9 @@ export default function Badges() {
             Badge Color <SaveHint status={colorStatus} />
           </h3>
           <p className="dash-badges-color-desc">
-            Pick one color and every badge — enabled or not, here and on your
-            profile — is recolored to match. Reset to bring back each
-            badge's original artwork.
+            Pick one color and every badge on your profile is recolored to
+            match, the preview below shows what that looks like. Reset to
+            bring back each badge's original artwork.
           </p>
 
           <div className="dash-badge-color-row">
@@ -292,7 +294,7 @@ export default function Badges() {
               <input
                 type="text"
                 className="dash-badge-color-input"
-                placeholder="No override — original colors"
+                placeholder="No override, original colors"
                 value={badgeColor ?? ""}
                 disabled={!userId}
                 onChange={(e) => handleBadgeColorHexInput(e.target.value)}
@@ -308,6 +310,7 @@ export default function Badges() {
             </button>
           </div>
 
+          <span className="dash-badge-color-preview__label">Preview</span>
           <div className="dash-badge-color-preview">
             {BADGE_CATALOG.map((badge) => (
               <span key={badge.key} className="dash-badge-color-preview__icon">

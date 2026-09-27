@@ -304,13 +304,23 @@
   cursor: default;
 }
 
+.dash-badge-color-preview__label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dash-text-tertiary);
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dash-border);
+}
+
 .dash-badge-color-preview {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--dash-border);
+  margin-top: 10px;
 }
 
 .dash-badge-color-preview__icon {
