@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import FuzzyText from "../FuzzyText";
 import { supabase } from "../../lib/supabaseClient";
 import { onDisplayNameChange } from "../../lib/profileBus";
 import "./Sidebar.css";
-import { ExternalLinkIcon } from "./icons";
 
 const NAV_ITEMS = [
   { key: "overview", label: "Overview", icon: "/icons/overview.png" },
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
 ];
 
 export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMobile }) {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState(null);
   const navRef = useRef(null);
   const itemRefs = useRef({});
@@ -145,7 +146,7 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
       <div className="dash-sidebar__footer">
         <a className="dash-pill-link" href="#" target="_blank" rel="noreferrer">
           <span className="dash-pill-link__dot" />
-          <ExternalLinkIcon className="dash-pill-link__icon" />
+          <img src="/icons/arrow.png" alt="" className="dash-pill-link__icon" />
           <span>View Profile</span>
         </a>
         <a className="dash-pill-link" href="#" target="_blank" rel="noreferrer">
@@ -178,7 +179,20 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
               {currentUser?.handle ?? ""}
             </span>
           </div>
-          <ExternalLinkIcon className="dash-account-card__action" />
+          <button
+            type="button"
+            className="dash-account-card__action"
+            aria-label="Back to homepage"
+            onClick={() => router.push("/")}
+          >
+            <span
+              className="dash-account-card__action-icon"
+              style={{
+                WebkitMaskImage: "url(/icons/overview.png)",
+                maskImage: "url(/icons/overview.png)",
+              }}
+            />
+          </button>
         </div>
       </div>
       </aside>
