@@ -82,6 +82,58 @@
   cursor: default;
 }
 
+.identity-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--dash-border);
+  cursor: pointer;
+}
+
+.identity-slider:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.identity-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--dash-accent);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.identity-slider:hover::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+
+.identity-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--dash-accent);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.identity-slider:hover::-moz-range-thumb {
+  transform: scale(1.15);
+}
+
+.identity-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--dash-border);
+}
+
 .identity-select {
   appearance: none;
   -webkit-appearance: none;

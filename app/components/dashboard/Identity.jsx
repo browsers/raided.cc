@@ -467,6 +467,16 @@ export default function Identity() {
                 disabled={!userId}
                 onChange={(e) => handleBioTypeSpeedChange(e.target.value)}
               />
+              <input
+                type="range"
+                className="identity-slider"
+                min={5}
+                max={300}
+                step={5}
+                value={Math.min(Math.max(Number(bioTypeSpeed) || 45, 5), 300)}
+                disabled={!userId}
+                onChange={(e) => handleBioTypeSpeedChange(e.target.value)}
+              />
             </div>
 
             <div className="identity-field">
@@ -478,6 +488,16 @@ export default function Identity() {
                 max={10000}
                 placeholder="1400"
                 value={bioDeleteHold}
+                disabled={!userId}
+                onChange={(e) => handleBioDeleteHoldChange(e.target.value)}
+              />
+              <input
+                type="range"
+                className="identity-slider"
+                min={0}
+                max={5000}
+                step={50}
+                value={Math.min(Math.max(Number(bioDeleteHold) || 0, 0), 5000)}
                 disabled={!userId}
                 onChange={(e) => handleBioDeleteHoldChange(e.target.value)}
               />
