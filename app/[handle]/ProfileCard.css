@@ -104,9 +104,6 @@
   border-radius: 30px;
   overflow: hidden;
   margin-bottom: 20px;
-  background: #1c1c1f;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .public-profile-card__avatar-img {
