@@ -25,26 +25,65 @@ export const metadata: Metadata = {
 const GOOGLE_FONTS_HREF =
   "https://fonts.googleapis.com/css2?" +
   [
+    // Standard / sans
     "family=Montserrat:wght@400;600;700",
+    "family=Inter:wght@400;600;700",
+    "family=Roboto:wght@400;500;700",
+    "family=Open+Sans:wght@400;600;700",
+    "family=Lato:wght@400;700",
+    "family=Nunito:wght@400;600;700",
+    // Serif
+    "family=Playfair+Display:wght@400;700",
+    "family=Merriweather:wght@400;700",
+    "family=Lora:wght@400;600",
+    // Mono
+    "family=JetBrains+Mono:wght@400;700",
+    "family=Space+Mono:wght@400;700",
+    // Bold & display
     "family=Anton",
     "family=Bebas+Neue",
     "family=Oswald:wght@400;600;700",
+    "family=Archivo+Black",
+    "family=Alfa+Slab+One",
+    "family=Staatliches",
+    "family=Passion+One:wght@400;700",
+    // Pixel
     "family=Press+Start+2P",
     "family=Pixelify+Sans:wght@400;700",
     "family=VT323",
     "family=Silkscreen",
+    "family=Jersey+10",
+    "family=DotGothic16",
+    // Bubble
     "family=Fredoka:wght@400;600;700",
     "family=Baloo+2:wght@400;700",
     "family=Luckiest+Guy",
     "family=Bubblegum+Sans",
     "family=Chewy",
+    "family=Titan+One",
+    "family=Sniglet:wght@400;800",
+    "family=Varela+Round",
+    // Graffiti & comic
     "family=Bungee",
     "family=Bangers",
     "family=Permanent+Marker",
+    "family=Rock+Salt",
+    "family=Shrikhand",
+    // Script & handwriting
     "family=Caveat:wght@400;700",
     "family=Dancing+Script:wght@400;700",
+    "family=Great+Vibes",
+    "family=Pacifico",
+    "family=Satisfy",
+    "family=Sacramento",
+    "family=Kalam:wght@400;700",
+    // Futuristic & spooky
     "family=Orbitron:wght@400;700",
+    "family=Audiowide",
     "family=Creepster",
+    "family=Nosifer",
+    "family=Monoton",
+    "family=Eater",
   ].join("&") +
   "&display=swap";
 

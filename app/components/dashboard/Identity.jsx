@@ -25,38 +25,74 @@ const FONT_GROUPS = [
     fonts: [
       "Poppins",
       "Montserrat",
+      "Inter",
+      "Roboto",
+      "Open Sans",
+      "Lato",
+      "Nunito",
       "Arial",
       "Verdana",
       "Trebuchet MS",
-      "Georgia",
-      "Times New Roman",
-      "Courier New",
+    ],
+  },
+  {
+    label: "Serif",
+    fonts: ["Georgia", "Times New Roman", "Playfair Display", "Merriweather", "Lora"],
+  },
+  {
+    label: "Mono",
+    fonts: ["Courier New", "JetBrains Mono", "Space Mono"],
+  },
+  {
+    label: "Bold & Display",
+    fonts: [
+      "Impact",
+      "Anton",
+      "Bebas Neue",
+      "Oswald",
+      "Archivo Black",
+      "Alfa Slab One",
+      "Staatliches",
+      "Passion One",
+    ],
+  },
+  {
+    label: "Pixel",
+    fonts: ["Press Start 2P", "Pixelify Sans", "VT323", "Silkscreen", "Jersey 10", "DotGothic16"],
+  },
+  {
+    label: "Bubble",
+    fonts: [
+      "Fredoka",
+      "Baloo 2",
+      "Luckiest Guy",
+      "Bubblegum Sans",
+      "Chewy",
+      "Titan One",
+      "Sniglet",
+      "Varela Round",
+    ],
+  },
+  {
+    label: "Graffiti & Comic",
+    fonts: ["Bungee", "Bangers", "Permanent Marker", "Rock Salt", "Shrikhand"],
+  },
+  {
+    label: "Script & Handwriting",
+    fonts: [
+      "Caveat",
+      "Dancing Script",
+      "Great Vibes",
+      "Pacifico",
+      "Satisfy",
+      "Sacramento",
+      "Kalam",
       "Comic Sans MS",
     ],
   },
   {
-    label: "Bold & Display",
-    fonts: ["Impact", "Anton", "Bebas Neue", "Oswald"],
-  },
-  {
-    label: "Pixel",
-    fonts: ["Press Start 2P", "Pixelify Sans", "VT323", "Silkscreen"],
-  },
-  {
-    label: "Bubble",
-    fonts: ["Fredoka", "Baloo 2", "Luckiest Guy", "Bubblegum Sans", "Chewy"],
-  },
-  {
-    label: "Graffiti & Comic",
-    fonts: ["Bungee", "Bangers", "Permanent Marker"],
-  },
-  {
-    label: "Script",
-    fonts: ["Caveat", "Dancing Script"],
-  },
-  {
-    label: "Futuristic & Fun",
-    fonts: ["Orbitron", "Creepster"],
+    label: "Futuristic & Spooky",
+    fonts: ["Orbitron", "Audiowide", "Creepster", "Nosifer", "Monoton", "Eater"],
   },
 ];
 
