@@ -117,6 +117,7 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   bioLines?: { line: string }[],
  *   badges?: { id: string, icon: string, label?: string }[],
  *   tracks?: { url: string, title?: string }[],
+ *   discordTag?: { tag: string, badgeUrl: string | null } | null,
  * }} props
  */
 export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null }) {
