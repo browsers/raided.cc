@@ -233,6 +233,29 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     }
   }
 
+  // Logs this visit (once per browser per day — see /api/views) and
+  // fetches the all-time total for the corner badge below.
+  const [views, setViews] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/views", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ handle }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled && data) setViews(data.views);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [handle]);
+
   const bio =
     lines.length > 0 ? (
       isTypewriter ? (
@@ -439,6 +462,13 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         >
           <span className="public-profile-enter__label">click to enter</span>
         </button>
+      ) : null}
+
+      {views !== null ? (
+        <div className="public-profile-views">
+          <img src="/icons/view.png" alt="" className="public-profile-views__icon" />
+          <span>{views.toLocaleString()}</span>
+        </div>
       ) : null}
     </main>
   );
