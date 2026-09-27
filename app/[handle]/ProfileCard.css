@@ -201,14 +201,16 @@
 /* The pill above stays untouched visually. This inner layer is the one
    that actually clips the horizontal scroll (hiding the duplicate copy
    of the badge list once it's scrolled past). It's given extra,
-   invisible headroom via padding-top + a matching negative margin so a
-   tooltip popping up above a badge has room to render before it hits
-   the clip boundary. The marquee's own overflow used to cut tooltips
-   off since they render above its short box. */
+   invisible headroom via padding-bottom + a matching negative margin
+   so a tooltip popping down below a badge has room to render before
+   it hits the clip boundary. Tooltips point downward (not up) because
+   there's only 4px between the name and this row, not nearly enough
+   room for a tooltip to pop up without overlapping the name; below
+   there's 16px before the bio text starts. */
 .public-profile-card__badges-clip {
   overflow: hidden;
-  padding-top: 40px;
-  margin-top: -40px;
+  padding-bottom: 40px;
+  margin-bottom: -40px;
 }
 
 .public-profile-card__badges-track {
@@ -259,9 +261,9 @@
 .public-profile-card__badge::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: calc(100% + 8px);
+  top: calc(100% + 8px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateX(-50%) translateY(-4px);
   background: rgba(20, 20, 20, 0.92);
   color: #fff;
   font-size: 11px;
@@ -281,11 +283,11 @@
 .public-profile-card__badge::before {
   content: "";
   position: absolute;
-  bottom: calc(100% + 3px);
+  top: calc(100% + 3px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
+  transform: translateX(-50%) translateY(-4px);
   border: 5px solid transparent;
-  border-top-color: rgba(20, 20, 20, 0.92);
+  border-bottom-color: rgba(20, 20, 20, 0.92);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
