@@ -253,13 +253,13 @@
 }
 
 /* Single floating tooltip shared by every badge, positioned via inline
-   top/left in real viewport coordinates (set from JS on hover) rather
-   than anchored to the badge with CSS. That's what lets it render in
-   full above the badge no matter how close that badge is to the edge
-   of the scrolling strip, instead of getting sliced off by the strip's
-   own clipping. */
+   top/left (set from JS on hover, relative to the card container)
+   rather than anchored to the badge with CSS. That's what lets it
+   render in full above the badge no matter how close that badge is to
+   the edge of the scrolling strip, instead of getting sliced off by
+   the strip's own clipping. */
 .public-profile-card__badge-tooltip {
-  position: fixed;
+  position: absolute;
   transform: translate(-50%, -100%);
   background: rgba(20, 20, 20, 0.92);
   color: #fff;

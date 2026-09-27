@@ -124,22 +124,32 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const hasTracks = tracks.length > 0;
   const hasBadges = badges.length > 0;
 
-  // A single floating tooltip, positioned in real viewport coordinates
-  // on hover rather than CSS-anchored to the badge itself. The badge
-  // row sits inside an overflow:hidden strip (needed to hide the
-  // looping marquee copy), and any tooltip anchored inside that strip
-  // gets sliced off whenever it's wider than the badge or the badge
-  // sits near an edge. Fixed positioning escapes that clipping
-  // entirely, so the pill always renders in full.
+  // A single floating tooltip, positioned relative to the card itself
+  // rather than the badge's own CSS box. The badge row sits inside an
+  // overflow:hidden strip (needed to hide the looping marquee copy),
+  // and any tooltip anchored inside that strip gets sliced off
+  // whenever it's wider than the badge or the badge sits near an edge.
+  //
+  // This can't just be position:fixed with raw viewport coordinates
+  // either: .public-profile-card carries a permanent `filter: blur(0)`
+  // (so the reveal-gate's blur transition has something to animate
+  // from), and any non-none filter on an ancestor makes that ancestor
+  // the positioning root for fixed descendants instead of the
+  // viewport. So instead this measures the badge relative to the card
+  // container itself and renders as a plain absolutely-positioned
+  // child of that same container, which sidesteps the mismatch
+  // entirely regardless of what filter/transform tricks live upstream.
+  const cardRef = useRef(null);
   const [badgeTooltip, setBadgeTooltip] = useState({ label: "", x: 0, y: 0, visible: false });
 
   function showBadgeTooltip(e, label) {
-    if (!label) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    if (!label || !cardRef.current) return;
+    const badgeRect = e.currentTarget.getBoundingClientRect();
+    const cardRect = cardRef.current.getBoundingClientRect();
     setBadgeTooltip({
       label,
-      x: rect.left + rect.width / 2,
-      y: rect.top - 8,
+      x: badgeRect.left + badgeRect.width / 2 - cardRect.left,
+      y: badgeRect.top - cardRect.top - 8,
       visible: true,
     });
   }
@@ -221,6 +231,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
       <div
+        ref={cardRef}
         className={
           gateEnabled && !entered
             ? "public-profile-card public-profile-card--hidden"
