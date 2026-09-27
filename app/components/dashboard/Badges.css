@@ -60,6 +60,10 @@
   border: 1px solid var(--dash-border);
 }
 
+.dash-badge-row--setting {
+  margin: 14px 0 16px;
+}
+
 .dash-badge-row__icon {
   flex-shrink: 0;
   width: 32px;

@@ -18,6 +18,7 @@ export default function Badges() {
   const [loading, setLoading] = useState(true);
   const [earnedKeys, setEarnedKeys] = useState(() => new Set());
   const [enabledKeys, setEnabledKeys] = useState(() => new Set());
+  const [animated, setAnimated] = useState(false);
 
   // Load whatever's actually been granted to this profile on mount.
   useEffect(() => {
@@ -35,10 +36,17 @@ export default function Badges() {
       if (cancelled) return;
       setUserId(user.id);
 
-      const { data: rows } = await supabase
-        .from("profile_badges")
-        .select("badge_key, enabled")
-        .eq("profile_id", user.id);
+      const [{ data: rows }, { data: profile }] = await Promise.all([
+        supabase
+          .from("profile_badges")
+          .select("badge_key, enabled")
+          .eq("profile_id", user.id),
+        supabase
+          .from("profiles")
+          .select("badges_animated")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
 
       if (cancelled) return;
 
@@ -46,6 +54,7 @@ export default function Badges() {
         setEarnedKeys(new Set(rows.map((r) => r.badge_key)));
         setEnabledKeys(new Set(rows.filter((r) => r.enabled).map((r) => r.badge_key)));
       }
+      if (profile) setAnimated(Boolean(profile.badges_animated));
 
       setLoading(false);
     })();
@@ -54,6 +63,17 @@ export default function Badges() {
       cancelled = true;
     };
   }, []);
+
+  async function toggleAnimated() {
+    if (!userId) return;
+    const next = !animated;
+    setAnimated(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ badges_animated: next })
+      .eq("id", userId);
+    if (error) setAnimated(!next); // revert on failure
+  }
 
   async function toggleEnabled(key) {
     if (!userId) return;
@@ -95,6 +115,25 @@ export default function Badges() {
         <Card className="dash-badges-section">
           <div className="dash-card__eyebrow">MY BADGES</div>
           <h3 className="dash-profile-section__title">Enabled On Profile</h3>
+
+          <div className="dash-badge-row dash-badge-row--setting">
+            <div className="dash-badge-row__meta">
+              <span className="dash-badge-row__label">Animated Badges</span>
+              <span className="dash-badge-row__status">
+                Badges scroll in a smooth loop instead of sitting still
+              </span>
+            </div>
+            <button
+              type="button"
+              className={`dash-badge-switch${animated ? " dash-badge-switch--on" : ""}`}
+              role="switch"
+              aria-checked={animated}
+              aria-label="Toggle animated badges"
+              onClick={toggleAnimated}
+            >
+              <span className="dash-badge-switch__knob" />
+            </button>
+          </div>
 
           {!loading && earnedBadges.length === 0 ? (
             <p className="dash-badges-empty">

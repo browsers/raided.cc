@@ -106,6 +106,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     font,
     uid,
     audio_muted: audioMuted,
+    badges_animated: badgesAnimated,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -217,17 +218,36 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         </h1>
 
         {hasBadges ? (
-          <div className="public-profile-card__badges">
-            {badges.map((badge) => (
-              <span
-                key={badge.id}
-                className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
-                data-tooltip={badge.label}
-              >
-                <img src={badge.icon} alt={badge.label ?? ""} />
-              </span>
-            ))}
-          </div>
+          badgesAnimated ? (
+            <div className="public-profile-card__badges-marquee">
+              <div className="public-profile-card__badges-track">
+                {[0, 1].map((copy) =>
+                  badges.map((badge) => (
+                    <span
+                      key={`${copy}-${badge.id}`}
+                      className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                      data-tooltip={badge.label}
+                      aria-hidden={copy === 1 ? "true" : undefined}
+                    >
+                      <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="public-profile-card__badges">
+              {badges.map((badge) => (
+                <span
+                  key={badge.id}
+                  className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                  data-tooltip={badge.label}
+                >
+                  <img src={badge.icon} alt={badge.label ?? ""} />
+                </span>
+              ))}
+            </div>
+          )
         ) : null}
 
         {bio}

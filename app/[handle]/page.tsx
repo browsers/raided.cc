@@ -18,7 +18,7 @@ export default async function PublicProfilePage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, handle, display_name, avatar_url, background_url, background_type, background_color, glow_color, glow_style, font, bio_mode, uid, audio_muted"
+      "id, handle, display_name, avatar_url, background_url, background_type, background_color, glow_color, glow_style, font, bio_mode, uid, audio_muted, badges_animated"
     )
     .eq("handle", handle)
     .maybeSingle();

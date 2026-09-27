@@ -184,6 +184,59 @@
   box-shadow: none;
 }
 
+/* Animated variant: same pill look, but the badges scroll left in a
+   seamless loop. The track renders the badge list twice back-to-back
+   and slides exactly -50% (one full copy's width), so as the first
+   copy exits on the left the second copy is already lined up to take
+   its place — no visible jump when it loops. */
+.public-profile-card__badges-marquee {
+  margin-top: 4px;
+  max-width: 100%;
+  padding: 3px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+
+.public-profile-card__badges-track {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  padding: 0 6px;
+  animation: profile-badges-scroll 14s linear infinite;
+}
+
+.public-profile-card__badges-marquee:hover .public-profile-card__badges-track {
+  animation-play-state: paused;
+}
+
+@keyframes profile-badges-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Exactly one copy's width, since the track holds two copies of
+       the badge list back to back. */
+    transform: translateX(-50%);
+  }
+}
+
 .public-profile-card__badge {
   position: relative;
   display: flex;
