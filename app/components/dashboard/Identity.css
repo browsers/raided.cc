@@ -153,6 +153,13 @@
   color: var(--dash-text-primary);
 }
 
+.identity-select optgroup {
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-tertiary);
+  font-style: normal;
+  font-weight: 600;
+}
+
 .identity-color-field {
   display: flex;
   align-items: center;

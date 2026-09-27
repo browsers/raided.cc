@@ -19,20 +19,45 @@ const USERNAME_EFFECTS = [
   { value: "warp", label: "Warp" },
 ];
 
-const FONTS = [
-  "Poppins",
-  "Minecraftia",
-  "Impact",
-  "Bebas Neue",
-  "Montserrat",
-  "Oswald",
-  "Georgia",
-  "Times New Roman",
-  "Courier New",
-  "Comic Sans MS",
-  "Trebuchet MS",
-  "Verdana",
-  "Arial",
+const FONT_GROUPS = [
+  {
+    label: "Standard",
+    fonts: [
+      "Poppins",
+      "Montserrat",
+      "Arial",
+      "Verdana",
+      "Trebuchet MS",
+      "Georgia",
+      "Times New Roman",
+      "Courier New",
+      "Comic Sans MS",
+    ],
+  },
+  {
+    label: "Bold & Display",
+    fonts: ["Impact", "Anton", "Bebas Neue", "Oswald"],
+  },
+  {
+    label: "Pixel",
+    fonts: ["Press Start 2P", "Pixelify Sans", "VT323", "Silkscreen"],
+  },
+  {
+    label: "Bubble",
+    fonts: ["Fredoka", "Baloo 2", "Luckiest Guy", "Bubblegum Sans", "Chewy"],
+  },
+  {
+    label: "Graffiti & Comic",
+    fonts: ["Bungee", "Bangers", "Permanent Marker"],
+  },
+  {
+    label: "Script",
+    fonts: ["Caveat", "Dancing Script"],
+  },
+  {
+    label: "Futuristic & Fun",
+    fonts: ["Orbitron", "Creepster"],
+  },
 ];
 
 // How long to wait after the person stops typing before we push a text
@@ -412,11 +437,16 @@ export default function Identity() {
             value={font}
             disabled={!userId}
             onChange={(e) => handleFontChange(e.target.value)}
+            style={{ fontFamily: `"${font}", var(--font-sans), sans-serif` }}
           >
-            {FONTS.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
+            {FONT_GROUPS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.fonts.map((name) => (
+                  <option key={name} value={name} style={{ fontFamily: `"${name}", sans-serif` }}>
+                    {name}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
