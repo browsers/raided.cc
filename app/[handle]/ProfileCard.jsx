@@ -44,6 +44,13 @@ function isVideoUrl(url) {
 function useTypewriter(lines, active) {
   const [text, setText] = useState("");
   const timerRef = useRef(null);
+  // `lines` is a brand-new array every render (built fresh in
+  // ProfileCard below), even when the bio content hasn't actually
+  // changed. Every setText() call here triggers a re-render, which
+  // used to make the effect see a "new" `lines` and restart from
+  // scratch — that's why it only ever typed 1-2 letters before
+  // resetting. Depend on the actual content instead of the reference.
+  const linesKey = lines.join("\n");
 
   useEffect(() => {
     if (!active || lines.length === 0) {
@@ -95,7 +102,8 @@ function useTypewriter(lines, active) {
 
     timerRef.current = setTimeout(tick, GAP_MS);
     return () => clearTimeout(timerRef.current);
-  }, [lines, active]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linesKey, active]);
 
   return text;
 }
