@@ -13,6 +13,11 @@ const GLOW_STYLES = [
   { value: "high", label: "High" },
 ];
 
+const USERNAME_EFFECTS = [
+  { value: "none", label: "None" },
+  { value: "fuzzy", label: "Fuzzy" },
+];
+
 const FONTS = [
   "Poppins",
   "Minecraftia",
@@ -62,6 +67,9 @@ export default function Identity() {
   const [font, setFont] = useState("Poppins");
   const [fontStatus, setFontStatus] = useState("idle");
 
+  const [usernameEffect, setUsernameEffect] = useState("none");
+  const [usernameEffectStatus, setUsernameEffectStatus] = useState("idle");
+
   // Bio --------------------------------------------------------------
   const [bioMode, setBioMode] = useState("typewriter"); // "typewriter" | "static"
   const [bioLines, setBioLines] = useState([]); // [{ id, line, position }]
@@ -89,7 +97,7 @@ export default function Identity() {
       const [{ data: profile }, { data: lineRows }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, glow_color, glow_style, font, bio_mode")
+          .select("display_name, glow_color, glow_style, font, bio_mode, username_effect")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -106,6 +114,7 @@ export default function Identity() {
         setGlowColor(profile.glow_color ?? "#ffffff");
         setGlowStyle(profile.glow_style ?? "mid");
         setFont(profile.font ?? "Poppins");
+        setUsernameEffect(profile.username_effect ?? "none");
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
       }
       if (lineRows) setBioLines(lineRows);
@@ -179,6 +188,18 @@ export default function Identity() {
       .update({ font: value })
       .eq("id", userId);
     setFontStatus(error ? "error" : "idle");
+  }
+
+  // --- Username effect --------------------------------------------------
+  async function handleUsernameEffectChange(value) {
+    setUsernameEffect(value);
+    if (!userId) return;
+    setUsernameEffectStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ username_effect: value })
+      .eq("id", userId);
+    setUsernameEffectStatus(error ? "error" : "idle");
   }
 
   // --- Bio mode ---------------------------------------------------------
@@ -317,6 +338,26 @@ export default function Identity() {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="identity-field-row">
+        <label className="identity-field">
+          <span className="identity-field__label">
+            Username Effect <SaveHint status={usernameEffectStatus} />
+          </span>
+          <select
+            className="identity-select"
+            value={usernameEffect}
+            disabled={!userId}
+            onChange={(e) => handleUsernameEffectChange(e.target.value)}
+          >
+            {USERNAME_EFFECTS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="identity-bio">

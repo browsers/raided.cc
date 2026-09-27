@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FuzzyText from "../components/FuzzyText";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -12,6 +13,22 @@ const GLOW_SHADOWS = {
 
 function glowTextShadow(style, color) {
   const fn = GLOW_SHADOWS[style] ?? GLOW_SHADOWS.mid;
+  return typeof fn === "function" ? fn(color || "#ffffff") : fn;
+}
+
+// The Fuzzy username effect renders the name onto a <canvas>, so a plain
+// CSS text-shadow (which only shadows real text) can't glow it — this
+// gives the same GLOW_SHADOWS look via drop-shadow filters instead, which
+// do work on canvas pixels.
+const GLOW_DROP_SHADOWS = {
+  off: "none",
+  low: (c) => `drop-shadow(0 0 6px ${c})`,
+  mid: (c) => `drop-shadow(0 0 6px ${c}) drop-shadow(0 0 16px ${c})`,
+  high: (c) => `drop-shadow(0 0 8px ${c}) drop-shadow(0 0 20px ${c}) drop-shadow(0 0 40px ${c})`,
+};
+
+function glowDropShadow(style, color) {
+  const fn = GLOW_DROP_SHADOWS[style] ?? GLOW_DROP_SHADOWS.mid;
   return typeof fn === "function" ? fn(color || "#ffffff") : fn;
 }
 
@@ -105,6 +122,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     glow_color: glowColor,
     glow_style: glowStyle,
     font,
+    username_effect: usernameEffect,
     uid,
     audio_muted: audioMuted,
     badges_animated: badgesAnimated,
@@ -271,10 +289,35 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
         <h1
           className="public-profile-card__name"
-          style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
+          style={
+            usernameEffect === "fuzzy"
+              ? { fontFamily }
+              : { fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }
+          }
           data-tooltip={uid != null ? `UID: ${uid}` : undefined}
         >
-          {name}
+          {usernameEffect === "fuzzy" ? (
+            <span
+              className="public-profile-card__name-fuzzy"
+              style={{ filter: glowDropShadow(glowStyle, glowColor) }}
+            >
+              <FuzzyText
+                fontSize={38}
+                fontWeight={800}
+                fontFamily={fontFamily || "inherit"}
+                color="#f5f5f5"
+                enableHover
+                baseIntensity={0.12}
+                hoverIntensity={0.5}
+                fuzzRange={12}
+                transitionDuration={12}
+              >
+                {name}
+              </FuzzyText>
+            </span>
+          ) : (
+            name
+          )}
         </h1>
 
         {hasBadges ? (

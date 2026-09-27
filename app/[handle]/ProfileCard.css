@@ -124,6 +124,12 @@
   cursor: default;
 }
 
+.public-profile-card__name-fuzzy {
+  display: inline-block;
+  vertical-align: bottom;
+  line-height: 0;
+}
+
 .public-profile-card__name[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;
