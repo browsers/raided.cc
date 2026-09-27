@@ -198,19 +198,13 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* The pill above stays untouched visually. This inner layer is the one
-   that actually clips the horizontal scroll (hiding the duplicate copy
-   of the badge list once it's scrolled past). It's given extra,
-   invisible headroom via padding-bottom + a matching negative margin
-   so a tooltip popping down below a badge has room to render before
-   it hits the clip boundary. Tooltips point downward (not up) because
-   there's only 4px between the name and this row, not nearly enough
-   room for a tooltip to pop up without overlapping the name; below
-   there's 16px before the bio text starts. */
+/* This inner layer is what actually clips the horizontal scroll
+   (hiding the duplicate copy of the badge list once it's scrolled
+   past). Tooltips no longer live inside it — they're a single fixed-
+   position element positioned via JS on hover — so this can stay a
+   plain clip with no extra headroom hacks. */
 .public-profile-card__badges-clip {
   overflow: hidden;
-  padding-bottom: 40px;
-  margin-bottom: -40px;
 }
 
 .public-profile-card__badges-track {
@@ -258,12 +252,15 @@
   display: block;
 }
 
-.public-profile-card__badge::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) translateY(-4px);
+/* Single floating tooltip shared by every badge, positioned via inline
+   top/left in real viewport coordinates (set from JS on hover) rather
+   than anchored to the badge with CSS. That's what lets it render in
+   full above the badge no matter how close that badge is to the edge
+   of the scrolling strip, instead of getting sliced off by the strip's
+   own clipping. */
+.public-profile-card__badge-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
   background: rgba(20, 20, 20, 0.92);
   color: #fff;
   font-size: 11px;
@@ -275,29 +272,23 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
-  z-index: 3;
+  z-index: 50;
 }
 
-.public-profile-card__badge::before {
+.public-profile-card__badge-tooltip--visible {
+  opacity: 1;
+}
+
+.public-profile-card__badge-tooltip::after {
   content: "";
   position: absolute;
-  top: calc(100% + 3px);
+  top: 100%;
   left: 50%;
-  transform: translateX(-50%) translateY(-4px);
+  transform: translateX(-50%);
   border: 5px solid transparent;
-  border-bottom-color: rgba(20, 20, 20, 0.92);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 3;
-}
-
-.public-profile-card__badge:hover::after,
-.public-profile-card__badge:hover::before {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  border-top-color: rgba(20, 20, 20, 0.92);
 }
 
 .public-profile-card__bio {

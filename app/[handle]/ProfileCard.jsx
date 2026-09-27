@@ -124,6 +124,30 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const hasTracks = tracks.length > 0;
   const hasBadges = badges.length > 0;
 
+  // A single floating tooltip, positioned in real viewport coordinates
+  // on hover rather than CSS-anchored to the badge itself. The badge
+  // row sits inside an overflow:hidden strip (needed to hide the
+  // looping marquee copy), and any tooltip anchored inside that strip
+  // gets sliced off whenever it's wider than the badge or the badge
+  // sits near an edge. Fixed positioning escapes that clipping
+  // entirely, so the pill always renders in full.
+  const [badgeTooltip, setBadgeTooltip] = useState({ label: "", x: 0, y: 0, visible: false });
+
+  function showBadgeTooltip(e, label) {
+    if (!label) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setBadgeTooltip({
+      label,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+      visible: true,
+    });
+  }
+
+  function hideBadgeTooltip() {
+    setBadgeTooltip((t) => ({ ...t, visible: false }));
+  }
+
   // Video backgrounds autoplay muted, and any uploaded track needs a user
   // gesture to play with sound at all — browsers block both without one.
   // So when there's audio to unlock, we gate the card behind a "click to
@@ -236,8 +260,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                       <span
                         key={`${copy}-${badge.id}`}
                         className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
-                        data-tooltip={badge.label}
                         aria-hidden={copy === 1 ? "true" : undefined}
+                        onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
+                        onMouseLeave={hideBadgeTooltip}
                       >
                         <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
                       </span>
@@ -252,13 +277,27 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 <span
                   key={badge.id}
                   className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
-                  data-tooltip={badge.label}
+                  onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
+                  onMouseLeave={hideBadgeTooltip}
                 >
                   <img src={badge.icon} alt={badge.label ?? ""} />
                 </span>
               ))}
             </div>
           )
+        ) : null}
+
+        {hasBadges ? (
+          <div
+            className={
+              badgeTooltip.visible
+                ? "public-profile-card__badge-tooltip public-profile-card__badge-tooltip--visible"
+                : "public-profile-card__badge-tooltip"
+            }
+            style={{ top: badgeTooltip.y, left: badgeTooltip.x }}
+          >
+            {badgeTooltip.label}
+          </div>
         ) : null}
 
         {bio}
