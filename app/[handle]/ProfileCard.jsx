@@ -304,7 +304,6 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               <FuzzyText
                 fontSize={38}
                 fontWeight={800}
-                fontFamily={fontFamily || "inherit"}
                 color="#f5f5f5"
                 enableHover
                 baseIntensity={0.12}
