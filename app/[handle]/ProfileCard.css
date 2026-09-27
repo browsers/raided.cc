@@ -104,6 +104,7 @@
   width: 14px;
   height: 14px;
   opacity: 0.85;
+  filter: brightness(0) invert(1);
 }
 
 @keyframes profile-enter-pulse {
