@@ -19,6 +19,16 @@ const USERNAME_EFFECTS = [
   { value: "warp", label: "Warp" },
 ];
 
+// Which parts of the profile the selected Font actually gets applied to.
+// "both" is the historical default (username + bio, nothing else).
+const FONT_TARGETS = [
+  { value: "both", label: "Username & Bio" },
+  { value: "username", label: "Username Only" },
+  { value: "bio", label: "Bio Only" },
+  { value: "tooltips", label: "Tooltips Only" },
+  { value: "all", label: "Everything" },
+];
+
 const FONT_GROUPS = [
   {
     label: "Standard",
@@ -129,6 +139,9 @@ export default function Identity() {
   const [font, setFont] = useState("Poppins");
   const [fontStatus, setFontStatus] = useState("idle");
 
+  const [fontTarget, setFontTarget] = useState("both");
+  const [fontTargetStatus, setFontTargetStatus] = useState("idle");
+
   const [usernameEffect, setUsernameEffect] = useState("none");
   const [usernameEffectStatus, setUsernameEffectStatus] = useState("idle");
 
@@ -171,7 +184,7 @@ export default function Identity() {
         supabase
           .from("profiles")
           .select(
-            "display_name, glow_color, glow_style, font, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect"
+            "display_name, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect"
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -189,6 +202,7 @@ export default function Identity() {
         setGlowColor(profile.glow_color ?? "#ffffff");
         setGlowStyle(profile.glow_style ?? "mid");
         setFont(profile.font ?? "Poppins");
+        setFontTarget(profile.font_target ?? "both");
         setUsernameEffect(profile.username_effect ?? "none");
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
         setBioTypeSpeed(String(profile.bio_type_speed_ms ?? 45));
@@ -270,6 +284,18 @@ export default function Identity() {
       .update({ font: value })
       .eq("id", userId);
     setFontStatus(error ? "error" : "idle");
+  }
+
+  // --- Font target (which parts of the profile the font applies to) -----
+  async function handleFontTargetChange(value) {
+    setFontTarget(value);
+    if (!userId) return;
+    setFontTargetStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ font_target: value })
+      .eq("id", userId);
+    setFontTargetStatus(error ? "error" : "idle");
   }
 
   // --- Username effect --------------------------------------------------
@@ -488,7 +514,7 @@ export default function Identity() {
         </div>
       </div>
 
-      <div className="identity-field-row">
+      <div className="identity-field-row identity-field-row--two">
         <label className="identity-field">
           <span className="identity-field__label">
             Username Effect <SaveHint status={usernameEffectStatus} />
@@ -500,6 +526,24 @@ export default function Identity() {
             onChange={(e) => handleUsernameEffectChange(e.target.value)}
           >
             {USERNAME_EFFECTS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="identity-field">
+          <span className="identity-field__label">
+            Apply Font To <SaveHint status={fontTargetStatus} />
+          </span>
+          <select
+            className="identity-select"
+            value={fontTarget}
+            disabled={!userId}
+            onChange={(e) => handleFontTargetChange(e.target.value)}
+          >
+            {FONT_TARGETS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

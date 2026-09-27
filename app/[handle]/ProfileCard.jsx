@@ -131,6 +131,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     glow_color: glowColor,
     glow_style: glowStyle,
     font,
+    font_target: fontTargetRaw,
     bio_type_speed_ms: bioTypeSpeedMs,
     bio_delete_hold_ms: bioDeleteHoldMs,
     bio_delete_speed_ms: bioDeleteSpeedMs,
@@ -154,7 +155,18 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const typedText = useTypewriter(lines, isTypewriter && lines.length > 0, typeMs, holdMs, deleteMs);
 
   const name = displayName?.trim() || handle;
-  const fontFamily = font ? `"${font}", var(--font-sans), sans-serif` : undefined;
+
+  // The saved font can be scoped to just the username, just the bio, just
+  // the badge/UID tooltips, the historical "both" (username + bio), or
+  // "all" of the above. "both" is the default so existing profiles saved
+  // before this setting existed keep behaving exactly as they did.
+  const fontStack = font ? `"${font}", var(--font-sans), sans-serif` : undefined;
+  const fontTarget = fontTargetRaw || "both";
+  const usernameFontFamily = ["username", "both", "all"].includes(fontTarget)
+    ? fontStack
+    : undefined;
+  const bioFontFamily = ["bio", "both", "all"].includes(fontTarget) ? fontStack : undefined;
+  const tooltipFontFamily = ["tooltips", "all"].includes(fontTarget) ? fontStack : undefined;
 
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
@@ -268,14 +280,14 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const bio =
     lines.length > 0 ? (
       isTypewriter ? (
-        <div className="public-profile-card__bio" style={{ fontFamily }}>
+        <div className="public-profile-card__bio" style={{ fontFamily: bioFontFamily }}>
           {typedText}
           <span className="public-profile-card__caret">{cursorChar}</span>
         </div>
       ) : (
         <div
           className="public-profile-card__bio public-profile-card__bio--static"
-          style={{ fontFamily }}
+          style={{ fontFamily: bioFontFamily }}
         >
           {lines.map((line, i) => (
             <div key={i} className="public-profile-card__bio-line">
@@ -332,8 +344,12 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           className="public-profile-card__name"
           style={
             usernameEffect === "fuzzy" || usernameEffect === "warp"
-              ? { fontFamily }
-              : { fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }
+              ? { fontFamily: usernameFontFamily, "--tooltip-font": tooltipFontFamily }
+              : {
+                  fontFamily: usernameFontFamily,
+                  textShadow: glowTextShadow(glowStyle, glowColor),
+                  "--tooltip-font": tooltipFontFamily,
+                }
           }
           data-tooltip={uid != null ? `UID: ${uid}` : undefined}
         >
@@ -365,7 +381,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 color="#f5f5f5"
                 fontSize={38}
                 fontWeight={800}
-                fontFamily={fontFamily}
+                fontFamily={usernameFontFamily}
               />
             </span>
           ) : (
@@ -448,7 +464,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 ? "public-profile-card__badge-tooltip public-profile-card__badge-tooltip--visible"
                 : "public-profile-card__badge-tooltip"
             }
-            style={{ top: badgeTooltip.y, left: badgeTooltip.x }}
+            style={{ top: badgeTooltip.y, left: badgeTooltip.x, fontFamily: tooltipFontFamily }}
           >
             {badgeTooltip.label}
           </div>
