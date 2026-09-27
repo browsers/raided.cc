@@ -155,24 +155,41 @@
   z-index: 3;
 }
 
+/*
+ * The arrow used to be a CSS border-triangle sitting next to the box as
+ * its own shape — same fill color, but two separately-antialiased edges
+ * meeting head-on, which shows up as a thin seam/line where they touch.
+ *
+ * Instead this is a small square rotated 45° and tucked half a step
+ * behind the box (lower z-index, nudged up so its top half is covered).
+ * The hidden half means there's nothing double-drawn to seam; only the
+ * bottom point peeks out below the box, in the exact same fill color,
+ * reading as one continuous shape.
+ */
 .public-profile-card__name[data-tooltip]::before {
   content: "";
   position: absolute;
-  bottom: calc(100% + 5px);
+  bottom: calc(100% + 6px);
   left: 50%;
-  transform: translateX(-50%) translateY(4px);
-  border: 5px solid transparent;
-  border-top-color: rgba(20, 20, 20, 0.92);
+  width: 10px;
+  height: 10px;
+  background: rgba(20, 20, 20, 0.92);
+  border-radius: 2px;
+  transform: translateX(-50%) translateY(4px) rotate(45deg);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 3;
+  z-index: 2;
 }
 
-.public-profile-card__name[data-tooltip]:hover::after,
-.public-profile-card__name[data-tooltip]:hover::before {
+.public-profile-card__name[data-tooltip]:hover::after {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.public-profile-card__name[data-tooltip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) rotate(45deg);
 }
 
 .public-profile-card__badges {
