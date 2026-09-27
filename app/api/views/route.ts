@@ -1,11 +1,26 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createHash } from "crypto";
 import { createClient } from "../../lib/supabase/server";
 
 // How long a "already counted this visitor" cookie sticks around for.
 // Refreshing/spamming raided.cc/[handle] within this window doesn't add
 // another view; coming back after it expires does.
 const DEDUPE_MAX_AGE_SECONDS = 60 * 60 * 24; // 24h
+
+// The live profile_views table has its own viewer_hash column (a
+// per-visitor fingerprint, presumably meant as a DB-level second layer
+// of dedupe alongside the viewed_day column) — this derives a value for
+// it from IP + User-Agent rather than storing either raw. It's coarse
+// (shared IPs/UAs collide) but that's fine for a view counter.
+function viewerHash(request: Request): string {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+  const ua = request.headers.get("user-agent") ?? "unknown";
+  return createHash("sha256").update(`${ip}|${ua}`).digest("hex");
+}
 
 // POST { handle } -> { views }
 // Called client-side once per profile-page load (see ProfileCard.jsx).
@@ -41,17 +56,16 @@ export async function POST(request: Request) {
   const alreadyCountedThisVisit = Boolean(cookieStore.get(cookieName));
 
   if (!alreadyCountedThisVisit) {
-    const { error: insertError } = await supabase
-      .from("profile_views")
-      .insert({ profile_id: profile.id });
+    const { error: insertError } = await supabase.from("profile_views").insert({
+      profile_id: profile.id,
+      viewer_hash: viewerHash(request),
+    });
 
     // Only mark this visitor as "counted" if the insert actually went
-    // through. Setting the cookie unconditionally here was the bug:
-    // if the insert failed (e.g. the migration/RLS policy wasn't in
-    // place yet), the visitor would get silently marked as counted
-    // anyway, and every future visit from that browser would then skip
-    // the insert too — permanently hiding the failure.
-    if (insertError) {
+    // through — a unique-violation (code 23505) means the DB itself
+    // already had this viewer_hash/profile/day combo and rejected the
+    // duplicate, which counts as success here, not a failure.
+    if (insertError && insertError.code !== "23505") {
       console.error("profile_views insert failed:", insertError.message);
     } else {
       cookieStore.set(cookieName, "1", {
