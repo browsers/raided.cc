@@ -138,15 +138,17 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   function handleEnter() {
     setEntered(true);
     const video = videoRef.current;
-    if (video) {
+    const audio = audioRef.current;
+
+    if (audio) {
+      // An uploaded track is the intended "background music" — keep the
+      // video's own audio muted so the two don't play over each other.
+      audio.volume = 1;
+      audio.play().catch(() => {});
+    } else if (video) {
       video.muted = false;
       video.volume = 1;
       video.play().catch(() => {});
-    }
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = 1;
-      audio.play().catch(() => {});
     }
   }
 
