@@ -144,7 +144,24 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
   function showBadgeTooltip(e, label) {
     if (!label || !cardRef.current) return;
-    const badgeRect = e.currentTarget.getBoundingClientRect();
+    const badge = e.currentTarget;
+    const badgeRect = badge.getBoundingClientRect();
+
+    // In the animated variant, the marquee only pauses once the mouse
+    // is over it — so a badge can still be mid-scroll, partway behind
+    // the edge of the visible strip, right when the hover fires. Don't
+    // show a tooltip pointing at a sliver of a badge; wait until it's
+    // basically fully in view. The static variant has no clip strip,
+    // so this only kicks in when one is actually found.
+    const clip = badge.closest(".public-profile-card__badges-clip");
+    if (clip) {
+      const clipRect = clip.getBoundingClientRect();
+      const visibleLeft = Math.max(badgeRect.left, clipRect.left);
+      const visibleRight = Math.min(badgeRect.right, clipRect.right);
+      const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+      if (visibleWidth < badgeRect.width * 0.9) return;
+    }
+
     const cardRect = cardRef.current.getBoundingClientRect();
     setBadgeTooltip({
       label,
