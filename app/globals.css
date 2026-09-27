@@ -45,6 +45,23 @@ body {
   align-items: center;
 }
 
+.homepage-login-link {
+  margin-top: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: rgba(245, 245, 245, 0.5);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.homepage-login-link:hover {
+  color: rgba(245, 245, 245, 0.75);
+}
+
 /* .request-access-btn styling now lives in
    app/components/SpecularButton.css, scoped to
    .specular-button.request-access-btn */

@@ -7,6 +7,7 @@ import CodeSlots from "./components/CodeSlots";
 import SpecularButton from "./components/SpecularButton";
 import BrandTitle from "./components/BrandTitle";
 import ClaimHandleForm from "./components/ClaimHandleForm";
+import LoginForm from "./components/LoginForm";
 import RedirectCard from "./components/RedirectCard";
 import { supabase } from "./lib/supabaseClient";
 
@@ -23,6 +24,7 @@ export default function Home() {
   const [status, setStatus] = useState("idle");
   // 'code' -> entering the invite code
   // 'claim' -> claiming a handle + password (post Cloudflare Turnstile + Supabase)
+  // 'login' -> signing back into an existing account
   // 'redirect' -> account created, showing the redirect card
   const [step, setStep] = useState("code");
   // Whether the browser already holds a valid Supabase session, i.e. the
@@ -142,6 +144,15 @@ export default function Home() {
               >
                 {hasSession ? "Dashboard" : "Request access"}
               </SpecularButton>
+              {!hasSession ? (
+                <button
+                  type="button"
+                  className="homepage-login-link"
+                  onClick={() => setStep("login")}
+                >
+                  Log in
+                </button>
+              ) : null}
             </motion.div>
           ) : step === "claim" ? (
             <motion.div
@@ -153,6 +164,20 @@ export default function Home() {
               transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
             >
               <ClaimHandleForm onComplete={handleClaimed} />
+            </motion.div>
+          ) : step === "login" ? (
+            <motion.div
+              key="login"
+              className="auth-stack"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }}
+            >
+              <LoginForm
+                onComplete={() => router.push("/dashboard")}
+                onBack={() => setStep("code")}
+              />
             </motion.div>
           ) : (
             <motion.div
