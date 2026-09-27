@@ -92,7 +92,7 @@ function useTypewriter(lines, active) {
  *   badges?: { id: string, icon: string, label?: string }[],
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [] }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [] }) {
   const {
     handle,
     display_name: displayName,
@@ -104,6 +104,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
     glow_style: glowStyle,
     font,
     uid,
+    audio_muted: audioMuted,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -118,13 +119,20 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);
   const hasVideoBg = hasWallpaper && isVideoUrl(backgroundUrl);
+  const hasTracks = tracks.length > 0;
   const hasBadges = badges.length > 0;
 
-  // Video backgrounds autoplay muted (browsers block audio without a user
-  // gesture). We gate the card behind a "click to enter" overlay so the
-  // click itself can unmute + (re)play the video with sound.
+  // Video backgrounds autoplay muted, and any uploaded track needs a user
+  // gesture to play with sound at all — browsers block both without one.
+  // So when there's audio to unlock, we gate the card behind a "click to
+  // enter" overlay and use that click to unmute/play. Muting audio in the
+  // dashboard skips the gate entirely (page just loads silent).
+  const hasAudioContent = hasVideoBg || hasTracks;
+  const gateEnabled = hasAudioContent && !audioMuted;
+
   const videoRef = useRef(null);
-  const [entered, setEntered] = useState(false);
+  const audioRef = useRef(null);
+  const [entered, setEntered] = useState(!gateEnabled);
 
   function handleEnter() {
     setEntered(true);
@@ -133,6 +141,11 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
       video.muted = false;
       video.volume = 1;
       video.play().catch(() => {});
+    }
+    const audio = audioRef.current;
+    if (audio) {
+      audio.volume = 1;
+      audio.play().catch(() => {});
     }
   }
 
@@ -181,7 +194,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
 
       <div
         className={
-          hasVideoBg && !entered
+          gateEnabled && !entered
             ? "public-profile-card public-profile-card--hidden"
             : "public-profile-card"
         }
@@ -219,7 +232,11 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
         {/* Links go here once that section is built. */}
       </div>
 
-      {hasVideoBg && !entered ? (
+      {hasTracks && !audioMuted ? (
+        <audio ref={audioRef} src={tracks[0].url} loop preload="auto" />
+      ) : null}
+
+      {gateEnabled && !entered ? (
         <button
           type="button"
           className="public-profile-enter"

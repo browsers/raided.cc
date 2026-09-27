@@ -18,14 +18,14 @@ export default async function PublicProfilePage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, handle, display_name, avatar_url, background_url, background_type, background_color, glow_color, glow_style, font, bio_mode, uid"
+      "id, handle, display_name, avatar_url, background_url, background_type, background_color, glow_color, glow_style, font, bio_mode, uid, audio_muted"
     )
     .eq("handle", handle)
     .maybeSingle();
 
   if (!profile) notFound();
 
-  const [{ data: bioLines }, { data: badgeRows }] = await Promise.all([
+  const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }] = await Promise.all([
     supabase
       .from("profile_bio_lines")
       .select("line, position")
@@ -38,6 +38,11 @@ export default async function PublicProfilePage({
       .select("badge_key")
       .eq("profile_id", profile.id)
       .eq("enabled", true),
+    supabase
+      .from("profile_tracks")
+      .select("url, title")
+      .eq("profile_id", profile.id)
+      .order("position", { ascending: true }),
   ]);
 
   const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
@@ -47,7 +52,14 @@ export default async function PublicProfilePage({
     })
     .filter((b): b is { id: string; icon: string; label: string } => b !== null);
 
-  return <ProfileCard profile={profile} bioLines={bioLines ?? []} badges={badges} />;
+  return (
+    <ProfileCard
+      profile={profile}
+      bioLines={bioLines ?? []}
+      badges={badges}
+      tracks={trackRows ?? []}
+    />
+  );
 }
 
 export async function generateMetadata({

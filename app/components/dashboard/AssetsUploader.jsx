@@ -118,6 +118,7 @@ function AssetTile({
   multiple = false,
   cornerBadge,
   cornerControl,
+  bottomRightControl,
   hasValue,
   colorValue,
   previewUrl,
@@ -240,6 +241,12 @@ function AssetTile({
           ) : null)}
       </div>
 
+      {bottomRightControl ? (
+        <div className="asset-tile__corner-br" onClick={(e) => e.stopPropagation()}>
+          {bottomRightControl}
+        </div>
+      ) : null}
+
       <div className="asset-tile__body">
         {!showPreview && icon ? (
           <img className="asset-tile__icon" src={icon} alt="" />
@@ -285,6 +292,53 @@ function BackgroundModeToggle({ mode, onChange }) {
   );
 }
 
+// Bottom-right mute toggle on the Background tile. Controls whether the
+// public profile's "click to enter" gate shows at all — muted means the
+// page just loads silent, no gate.
+function AudioMuteToggle({ muted, onToggle }) {
+  return (
+    <button
+      type="button"
+      className="asset-tile__mute"
+      aria-label={muted ? "Unmute background audio" : "Mute background audio"}
+      aria-pressed={muted}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    >
+      {muted ? (
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
+          <path d="M4 9v6h4l5 5V4L8 9H4z" fill="currentColor" />
+          <path
+            d="M16.5 9.5l5 5M21.5 9.5l-5 5"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none">
+          <path d="M4 9v6h4l5 5V4L8 9H4z" fill="currentColor" />
+          <path
+            d="M16.5 8.5a5 5 0 0 1 0 7"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+          <path
+            d="M19 6a9 9 0 0 1 0 12"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            opacity="0.6"
+          />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 // Images + gifs accepted everywhere an image is accepted (browsers treat
 // .gif as image/gif, so "image/*" already covers jpg/png/gif/webp/etc).
 const AVATAR_ACCEPT = "image/*";
@@ -313,6 +367,13 @@ export default function AssetsUploader() {
   const [tracks, setTracks] = useState([]); // [{ url, title }]
   const [trackStatus, setTrackStatus] = useState("idle");
 
+  // Audio mute ----------------------------------------------------------
+  // Controls the public profile's "click to enter" gate: muted = the
+  // gate never shows (page just loads silent); unmuted + a video
+  // background or a track loaded = the gate shows so the visitor's
+  // click can unlock sound.
+  const [audioMuted, setAudioMuted] = useState(false); // persisted
+
   // Load whatever's already saved for this user on mount.
   useEffect(() => {
     let cancelled = false;
@@ -332,7 +393,7 @@ export default function AssetsUploader() {
       const [{ data: profile }, { data: trackRows }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("avatar_url, background_url, background_type, background_color")
+          .select("avatar_url, background_url, background_type, background_color, audio_muted")
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -349,6 +410,7 @@ export default function AssetsUploader() {
         setBgMode(profile.background_type === "color" ? "color" : "wallpaper");
         setBgUrl(profile.background_url ?? null);
         setBgColor(profile.background_color ?? null);
+        setAudioMuted(Boolean(profile.audio_muted));
       }
       if (trackRows) setTracks(trackRows);
 
@@ -490,6 +552,13 @@ export default function AssetsUploader() {
 
       setTracks(uploaded);
       setTrackStatus("idle");
+
+      // New music was just added — bring the "click to enter" gate back
+      // so it actually gets heard, even if the profile was muted before.
+      if (audioMuted) {
+        setAudioMuted(false);
+        await supabase.from("profiles").update({ audio_muted: false }).eq("id", userId);
+      }
     } catch (err) {
       console.error("Track upload failed:", err);
       setTrackStatus("error");
@@ -507,6 +576,21 @@ export default function AssetsUploader() {
       await supabase.storage.from(BUCKETS.track).remove(oldPaths).catch(() => {});
     }
     await supabase.from("profile_tracks").delete().eq("profile_id", userId);
+  }
+
+  // --- Audio mute handler ----------------------------------------------
+  async function handleToggleAudioMuted() {
+    const next = !audioMuted;
+    setAudioMuted(next);
+    if (!userId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ audio_muted: next })
+      .eq("id", userId);
+    if (error) {
+      console.error("Mute toggle failed:", error);
+      setAudioMuted(!next); // revert on failure
+    }
   }
 
   // --- Derived display state ------------------------------------------
@@ -579,6 +663,9 @@ export default function AssetsUploader() {
         colorValue={bgColor}
         cornerControl={
           <BackgroundModeToggle mode={bgMode} onChange={handleBackgroundModeChange} />
+        }
+        bottomRightControl={
+          <AudioMuteToggle muted={audioMuted} onToggle={handleToggleAudioMuted} />
         }
         hasValue={bgHasValue}
         previewUrl={bgPreviewUrl}
