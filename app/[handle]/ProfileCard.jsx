@@ -257,8 +257,14 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             : "public-profile-card"
         }
       >
-        {avatarUrl && !avatarHidden ? (
-          <div className="public-profile-card__avatar">
+        {avatarUrl ? (
+          <div
+            className="public-profile-card__avatar"
+            // Hiding the avatar shouldn't reflow the card, the name
+            // stays right where it was, so this keeps the 152x152 box
+            // (and its margin) reserved and just hides the pixels.
+            style={avatarHidden ? { visibility: "hidden" } : undefined}
+          >
             <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
           </div>
         ) : null}
