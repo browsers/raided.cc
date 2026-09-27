@@ -41,12 +41,25 @@ export async function POST(request: Request) {
   const alreadyCountedThisVisit = Boolean(cookieStore.get(cookieName));
 
   if (!alreadyCountedThisVisit) {
-    await supabase.from("profile_views").insert({ profile_id: profile.id });
-    cookieStore.set(cookieName, "1", {
-      maxAge: DEDUPE_MAX_AGE_SECONDS,
-      path: "/",
-      sameSite: "lax",
-    });
+    const { error: insertError } = await supabase
+      .from("profile_views")
+      .insert({ profile_id: profile.id });
+
+    // Only mark this visitor as "counted" if the insert actually went
+    // through. Setting the cookie unconditionally here was the bug:
+    // if the insert failed (e.g. the migration/RLS policy wasn't in
+    // place yet), the visitor would get silently marked as counted
+    // anyway, and every future visit from that browser would then skip
+    // the insert too — permanently hiding the failure.
+    if (insertError) {
+      console.error("profile_views insert failed:", insertError.message);
+    } else {
+      cookieStore.set(cookieName, "1", {
+        maxAge: DEDUPE_MAX_AGE_SECONDS,
+        path: "/",
+        sameSite: "lax",
+      });
+    }
   }
 
   // Signed-out visitors aren't the profile owner, so RLS won't let them
