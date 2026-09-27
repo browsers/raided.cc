@@ -103,6 +103,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
     glow_color: glowColor,
     glow_style: glowStyle,
     font,
+    uid,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -194,6 +195,7 @@ export default function ProfileCard({ profile, bioLines, badges = [] }) {
         <h1
           className="public-profile-card__name"
           style={{ fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }}
+          data-tooltip={uid != null ? `UID: ${uid}` : undefined}
         >
           {name}
         </h1>
