@@ -37,6 +37,12 @@
   border-radius: 3px;
 }
 
+@media (max-width: 640px) {
+  .dash-profile-shell {
+    padding: 16px 14px 18px;
+  }
+}
+
 .dash-profile-section__title {
   font-size: 16px;
   font-weight: 700;

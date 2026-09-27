@@ -24,6 +24,9 @@ const TAB_CONTENT: Record<string, React.ReactNode> = {
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("overview");
+  // Sidebar is a fixed drawer on mobile (see Sidebar.css) — closed by
+  // default so it doesn't cover the content until opened.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   // null = still checking, true = signed in, false = no session -> gate them out
   const [hasSession, setHasSession] = useState<boolean | null>(null);
 
@@ -69,7 +72,23 @@ export default function DashboardPage() {
 
   return (
     <div className="dash-shell">
-      <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <button
+        type="button"
+        className="dash-mobile-menu-btn"
+        aria-label="Open menu"
+        onClick={() => setMobileNavOpen(true)}
+      >
+        <span />
+        <span />
+        <span />
+      </button>
+
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
+      />
       <main className="dash-content">
         {TAB_CONTENT[activeTab] ?? TAB_CONTENT.overview}
       </main>

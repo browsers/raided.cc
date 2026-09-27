@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   { key: "settings", label: "Settings", icon: "/icons/settings.png" },
 ];
 
-export default function Sidebar({ activeTab, onSelectTab }) {
+export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMobile }) {
   const [currentUser, setCurrentUser] = useState(null);
   const navRef = useRef(null);
   const itemRefs = useRef({});
@@ -90,10 +90,26 @@ export default function Sidebar({ activeTab, onSelectTab }) {
   }, []);
 
   return (
-    <aside className="dash-sidebar">
-      <div className="dash-sidebar__brand">
-        <BrandMark />
-      </div>
+    <>
+      <div
+        className={`dash-sidebar-backdrop${
+          mobileOpen ? " dash-sidebar-backdrop--visible" : ""
+        }`}
+        onClick={onCloseMobile}
+      />
+      <aside className={`dash-sidebar${mobileOpen ? " dash-sidebar--open" : ""}`}>
+        <button
+          type="button"
+          className="dash-sidebar__close"
+          aria-label="Close menu"
+          onClick={onCloseMobile}
+        >
+          ×
+        </button>
+
+        <div className="dash-sidebar__brand">
+          <BrandMark />
+        </div>
 
       <nav className="dash-sidebar__nav" ref={navRef}>
         <div
@@ -113,7 +129,10 @@ export default function Sidebar({ activeTab, onSelectTab }) {
               ref={(el) => {
                 itemRefs.current[key] = el;
               }}
-              onClick={() => onSelectTab?.(key)}
+              onClick={() => {
+                onSelectTab?.(key);
+                onCloseMobile?.();
+              }}
               className={`dash-nav-item${active ? " dash-nav-item--active" : ""}`}
             >
               <img src={icon} alt="" className="dash-nav-item__icon" />
@@ -162,7 +181,8 @@ export default function Sidebar({ activeTab, onSelectTab }) {
           <ExternalLinkIcon className="dash-account-card__action" />
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

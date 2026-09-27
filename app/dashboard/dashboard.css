@@ -42,3 +42,47 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- Mobile: sidebar becomes an off-canvas drawer (see Sidebar.css),
+   so the shell no longer splits its width between a fixed 264px
+   sidebar and a squeezed content pane. --- */
+.dash-mobile-menu-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .dash-shell {
+    padding: 12px;
+    gap: 0;
+  }
+
+  .dash-mobile-menu-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 30;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    border: 1px solid var(--dash-border);
+    background: var(--dash-surface);
+    cursor: pointer;
+  }
+
+  .dash-mobile-menu-btn span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--dash-text-primary);
+  }
+
+  .dash-content {
+    padding-top: 54px;
+  }
+}

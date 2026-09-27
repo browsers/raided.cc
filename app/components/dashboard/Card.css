@@ -5,6 +5,12 @@
   padding: 24px;
 }
 
+@media (max-width: 640px) {
+  .dash-card {
+    padding: 16px;
+  }
+}
+
 .dash-card__eyebrow {
   display: flex;
   align-items: center;

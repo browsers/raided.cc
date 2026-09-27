@@ -45,6 +45,12 @@
   border-radius: 3px;
 }
 
+@media (max-width: 640px) {
+  .dash-overview-shell {
+    padding: 16px 14px 18px;
+  }
+}
+
 /* Chart + checklist row: let the two cards match each other's height
    (whichever is taller) instead of each sizing independently. */
 .dash-bottom-row.dash-overview-body__bottom {
