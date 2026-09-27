@@ -196,21 +196,19 @@
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* The pill above stays untouched visually. This inner layer is the one
+   that actually clips the horizontal scroll (hiding the duplicate copy
+   of the badge list once it's scrolled past). It's given extra,
+   invisible headroom via padding-top + a matching negative margin so a
+   tooltip popping up above a badge has room to render before it hits
+   the clip boundary. The marquee's own overflow used to cut tooltips
+   off since they render above its short box. */
+.public-profile-card__badges-clip {
   overflow: hidden;
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent 0,
-    #000 16px,
-    #000 calc(100% - 16px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    90deg,
-    transparent 0,
-    #000 16px,
-    #000 calc(100% - 16px),
-    transparent 100%
-  );
+  padding-top: 40px;
+  margin-top: -40px;
 }
 
 .public-profile-card__badges-track {

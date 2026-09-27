@@ -229,19 +229,21 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 width: `${6 + badges.length * 32}px`,
               }}
             >
-              <div className="public-profile-card__badges-track">
-                {[0, 1].map((copy) =>
-                  badges.map((badge) => (
-                    <span
-                      key={`${copy}-${badge.id}`}
-                      className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
-                      data-tooltip={badge.label}
-                      aria-hidden={copy === 1 ? "true" : undefined}
-                    >
-                      <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
-                    </span>
-                  ))
-                )}
+              <div className="public-profile-card__badges-clip">
+                <div className="public-profile-card__badges-track">
+                  {[0, 1].map((copy) =>
+                    badges.map((badge) => (
+                      <span
+                        key={`${copy}-${badge.id}`}
+                        className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                        data-tooltip={badge.label}
+                        aria-hidden={copy === 1 ? "true" : undefined}
+                      >
+                        <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
+                      </span>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           ) : (
