@@ -90,6 +90,7 @@ function useTypewriter(lines, active) {
  *   profile: any,
  *   bioLines?: { line: string }[],
  *   badges?: { id: string, icon: string, label?: string }[],
+ *   tracks?: { url: string, title?: string }[],
  * }} props
  */
 export default function ProfileCard({ profile, bioLines, badges = [], tracks = [] }) {
