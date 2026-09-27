@@ -25,7 +25,11 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.55) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
 }
 
 .public-profile-card {
@@ -37,6 +41,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+
   /* No box, no background — floats straight over the wallpaper. */
   opacity: 1;
   filter: blur(0);
@@ -83,6 +88,7 @@
   100% {
     opacity: 0.85;
   }
+
   50% {
     opacity: 0.4;
   }
@@ -92,6 +98,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -113,49 +120,83 @@
   display: block;
 }
 
+/* =========================================================
+   USERNAME
+   ========================================================= */
+
+/*
+ * The username area has a FIXED height.
+ *
+ * This is important because Warp Text can have a larger
+ * canvas/intrinsic size. The effect must never be allowed
+ * to change the layout position of the username, badges,
+ * or bio.
+ */
 .public-profile-card__name {
   position: relative;
-  min-height: calc(38px * 1.15);
+
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   font-size: 38px;
   font-weight: 800;
   color: #f5f5f5;
-  line-height: 1.15;
+  line-height: 44px;
   word-break: break-word;
   letter-spacing: 0.01em;
   cursor: default;
 }
 
 /*
- * Effect wrappers are taken clean out of layout flow and centered on
- * the name's own midpoint, instead of sizing/pushing the name box
- * itself. That's what keeps the avatar/badges from shifting every
- * time a different effect (each with its own intrinsic dimensions —
- * a tightly-cropped canvas, a fixed-size WebGL box, etc.) gets turned
- * on: the reserved height above always stays pinned to the plain-text
- * line-height, no matter what's rendering inside it.
+ * Effect wrappers are completely removed from document flow.
+ *
+ * They sit inside the fixed username area instead of changing
+ * the height of the username element.
  */
 .public-profile-card__name-fuzzy,
 .public-profile-card__name-warp {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  pointer-events: none;
 }
 
+/*
+ * Warp has a larger visual canvas, but it is still absolutely
+ * positioned so its 80px height cannot push anything around.
+ */
 .public-profile-card__name-warp {
   width: 260px;
   max-width: 60vw;
   height: 80px;
+
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+
+  transform: translate(-50%, -50%);
 }
 
 .public-profile-card__name-warp .warp-text {
-  min-height: 0;
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
+
+/* =========================================================
+   USERNAME TOOLTIP
+   ========================================================= */
 
 .public-profile-card__name[data-tooltip]::after {
   content: attr(data-tooltip);
@@ -163,21 +204,35 @@
   bottom: calc(100% + 6px);
   left: 50%;
   transform: translateX(-50%) translateY(4px);
+
   background: rgba(20, 20, 20, 0.92);
   color: #fff;
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  font-family:
+    var(--font-sans),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
   font-size: 13px;
   font-weight: 700;
   line-height: normal;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   text-shadow: none;
+
   padding: 7px 13px;
   border-radius: 8px;
   white-space: nowrap;
+
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
   z-index: 3;
 }
@@ -194,40 +249,52 @@
   transform: translateX(-50%) translateY(0);
 }
 
+/* =========================================================
+   BADGES
+   ========================================================= */
+
 .public-profile-card__badges {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+
   margin-top: 4px;
   padding: 3px 6px;
+
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
+
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+
   box-shadow: none;
 }
 
-/* Animated variant: same pill look, but the badges scroll left in a
-   seamless loop. The track renders the badge list twice back-to-back
-   and slides exactly -50% (one full copy's width), so as the first
-   copy exits on the left the second copy is already lined up to take
-   its place — no visible jump when it loops. */
+/*
+ * Animated variant: same pill look, but the badges scroll
+ * left in a seamless loop.
+ *
+ * The track renders the badge list twice back-to-back and
+ * slides exactly -50% (one full copy's width).
+ */
 .public-profile-card__badges-marquee {
   margin-top: 4px;
   max-width: 100%;
   padding: 3px 0;
+
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* This inner layer is what actually clips the horizontal scroll
-   (hiding the duplicate copy of the badge list once it's scrolled
-   past). Tooltips no longer live inside it — they're a single fixed-
-   position element positioned via JS on hover — so this can stay a
-   plain clip with no extra headroom hacks. */
+/*
+ * This inner layer clips the horizontal scroll.
+ *
+ * Tooltips no longer live inside it — they're a single
+ * fixed-position element positioned via JS on hover.
+ */
 .public-profile-card__badges-clip {
   overflow: hidden;
 }
@@ -236,12 +303,15 @@
   display: flex;
   align-items: center;
   gap: 6px;
+
   width: max-content;
   padding: 0 6px;
+
   animation: profile-badges-scroll 14s linear infinite;
 }
 
-.public-profile-card__badges-marquee:hover .public-profile-card__badges-track {
+.public-profile-card__badges-marquee:hover
+  .public-profile-card__badges-track {
   animation-play-state: paused;
 }
 
@@ -249,20 +319,26 @@
   from {
     transform: translateX(0);
   }
+
   to {
-    /* Exactly one copy's width, since the track holds two copies of
-       the badge list back to back. */
+    /*
+     * Exactly one copy's width, since the track holds
+     * two copies of the badge list back to back.
+     */
     transform: translateX(-50%);
   }
 }
 
 .public-profile-card__badge {
   position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 26px;
   height: 26px;
+
   transition: transform 0.15s ease;
 }
 
@@ -279,38 +355,52 @@
 
 .public-profile-card__badge-glyph {
   display: block;
+
   width: 100%;
   height: 100%;
+
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
+
   -webkit-mask-position: center;
   mask-position: center;
+
   -webkit-mask-size: contain;
   mask-size: contain;
 }
 
-/* Single floating tooltip shared by every badge, positioned via inline
-   top/left (set from JS on hover, relative to the card container)
-   rather than anchored to the badge with CSS. That's what lets it
-   render in full above the badge no matter how close that badge is to
-   the edge of the scrolling strip, instead of getting sliced off by
-   the strip's own clipping. */
+/*
+ * Single floating tooltip shared by every badge.
+ *
+ * Positioned via inline top/left from JS relative to the
+ * card container so it can render above the badge without
+ * being clipped by the scrolling strip.
+ */
 .public-profile-card__badge-tooltip {
   position: absolute;
+
   transform: translate(-50%, -100%);
+
   background: rgba(20, 20, 20, 0.92);
   color: #fff;
+
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+
   padding: 7px 13px;
   border-radius: 8px;
+
   white-space: nowrap;
+
   opacity: 0;
   pointer-events: none;
+
   transition: opacity 0.15s ease;
+
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+
   z-index: 50;
 }
 
@@ -318,11 +408,18 @@
   opacity: 1;
 }
 
+/* =========================================================
+   BIO
+   ========================================================= */
+
 .public-profile-card__bio {
   margin-top: 16px;
+
   font-size: 17px;
   line-height: 1.5;
+
   color: rgba(245, 245, 245, 0.7);
+
   min-height: 22px;
 }
 
@@ -336,11 +433,16 @@
 
 .public-profile-card__caret {
   display: inline-block;
+
   width: 2px;
   height: 12px;
+
   margin-left: 2px;
+
   vertical-align: -1px;
+
   background: rgba(245, 245, 245, 0.6);
+
   animation: profile-caret-blink 1s step-end infinite;
 }
 
@@ -349,6 +451,7 @@
   49% {
     opacity: 1;
   }
+
   50%,
   100% {
     opacity: 0;
