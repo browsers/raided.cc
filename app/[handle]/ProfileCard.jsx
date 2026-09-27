@@ -357,6 +357,18 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             }
             data-tooltip={uid != null ? `UID: ${uid}` : undefined}
           >
+            {usernameEffect === "fuzzy" || usernameEffect === "warp" ? (
+              // The effect below is rendered position:absolute (so swapping
+              // effects doesn't reflow the page), which means it contributes
+              // nothing to this h1's own box size. min-height already covers
+              // vertical space; this invisible copy of the plain name is
+              // what reserves the correct *width* too, so the flex row
+              // doesn't collapse the gap next to it (e.g. the Discord tag)
+              // down to fit an empty box.
+              <span aria-hidden="true" style={{ visibility: "hidden" }}>
+                {name}
+              </span>
+            ) : null}
             {usernameEffect === "fuzzy" ? (
               <span
                 className="public-profile-card__name-fuzzy"
