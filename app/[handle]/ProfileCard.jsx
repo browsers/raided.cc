@@ -41,7 +41,7 @@ function isVideoUrl(url) {
 // Cycles through bio lines one at a time, typing each one out and
 // deleting it before moving to the next. Pure client-side timer loop —
 // no external deps needed for something this small.
-function useTypewriter(lines, active, typeMs, holdMs) {
+function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
   const [text, setText] = useState("");
   const timerRef = useRef(null);
   // `lines` is a brand-new array every render (built fresh in
@@ -63,7 +63,7 @@ function useTypewriter(lines, active, typeMs, holdMs) {
     let phase = "typing"; // "typing" | "holding" | "deleting"
 
     const TYPE_MS = typeMs;
-    const DELETE_MS = 25;
+    const DELETE_MS = deleteMs;
     const HOLD_MS = holdMs;
     const GAP_MS = 300;
 
@@ -103,7 +103,7 @@ function useTypewriter(lines, active, typeMs, holdMs) {
     timerRef.current = setTimeout(tick, GAP_MS);
     return () => clearTimeout(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linesKey, active, typeMs, holdMs]);
+  }, [linesKey, active, typeMs, holdMs, deleteMs]);
 
   return text;
 }
@@ -133,6 +133,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     font,
     bio_type_speed_ms: bioTypeSpeedMs,
     bio_delete_hold_ms: bioDeleteHoldMs,
+    bio_delete_speed_ms: bioDeleteSpeedMs,
     bio_cursor: bioCursor,
     username_effect: usernameEffect,
     uid,
@@ -148,8 +149,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   // Clamp so a bad/blank saved value can't stall or spam the timer loop.
   const typeMs = Math.min(Math.max(Number(bioTypeSpeedMs) || 45, 5), 1000);
   const holdMs = Math.min(Math.max(Number(bioDeleteHoldMs) || 1400, 0), 10000);
+  const deleteMs = Math.min(Math.max(Number(bioDeleteSpeedMs) || 25, 5), 1000);
   const cursorChar = (bioCursor ?? "|").toString().slice(0, 1) || "|";
-  const typedText = useTypewriter(lines, isTypewriter && lines.length > 0, typeMs, holdMs);
+  const typedText = useTypewriter(lines, isTypewriter && lines.length > 0, typeMs, holdMs, deleteMs);
 
   const name = displayName?.trim() || handle;
   const fontFamily = font ? `"${font}", var(--font-sans), sans-serif` : undefined;

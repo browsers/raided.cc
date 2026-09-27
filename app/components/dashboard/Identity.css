@@ -134,6 +134,10 @@
   background: var(--dash-border);
 }
 
+.identity-field--cursor {
+  max-width: 200px;
+}
+
 .identity-select {
   appearance: none;
   -webkit-appearance: none;

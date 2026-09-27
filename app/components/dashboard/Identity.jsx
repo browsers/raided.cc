@@ -81,12 +81,14 @@ export default function Identity() {
   // finished line before deleting it (ms), and the cursor character.
   const [bioTypeSpeed, setBioTypeSpeed] = useState("45");
   const [bioDeleteHold, setBioDeleteHold] = useState("1400");
+  const [bioDeleteSpeed, setBioDeleteSpeed] = useState("25");
   const [bioCursor, setBioCursor] = useState("|");
   const [bioTuningStatus, setBioTuningStatus] = useState("idle");
 
   const nameSaveTimer = useRef(null);
   const bioTypeSpeedTimer = useRef(null);
   const bioDeleteHoldTimer = useRef(null);
+  const bioDeleteSpeedTimer = useRef(null);
 
   // Load whatever's already saved for this user on mount.
   useEffect(() => {
@@ -108,7 +110,7 @@ export default function Identity() {
         supabase
           .from("profiles")
           .select(
-            "display_name, glow_color, glow_style, font, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_cursor, username_effect"
+            "display_name, glow_color, glow_style, font, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect"
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -130,6 +132,7 @@ export default function Identity() {
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
         setBioTypeSpeed(String(profile.bio_type_speed_ms ?? 45));
         setBioDeleteHold(String(profile.bio_delete_hold_ms ?? 1400));
+        setBioDeleteSpeed(String(profile.bio_delete_speed_ms ?? 25));
         setBioCursor(profile.bio_cursor ?? "|");
       }
       if (lineRows) setBioLines(lineRows);
@@ -142,6 +145,7 @@ export default function Identity() {
       clearTimeout(nameSaveTimer.current);
       clearTimeout(bioTypeSpeedTimer.current);
       clearTimeout(bioDeleteHoldTimer.current);
+      clearTimeout(bioDeleteSpeedTimer.current);
     };
   }, []);
 
@@ -257,6 +261,21 @@ export default function Identity() {
       const { error } = await supabase
         .from("profiles")
         .update({ bio_delete_hold_ms: ms })
+        .eq("id", userId);
+      setBioTuningStatus(error ? "error" : "idle");
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  function handleBioDeleteSpeedChange(value) {
+    setBioDeleteSpeed(value);
+    if (!userId) return;
+    const ms = Math.min(Math.max(parseInt(value, 10) || 25, 5), 1000);
+    setBioTuningStatus("saving");
+    clearTimeout(bioDeleteSpeedTimer.current);
+    bioDeleteSpeedTimer.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ bio_delete_speed_ms: ms })
         .eq("id", userId);
       setBioTuningStatus(error ? "error" : "idle");
     }, SAVE_DEBOUNCE_MS);
@@ -480,6 +499,30 @@ export default function Identity() {
             </div>
 
             <div className="identity-field">
+              <span className="identity-field__label">Delete Speed (ms)</span>
+              <input
+                type="number"
+                className="identity-input"
+                min={5}
+                max={1000}
+                placeholder="25"
+                value={bioDeleteSpeed}
+                disabled={!userId}
+                onChange={(e) => handleBioDeleteSpeedChange(e.target.value)}
+              />
+              <input
+                type="range"
+                className="identity-slider"
+                min={5}
+                max={300}
+                step={5}
+                value={Math.min(Math.max(Number(bioDeleteSpeed) || 25, 5), 300)}
+                disabled={!userId}
+                onChange={(e) => handleBioDeleteSpeedChange(e.target.value)}
+              />
+            </div>
+
+            <div className="identity-field">
               <span className="identity-field__label">Delete Delay (ms)</span>
               <input
                 type="number"
@@ -502,8 +545,10 @@ export default function Identity() {
                 onChange={(e) => handleBioDeleteHoldChange(e.target.value)}
               />
             </div>
+          </div>
 
-            <div className="identity-field">
+          <div className="identity-field-row identity-bio-tuning">
+            <div className="identity-field identity-field--cursor">
               <span className="identity-field__label">Cursor</span>
               <input
                 type="text"
