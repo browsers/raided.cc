@@ -19,6 +19,12 @@ const USERNAME_EFFECTS = [
   { value: "warp", label: "Warp" },
 ];
 
+const GUILD_TAG_SIZES = [
+  { value: "sm", label: "Small" },
+  { value: "md", label: "Medium" },
+  { value: "lg", label: "Large" },
+];
+
 // Which parts of the profile the selected Font actually gets applied to.
 // "both" is the historical default (username + bio, nothing else).
 const FONT_TARGETS = [
@@ -142,6 +148,9 @@ export default function Identity() {
   const [discordUserId, setDiscordUserId] = useState("");
   const [discordIdStatus, setDiscordIdStatus] = useState("idle");
 
+  const [discordTagSize, setDiscordTagSize] = useState("md");
+  const [discordTagSizeStatus, setDiscordTagSizeStatus] = useState("idle");
+
   const [fontTarget, setFontTarget] = useState("both");
   const [fontTargetStatus, setFontTargetStatus] = useState("idle");
 
@@ -188,7 +197,7 @@ export default function Identity() {
         supabase
           .from("profiles")
           .select(
-            "display_name, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect, discord_user_id"
+            "display_name, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, username_effect, discord_user_id, discord_tag_size"
           )
           .eq("id", user.id)
           .maybeSingle(),
@@ -208,6 +217,7 @@ export default function Identity() {
         setFont(profile.font ?? "Poppins");
         setFontTarget(profile.font_target ?? "both");
         setDiscordUserId(profile.discord_user_id ?? "");
+        setDiscordTagSize(profile.discord_tag_size ?? "md");
         setUsernameEffect(profile.username_effect ?? "none");
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
         setBioTypeSpeed(String(profile.bio_type_speed_ms ?? 45));
@@ -264,6 +274,18 @@ export default function Identity() {
         .eq("id", userId);
       setDiscordIdStatus(error ? "error" : "idle");
     }, SAVE_DEBOUNCE_MS);
+  }
+
+  // --- Guild tag size ------------------------------------------------
+  async function handleDiscordTagSizeChange(value) {
+    setDiscordTagSize(value);
+    if (!userId) return;
+    setDiscordTagSizeStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ discord_tag_size: value })
+      .eq("id", userId);
+    setDiscordTagSizeStatus(error ? "error" : "idle");
   }
 
   // --- Glow color ---------------------------------------------------
@@ -471,7 +493,7 @@ export default function Identity() {
         </label>
       </div>
 
-      <div className="identity-field-row">
+      <div className="identity-field-row identity-field-row--two">
         <label className="identity-field">
           <span className="identity-field__label">
             Discord User ID <SaveHint status={discordIdStatus} />
@@ -486,6 +508,30 @@ export default function Identity() {
             onChange={(e) => handleDiscordIdChange(e.target.value)}
           />
         </label>
+
+        <label className="identity-field">
+          <span className="identity-field__label">
+            Guild Tag Size <SaveHint status={discordTagSizeStatus} />
+          </span>
+          <select
+            className="identity-select"
+            value={discordTagSize}
+            disabled={!userId}
+            onChange={(e) => handleDiscordTagSizeChange(e.target.value)}
+          >
+            {GUILD_TAG_SIZES.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="identity-field-hint identity-field-hint--discord">
+        This shows your Discord server tag — the small badge + 2–4 letter tag some servers let
+        members display next to their name (Server Settings → Overview → enable "Show as
+        primary" on Discord's side). Paste your Discord user ID above and it'll be pulled in
+        automatically and shown next to your username on your public profile.
       </div>
 
       <div className="identity-field-row identity-field-row--three">

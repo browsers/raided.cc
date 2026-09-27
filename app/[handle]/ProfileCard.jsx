@@ -117,7 +117,6 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   bioLines?: { line: string }[],
  *   badges?: { id: string, icon: string, label?: string }[],
  *   tracks?: { url: string, title?: string }[],
- *   discordTag?: { tag: string, badgeUrl: string | null } | null,
  * }} props
  */
 export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null }) {
@@ -142,6 +141,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     audio_muted: audioMuted,
     badges_animated: badgesAnimated,
     badge_color: badgeColor,
+    discord_tag_size: discordTagSizeRaw,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -156,6 +156,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const typedText = useTypewriter(lines, isTypewriter && lines.length > 0, typeMs, holdMs, deleteMs);
 
   const name = displayName?.trim() || handle;
+  const discordTagSize = ["sm", "md", "lg"].includes(discordTagSizeRaw) ? discordTagSizeRaw : "md";
 
   // The saved font can be scoped to just the username, just the bio, just
   // the badge/UID tooltips, the historical "both" (username + bio), or
@@ -392,7 +393,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           </h1>
 
           {discordTag ? (
-            <span className="public-profile-card__discord-tag">
+            <span
+              className={`public-profile-card__discord-tag public-profile-card__discord-tag--${discordTagSize}`}
+            >
               {discordTag.badgeUrl ? (
                 <img
                   className="public-profile-card__discord-tag-badge"
