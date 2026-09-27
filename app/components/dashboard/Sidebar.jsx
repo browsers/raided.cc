@@ -71,6 +71,7 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
         // Falls back to the handle until a display name is set.
         displayName: profile.display_name?.trim() || profile.handle,
         handle: `@${profile.handle}`,
+        rawHandle: profile.handle,
         avatarUrl: profile.avatar_url ?? null,
       });
     })();
@@ -144,7 +145,16 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
       </nav>
 
       <div className="dash-sidebar__footer">
-        <a className="dash-pill-link" href="#" target="_blank" rel="noreferrer">
+        <a
+          className="dash-pill-link"
+          href={currentUser?.rawHandle ? `/${currentUser.rawHandle}` : "#"}
+          target="_blank"
+          rel="noreferrer"
+          aria-disabled={!currentUser?.rawHandle}
+          onClick={(e) => {
+            if (!currentUser?.rawHandle) e.preventDefault();
+          }}
+        >
           <span className="dash-pill-link__dot" />
           <img src="/icons/arrow.png" alt="" className="dash-pill-link__icon" />
           <span>View Profile</span>
