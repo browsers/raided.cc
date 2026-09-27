@@ -252,6 +252,18 @@
   display: block;
 }
 
+.public-profile-card__badge-glyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
 /* Single floating tooltip shared by every badge, positioned via inline
    top/left (set from JS on hover, relative to the card container)
    rather than anchored to the badge with CSS. That's what lets it

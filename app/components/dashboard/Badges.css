@@ -181,3 +181,149 @@
   font-size: 11px;
   color: var(--dash-text-tertiary);
 }
+
+/* --- Tinted glyph (used by both the enabled list and the catalog once
+   a badge_color override is set) ---------------------------------- */
+
+.dash-badge-glyph--tinted {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* --- Badge color (recolor all) ----------------------------------- */
+
+.dash-badges-color-desc {
+  font-size: 12.5px;
+  color: var(--dash-text-tertiary);
+  margin: 6px 0 16px;
+  max-width: 520px;
+}
+
+.dash-badge-color-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin-left: 6px;
+}
+
+.dash-badge-color-hint--saving {
+  color: var(--dash-accent);
+}
+
+.dash-badge-color-hint--error {
+  color: #ff6b6b;
+}
+
+.dash-badge-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-badge-color-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dash-badge-color-swatch {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--dash-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.dash-badge-color-swatch:hover {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.dash-badge-color-input {
+  width: 220px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-primary);
+  font-size: 13.5px;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dash-badge-color-input::placeholder {
+  color: var(--dash-text-tertiary);
+}
+
+.dash-badge-color-input:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.dash-badge-color-input:focus {
+  outline: none;
+  border-color: var(--dash-accent);
+}
+
+.dash-badge-color-input:disabled,
+.dash-badge-color-swatch:has(input:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dash-badge-color-reset {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: transparent;
+  color: var(--dash-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.dash-badge-color-reset:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.24);
+  color: var(--dash-text-primary);
+}
+
+.dash-badge-color-reset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dash-badge-color-preview {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dash-border);
+}
+
+.dash-badge-color-preview__icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-badge-color-preview__icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}

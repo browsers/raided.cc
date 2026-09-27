@@ -107,6 +107,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     uid,
     audio_muted: audioMuted,
     badges_animated: badgesAnimated,
+    badge_color: badgeColor,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -292,7 +293,18 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                         onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
                         onMouseLeave={hideBadgeTooltip}
                       >
-                        <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
+                        {badgeColor ? (
+                          <span
+                            className="public-profile-card__badge-glyph"
+                            style={{
+                              backgroundColor: badgeColor,
+                              WebkitMaskImage: `url(${badge.icon})`,
+                              maskImage: `url(${badge.icon})`,
+                            }}
+                          />
+                        ) : (
+                          <img src={badge.icon} alt={copy === 0 ? badge.label ?? "" : ""} />
+                        )}
                       </span>
                     ))
                   )}
@@ -308,7 +320,18 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                   onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
                   onMouseLeave={hideBadgeTooltip}
                 >
-                  <img src={badge.icon} alt={badge.label ?? ""} />
+                  {badgeColor ? (
+                    <span
+                      className="public-profile-card__badge-glyph"
+                      style={{
+                        backgroundColor: badgeColor,
+                        WebkitMaskImage: `url(${badge.icon})`,
+                        maskImage: `url(${badge.icon})`,
+                      }}
+                    />
+                  ) : (
+                    <img src={badge.icon} alt={badge.label ?? ""} />
+                  )}
                 </span>
               ))}
             </div>

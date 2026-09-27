@@ -13,12 +13,50 @@ import "./Badges.css";
 // nothing in this file ever inserts a row into that table. All a user can
 // do here is toggle visibility (enabled) on a badge they've already been
 // given.
+
+// Small status label reused next to the color field, matching the
+// save-state hint pattern already used over in Identity.jsx.
+function SaveHint({ status }) {
+  if (status === "saving") {
+    return <span className="dash-badge-color-hint dash-badge-color-hint--saving">Saving…</span>;
+  }
+  if (status === "error") {
+    return <span className="dash-badge-color-hint dash-badge-color-hint--error">Couldn't save</span>;
+  }
+  return null;
+}
+
+// Renders a badge's icon. With no override, it's just the artwork as
+// exported (which is why "Verified" is blue, "Bug Hunter" is green,
+// etc). Once a badge_color override is set, every badge is redrawn as
+// a flat silhouette in that one color instead — done by using the PNG
+// purely as an alpha mask over a solid background-color, which is also
+// why any inner shading (e.g. the checkmark cutout on "Verified") is
+// lost in tinted mode.
+function BadgeGlyph({ src, color }) {
+  if (!color) return <img src={src} alt="" />;
+  return (
+    <span
+      className="dash-badge-glyph--tinted"
+      style={{
+        backgroundColor: color,
+        WebkitMaskImage: `url(${src})`,
+        maskImage: `url(${src})`,
+      }}
+    />
+  );
+}
+
+const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
 export default function Badges() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [earnedKeys, setEarnedKeys] = useState(() => new Set());
   const [enabledKeys, setEnabledKeys] = useState(() => new Set());
   const [animated, setAnimated] = useState(false);
+  const [badgeColor, setBadgeColor] = useState(null);
+  const [colorStatus, setColorStatus] = useState("idle");
 
   // Load whatever's actually been granted to this profile on mount.
   useEffect(() => {
@@ -43,7 +81,7 @@ export default function Badges() {
           .eq("profile_id", user.id),
         supabase
           .from("profiles")
-          .select("badges_animated")
+          .select("badges_animated, badge_color")
           .eq("id", user.id)
           .maybeSingle(),
       ]);
@@ -54,7 +92,10 @@ export default function Badges() {
         setEarnedKeys(new Set(rows.map((r) => r.badge_key)));
         setEnabledKeys(new Set(rows.filter((r) => r.enabled).map((r) => r.badge_key)));
       }
-      if (profile) setAnimated(Boolean(profile.badges_animated));
+      if (profile) {
+        setAnimated(Boolean(profile.badges_animated));
+        setBadgeColor(profile.badge_color ?? null);
+      }
 
       setLoading(false);
     })();
@@ -105,6 +146,33 @@ export default function Badges() {
     }
   }
 
+  // --- Badge color (recolor every badge at once) ------------------------
+  async function saveBadgeColor(value) {
+    if (!userId) return;
+    setColorStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ badge_color: value })
+      .eq("id", userId);
+    setColorStatus(error ? "error" : "idle");
+  }
+
+  function handleBadgeColorChange(value) {
+    setBadgeColor(value);
+    saveBadgeColor(value);
+  }
+
+  function handleBadgeColorHexInput(value) {
+    // Let them type freely; only push a save once it's a real hex color.
+    setBadgeColor(value);
+    if (HEX_RE.test(value)) saveBadgeColor(value);
+  }
+
+  function handleResetBadgeColor() {
+    setBadgeColor(null);
+    saveBadgeColor(null);
+  }
+
   const earnedBadges = BADGE_CATALOG.filter((b) => earnedKeys.has(b.key));
 
   return (
@@ -146,7 +214,7 @@ export default function Badges() {
                 return (
                   <div key={badge.key} className="dash-badge-row">
                     <span className="dash-badge-row__icon">
-                      <img src={badge.icon} alt="" />
+                      <BadgeGlyph src={badge.icon} color={badgeColor} />
                     </span>
                     <div className="dash-badge-row__meta">
                       <span className="dash-badge-row__label">{badge.label}</span>
@@ -184,7 +252,7 @@ export default function Badges() {
                   className={`dash-badge-tile${earned ? " dash-badge-tile--earned" : ""}`}
                 >
                   <span className="dash-badge-tile__icon">
-                    <img src={badge.icon} alt="" />
+                    <BadgeGlyph src={badge.icon} color={badgeColor} />
                   </span>
                   <span className="dash-badge-tile__label">{badge.label}</span>
                   <span className="dash-badge-tile__status">
@@ -193,6 +261,59 @@ export default function Badges() {
                 </div>
               );
             })}
+          </div>
+        </Card>
+
+        <Card className="dash-badges-section">
+          <div className="dash-card__eyebrow">CUSTOMIZE</div>
+          <h3 className="dash-profile-section__title">
+            Badge Color <SaveHint status={colorStatus} />
+          </h3>
+          <p className="dash-badges-color-desc">
+            Pick one color and every badge — enabled or not, here and on your
+            profile — is recolored to match. Reset to bring back each
+            badge's original artwork.
+          </p>
+
+          <div className="dash-badge-color-row">
+            <div className="dash-badge-color-field">
+              <label
+                className="dash-badge-color-swatch"
+                style={{ background: badgeColor || "#3a3a3a" }}
+              >
+                <input
+                  type="color"
+                  hidden
+                  value={/^#([0-9a-fA-F]{6})$/.test(badgeColor || "") ? badgeColor : "#00e5ff"}
+                  disabled={!userId}
+                  onChange={(e) => handleBadgeColorChange(e.target.value)}
+                />
+              </label>
+              <input
+                type="text"
+                className="dash-badge-color-input"
+                placeholder="No override — original colors"
+                value={badgeColor ?? ""}
+                disabled={!userId}
+                onChange={(e) => handleBadgeColorHexInput(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="dash-badge-color-reset"
+              disabled={!userId || !badgeColor}
+              onClick={handleResetBadgeColor}
+            >
+              Reset to default
+            </button>
+          </div>
+
+          <div className="dash-badge-color-preview">
+            {BADGE_CATALOG.map((badge) => (
+              <span key={badge.key} className="dash-badge-color-preview__icon">
+                <BadgeGlyph src={badge.icon} color={badgeColor} />
+              </span>
+            ))}
           </div>
         </Card>
       </div>
