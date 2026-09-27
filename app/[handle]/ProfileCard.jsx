@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
+import WarpText from "../components/WarpText";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -290,7 +291,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         <h1
           className="public-profile-card__name"
           style={
-            usernameEffect === "fuzzy"
+            usernameEffect === "fuzzy" || usernameEffect === "warp"
               ? { fontFamily }
               : { fontFamily, textShadow: glowTextShadow(glowStyle, glowColor) }
           }
@@ -313,6 +314,19 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               >
                 {name}
               </FuzzyText>
+            </span>
+          ) : usernameEffect === "warp" ? (
+            <span
+              className="public-profile-card__name-warp"
+              style={{ filter: glowDropShadow(glowStyle, glowColor) }}
+            >
+              <WarpText
+                text={name}
+                color="#f5f5f5"
+                fontSize={38}
+                fontWeight={800}
+                fontFamily={fontFamily}
+              />
             </span>
           ) : (
             name

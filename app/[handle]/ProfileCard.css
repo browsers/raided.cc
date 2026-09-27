@@ -130,6 +130,20 @@
   line-height: 0;
 }
 
+.public-profile-card__name-warp {
+  display: inline-block;
+  vertical-align: bottom;
+  width: 260px;
+  max-width: 60vw;
+  height: 70px;
+}
+
+.public-profile-card__name-warp .warp-text {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+
 .public-profile-card__name[data-tooltip]::after {
   content: attr(data-tooltip);
   position: absolute;

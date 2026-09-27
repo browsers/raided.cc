@@ -16,6 +16,7 @@ const GLOW_STYLES = [
 const USERNAME_EFFECTS = [
   { value: "none", label: "None" },
   { value: "fuzzy", label: "Fuzzy" },
+  { value: "warp", label: "Warp" },
 ];
 
 const FONTS = [
