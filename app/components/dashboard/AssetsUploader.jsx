@@ -339,6 +339,26 @@ function AudioMuteToggle({ muted, onToggle }) {
   );
 }
 
+// Bottom-right visibility toggle on the Avatar tile. Hides the avatar
+// image on the public profile without deleting the upload, so it can
+// be switched back on later without re-uploading.
+function AvatarHideToggle({ hidden, onToggle }) {
+  return (
+    <button
+      type="button"
+      className="asset-tile__hide"
+      aria-label={hidden ? "Show avatar on profile" : "Hide avatar on profile"}
+      aria-pressed={hidden}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle();
+      }}
+    >
+      {hidden ? "SHOW" : "HIDE"}
+    </button>
+  );
+}
+
 // Images + gifs accepted everywhere an image is accepted (browsers treat
 // .gif as image/gif, so "image/*" already covers jpg/png/gif/webp/etc).
 const AVATAR_ACCEPT = "image/*";
@@ -353,6 +373,7 @@ export default function AssetsUploader() {
   const [avatarUrl, setAvatarUrl] = useState(null); // persisted
   const [avatarPendingFile, setAvatarPendingFile] = useState(null); // local, mid-upload
   const [avatarStatus, setAvatarStatus] = useState("idle"); // idle | saving | error
+  const [avatarHidden, setAvatarHidden] = useState(false); // persisted
   const avatarLocalPreview = useObjectUrl(avatarPendingFile);
 
   // Background --------------------------------------------------------
@@ -393,7 +414,9 @@ export default function AssetsUploader() {
       const [{ data: profile }, { data: trackRows }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("avatar_url, background_url, background_type, background_color, audio_muted")
+          .select(
+            "avatar_url, background_url, background_type, background_color, audio_muted, avatar_hidden"
+          )
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -411,6 +434,7 @@ export default function AssetsUploader() {
         setBgUrl(profile.background_url ?? null);
         setBgColor(profile.background_color ?? null);
         setAudioMuted(Boolean(profile.audio_muted));
+        setAvatarHidden(Boolean(profile.avatar_hidden));
       }
       if (trackRows) setTracks(trackRows);
 
@@ -454,6 +478,20 @@ export default function AssetsUploader() {
     await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId);
     const path = storagePathFromPublicUrl(prevUrl, BUCKETS.avatar);
     if (path) supabase.storage.from(BUCKETS.avatar).remove([path]).catch(() => {});
+  }
+
+  async function handleToggleAvatarHidden() {
+    const next = !avatarHidden;
+    setAvatarHidden(next);
+    if (!userId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_hidden: next })
+      .eq("id", userId);
+    if (error) {
+      console.error("Avatar hide toggle failed:", error);
+      setAvatarHidden(!next); // revert on failure
+    }
   }
 
   // --- Background handlers ----------------------------------------------
@@ -608,9 +646,11 @@ export default function AssetsUploader() {
     : avatarStatus === "saving"
     ? "Uploading…"
     : avatarStatus === "error"
-    ? "Upload failed — try again"
+    ? "Upload failed, try again"
     : avatarPreviewUrl
-    ? "Click to change image"
+    ? avatarHidden
+      ? "Hidden from profile"
+      : "Click to change image"
     : "Click to upload image";
 
   const backgroundHint = !userId
@@ -646,6 +686,9 @@ export default function AssetsUploader() {
         icon="/icons/upload.png"
         accept={AVATAR_ACCEPT}
         cornerBadge="IMG/GIF"
+        bottomRightControl={
+          <AvatarHideToggle hidden={avatarHidden} onToggle={handleToggleAvatarHidden} />
+        }
         hasValue={Boolean(avatarPreviewUrl)}
         previewUrl={avatarPreviewUrl}
         previewKind="image"

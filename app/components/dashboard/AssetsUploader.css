@@ -167,6 +167,43 @@
   color: #ff8a8a;
 }
 
+/* Bottom-right "HIDE" toggle on the Avatar tile. Same size/type as the
+   IMG/GIF corner badge, just clickable and with a pressed (hidden)
+   state that matches the mute button's red styling. */
+.asset-tile__hide {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--dash-text-tertiary);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--dash-border);
+  border-radius: 4px;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.asset-tile--filled .asset-tile__hide {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.asset-tile__hide:hover {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.asset-tile__hide[aria-pressed="true"] {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.asset-tile--filled .asset-tile__hide[aria-pressed="true"] {
+  color: #ff8a8a;
+}
+
 .asset-tile__body {
   position: relative;
   z-index: 1;

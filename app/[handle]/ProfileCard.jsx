@@ -98,6 +98,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     handle,
     display_name: displayName,
     avatar_url: avatarUrl,
+    avatar_hidden: avatarHidden,
     background_url: backgroundUrl,
     background_type: backgroundType,
     background_color: backgroundColor,
@@ -256,7 +257,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             : "public-profile-card"
         }
       >
-        {avatarUrl ? (
+        {avatarUrl && !avatarHidden ? (
           <div className="public-profile-card__avatar">
             <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
           </div>
