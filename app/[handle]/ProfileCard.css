@@ -365,11 +365,8 @@
 
 .public-profile-card__caret {
   display: inline-block;
-  width: 2px;
-  height: 12px;
   margin-left: 2px;
-  vertical-align: -1px;
-  background: rgba(245, 245, 245, 0.6);
+  color: rgba(245, 245, 245, 0.6);
   animation: profile-caret-blink 1s step-end infinite;
 }
 

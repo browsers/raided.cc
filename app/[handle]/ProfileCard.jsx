@@ -41,7 +41,7 @@ function isVideoUrl(url) {
 // Cycles through bio lines one at a time, typing each one out and
 // deleting it before moving to the next. Pure client-side timer loop —
 // no external deps needed for something this small.
-function useTypewriter(lines, active) {
+function useTypewriter(lines, active, typeMs, holdMs) {
   const [text, setText] = useState("");
   const timerRef = useRef(null);
   // `lines` is a brand-new array every render (built fresh in
@@ -62,9 +62,9 @@ function useTypewriter(lines, active) {
     let charIndex = 0;
     let phase = "typing"; // "typing" | "holding" | "deleting"
 
-    const TYPE_MS = 45;
+    const TYPE_MS = typeMs;
     const DELETE_MS = 25;
-    const HOLD_MS = 1400;
+    const HOLD_MS = holdMs;
     const GAP_MS = 300;
 
     function tick() {
@@ -103,7 +103,7 @@ function useTypewriter(lines, active) {
     timerRef.current = setTimeout(tick, GAP_MS);
     return () => clearTimeout(timerRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linesKey, active]);
+  }, [linesKey, active, typeMs, holdMs]);
 
   return text;
 }
@@ -131,6 +131,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     glow_color: glowColor,
     glow_style: glowStyle,
     font,
+    bio_type_speed_ms: bioTypeSpeedMs,
+    bio_delete_hold_ms: bioDeleteHoldMs,
+    bio_cursor: bioCursor,
     username_effect: usernameEffect,
     uid,
     audio_muted: audioMuted,
@@ -142,7 +145,11 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
   const lines = (bioLines ?? []).map((l) => l.line).filter(Boolean);
   const isTypewriter = profile.bio_mode !== "static";
-  const typedText = useTypewriter(lines, isTypewriter && lines.length > 0);
+  // Clamp so a bad/blank saved value can't stall or spam the timer loop.
+  const typeMs = Math.min(Math.max(Number(bioTypeSpeedMs) || 45, 5), 1000);
+  const holdMs = Math.min(Math.max(Number(bioDeleteHoldMs) || 1400, 0), 10000);
+  const cursorChar = (bioCursor ?? "|").toString().slice(0, 1) || "|";
+  const typedText = useTypewriter(lines, isTypewriter && lines.length > 0, typeMs, holdMs);
 
   const name = displayName?.trim() || handle;
   const fontFamily = font ? `"${font}", var(--font-sans), sans-serif` : undefined;
@@ -261,7 +268,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       isTypewriter ? (
         <div className="public-profile-card__bio" style={{ fontFamily }}>
           {typedText}
-          <span className="public-profile-card__caret" />
+          <span className="public-profile-card__caret">{cursorChar}</span>
         </div>
       ) : (
         <div

@@ -77,7 +77,16 @@ export default function Identity() {
   const [newLine, setNewLine] = useState("");
   const [bioStatus, setBioStatus] = useState("idle");
 
+  // Typewriter tuning: how fast it types (ms/char), how long it holds a
+  // finished line before deleting it (ms), and the cursor character.
+  const [bioTypeSpeed, setBioTypeSpeed] = useState("45");
+  const [bioDeleteHold, setBioDeleteHold] = useState("1400");
+  const [bioCursor, setBioCursor] = useState("|");
+  const [bioTuningStatus, setBioTuningStatus] = useState("idle");
+
   const nameSaveTimer = useRef(null);
+  const bioTypeSpeedTimer = useRef(null);
+  const bioDeleteHoldTimer = useRef(null);
 
   // Load whatever's already saved for this user on mount.
   useEffect(() => {
@@ -98,7 +107,9 @@ export default function Identity() {
       const [{ data: profile }, { data: lineRows }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("display_name, glow_color, glow_style, font, bio_mode, username_effect")
+          .select(
+            "display_name, glow_color, glow_style, font, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_cursor, username_effect"
+          )
           .eq("id", user.id)
           .maybeSingle(),
         supabase
@@ -117,6 +128,9 @@ export default function Identity() {
         setFont(profile.font ?? "Poppins");
         setUsernameEffect(profile.username_effect ?? "none");
         setBioMode(profile.bio_mode === "static" ? "static" : "typewriter");
+        setBioTypeSpeed(String(profile.bio_type_speed_ms ?? 45));
+        setBioDeleteHold(String(profile.bio_delete_hold_ms ?? 1400));
+        setBioCursor(profile.bio_cursor ?? "|");
       }
       if (lineRows) setBioLines(lineRows);
 
@@ -126,6 +140,8 @@ export default function Identity() {
     return () => {
       cancelled = true;
       clearTimeout(nameSaveTimer.current);
+      clearTimeout(bioTypeSpeedTimer.current);
+      clearTimeout(bioDeleteHoldTimer.current);
     };
   }, []);
 
@@ -213,6 +229,52 @@ export default function Identity() {
       .update({ bio_mode: mode })
       .eq("id", userId);
     setBioStatus(error ? "error" : "idle");
+  }
+
+  // --- Bio typewriter tuning ---------------------------------------------
+  function handleBioTypeSpeedChange(value) {
+    setBioTypeSpeed(value);
+    if (!userId) return;
+    const ms = Math.min(Math.max(parseInt(value, 10) || 45, 5), 1000);
+    setBioTuningStatus("saving");
+    clearTimeout(bioTypeSpeedTimer.current);
+    bioTypeSpeedTimer.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ bio_type_speed_ms: ms })
+        .eq("id", userId);
+      setBioTuningStatus(error ? "error" : "idle");
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  function handleBioDeleteHoldChange(value) {
+    setBioDeleteHold(value);
+    if (!userId) return;
+    const ms = Math.min(Math.max(parseInt(value, 10) || 0, 0), 10000);
+    setBioTuningStatus("saving");
+    clearTimeout(bioDeleteHoldTimer.current);
+    bioDeleteHoldTimer.current = setTimeout(async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ bio_delete_hold_ms: ms })
+        .eq("id", userId);
+      setBioTuningStatus(error ? "error" : "idle");
+    }, SAVE_DEBOUNCE_MS);
+  }
+
+  async function handleBioCursorChange(value) {
+    // Only one character allowed — take the last char typed so replacing
+    // the default "|" by typing a new symbol just swaps it in, rather
+    // than requiring a select-all first.
+    const char = value.slice(-1);
+    setBioCursor(char);
+    if (!userId) return;
+    setBioTuningStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ bio_cursor: char || "|" })
+      .eq("id", userId);
+    setBioTuningStatus(error ? "error" : "idle");
   }
 
   // --- Bio lines --------------------------------------------------------
@@ -388,6 +450,53 @@ export default function Identity() {
             </button>
           </div>
         </div>
+
+        {bioMode === "typewriter" ? (
+          <div className="identity-field-row identity-field-row--three identity-bio-tuning">
+            <div className="identity-field">
+              <span className="identity-field__label">
+                Typing Speed (ms) <SaveHint status={bioTuningStatus} />
+              </span>
+              <input
+                type="number"
+                className="identity-input"
+                min={5}
+                max={1000}
+                placeholder="45"
+                value={bioTypeSpeed}
+                disabled={!userId}
+                onChange={(e) => handleBioTypeSpeedChange(e.target.value)}
+              />
+            </div>
+
+            <div className="identity-field">
+              <span className="identity-field__label">Delete Delay (ms)</span>
+              <input
+                type="number"
+                className="identity-input"
+                min={0}
+                max={10000}
+                placeholder="1400"
+                value={bioDeleteHold}
+                disabled={!userId}
+                onChange={(e) => handleBioDeleteHoldChange(e.target.value)}
+              />
+            </div>
+
+            <div className="identity-field">
+              <span className="identity-field__label">Cursor</span>
+              <input
+                type="text"
+                className="identity-input"
+                maxLength={1}
+                placeholder="|"
+                value={bioCursor}
+                disabled={!userId}
+                onChange={(e) => handleBioCursorChange(e.target.value)}
+              />
+            </div>
+          </div>
+        ) : null}
 
         <div className="identity-bio-add">
           <span className="identity-bio-add__icon">
