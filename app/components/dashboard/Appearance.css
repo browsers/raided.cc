@@ -503,3 +503,42 @@
   font-size: 12px;
   color: var(--dash-text-secondary);
 }
+
+/* --- Save status, notice, view link ---------------------------------- */
+
+.ap-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--dash-accent);
+}
+
+.ap-hint--error {
+  color: #ff6b6b;
+}
+
+.ap-notice {
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  background: rgba(255, 107, 107, 0.08);
+  color: #ff9c9c;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.ap-view {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--dash-text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ap-view:hover {
+  color: var(--dash-text-primary);
+}

@@ -43,6 +43,13 @@
   transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
+/* Card layout: the same column, but boxed. Background, border, radius,
+   shadow and blur come from inline styles (lib/cardStyle.js). */
+.public-profile-card--boxed {
+  box-sizing: border-box;
+  padding: 36px 28px;
+}
+
 .public-profile-card--hidden {
   opacity: 0;
   filter: blur(14px);

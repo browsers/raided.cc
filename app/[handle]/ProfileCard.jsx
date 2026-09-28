@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
+import { buildCardStyle, isCardLayout } from "../lib/cardStyle";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -147,6 +148,10 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
+
+  // Minimal (default) = no box. Card = boxed, styled from the Appearance tab.
+  const boxed = isCardLayout(profile);
+  const cardStyle = boxed ? buildCardStyle(profile) : undefined;
 
   const lines = (bioLines ?? []).map((l) => l.line).filter(Boolean);
   const isTypewriter = profile.bio_mode !== "static";
@@ -350,11 +355,14 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
       <div
         ref={cardRef}
-        className={
-          gateEnabled && !entered
-            ? "public-profile-card public-profile-card--hidden"
-            : "public-profile-card"
-        }
+        className={[
+          "public-profile-card",
+          boxed ? "public-profile-card--boxed" : "",
+          gateEnabled && !entered ? "public-profile-card--hidden" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={cardStyle}
       >
         {avatarUrl ? (
           <div

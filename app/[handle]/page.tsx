@@ -3,6 +3,7 @@ import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
+import { CARD_COLUMNS } from "../lib/cardStyle";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -32,6 +33,14 @@ export default async function PublicProfilePage({
   const { data: tagLayoutRow } = await supabase
     .from("profiles")
     .select("discord_tag_layout")
+    .eq("id", profile.id)
+    .maybeSingle();
+
+  // Same idea for the Appearance columns: own query, so the migration not
+  // being run yet just means everyone renders the minimal layout.
+  const { data: appearanceRow } = await supabase
+    .from("profiles")
+    .select(CARD_COLUMNS)
     .eq("id", profile.id)
     .maybeSingle();
 
@@ -65,7 +74,11 @@ export default async function PublicProfilePage({
 
   return (
     <ProfileCard
-      profile={{ ...profile, discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline" }}
+      profile={{
+        ...profile,
+        ...(appearanceRow ?? {}),
+        discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline",
+      }}
       bioLines={bioLines ?? []}
       badges={badges}
       tracks={trackRows ?? []}

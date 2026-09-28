@@ -1,13 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+import { CARD_COLUMNS, isHex, withCardDefaults } from "../../lib/cardStyle";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
 import "./Appearance.css";
 
-// Layout only for now: nothing here is saved or applied to the public
-// profile yet. State is local so the controls feel real while we build.
+// Layout + card settings save to the profiles table and are applied on the
+// public page (see lib/cardStyle.js). Profile Effects, 3D Tilt and Glowing
+// Icons are still local-only for now.
+
+const SAVE_DEBOUNCE_MS = 600;
 
 const LAYOUTS = [
   {
@@ -24,16 +29,18 @@ const LAYOUTS = [
 
 const PROFILE_EFFECTS = ["None", "Snow", "Rain", "Sparkles", "Stars", "Fireflies"];
 
-// Corner shapes, left to right: square, then increasingly rounded, then
-// the cut/fancy ones. `r` is the SVG preview radius.
+// Corner presets. `value` is the radius in px applied to the card; `d` is
+// just the little icon.
 const CORNERS = [
-  { value: "square", label: "Square", d: "M6 6h20v20H6z" },
-  { value: "soft", label: "Soft", d: "M6 6h14a6 6 0 0 1 6 6v14H6z" },
-  { value: "round", label: "Round", d: "M6 6h10a10 10 0 0 1 10 10v10H6z" },
-  { value: "rounder", label: "Rounder", d: "M6 6h6a14 14 0 0 1 14 14v6H6z" },
-  { value: "leaf", label: "Leaf", d: "M6 6a20 20 0 0 1 20 20H6z" },
-  { value: "slant", label: "Slant", d: "M6 6c14 0 20 8 20 20H6z" },
+  { value: 0, label: "Square", d: "M6 6h20v20H6z" },
+  { value: 10, label: "Soft", d: "M6 6h14a6 6 0 0 1 6 6v14H6z" },
+  { value: 20, label: "Round", d: "M6 6h10a10 10 0 0 1 10 10v10H6z" },
+  { value: 32, label: "Rounder", d: "M6 6h6a14 14 0 0 1 14 14v6H6z" },
+  { value: 44, label: "Extra round", d: "M6 6a20 20 0 0 1 20 20H6z" },
+  { value: 60, label: "Max", d: "M6 6c14 0 20 8 20 20H6z" },
 ];
+
+const clamp = (v, min, max) => Math.min(Math.max(Number.isFinite(v) ? v : 0, min), max);
 
 function Switch({ on, onChange, label }) {
   return (
@@ -134,25 +141,123 @@ function LayoutPreview({ kind }) {
 }
 
 export default function Appearance() {
-  const [layout, setLayout] = useState("minimal");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [handle, setHandle] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | saving | saved | error
+
+  const userIdRef = useRef(null);
+  const pending = useRef({});
+  const saveTimer = useRef(null);
+
+  const [layout, setLayoutRaw] = useState("minimal");
 
   // Card settings
-  const [bgMode, setBgMode] = useState("gradient"); // "solid" | "gradient"
-  const [startColor, setStartColor] = useState("#151515");
-  const [endColor, setEndColor] = useState("#151515");
-  const [angle, setAngle] = useState(0);
-  const [blur, setBlur] = useState(0);
-  const [opacity, setOpacity] = useState(5);
-  const [border, setBorder] = useState(2);
-  const [borderColor, setBorderColor] = useState("#ffffff");
-  const [shadow, setShadow] = useState(12);
-  const [shadowColor, setShadowColor] = useState("#000000");
-  const [corner, setCorner] = useState("square");
+  const [bgMode, setBgModeRaw] = useState("gradient"); // "solid" | "gradient"
+  const [startColor, setStartColorRaw] = useState("#151515");
+  const [endColor, setEndColorRaw] = useState("#151515");
+  const [angle, setAngleRaw] = useState(0);
+  const [blur, setBlurRaw] = useState(0);
+  const [opacity, setOpacityRaw] = useState(5);
+  const [border, setBorderRaw] = useState(2);
+  const [borderColor, setBorderColorRaw] = useState("#ffffff");
+  const [shadow, setShadowRaw] = useState(12);
+  const [shadowColor, setShadowColorRaw] = useState("#000000");
+  const [corner, setCornerRaw] = useState(0);
 
-  // Effects
+  // Effects (not saved yet)
   const [profileEffect, setProfileEffect] = useState("Snow");
   const [tilt, setTilt] = useState(true);
   const [glowIcons, setGlowIcons] = useState(false);
+
+  // --- Saving: batches fast changes into one update ----------------------
+  async function flush() {
+    const cols = pending.current;
+    pending.current = {};
+    if (!userIdRef.current || Object.keys(cols).length === 0) return;
+    const { error } = await supabase.from("profiles").update(cols).eq("id", userIdRef.current);
+    if (error) console.error("Appearance save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  function queueSave(cols) {
+    if (!userIdRef.current) return;
+    Object.assign(pending.current, cols);
+    setStatus("saving");
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+  }
+
+  // Wrapped setters: same names the JSX already uses, but each one also
+  // queues a save. Text colors only save once they're a real hex.
+  const setLayout = (v) => { setLayoutRaw(v); queueSave({ appearance_layout: v }); };
+  const setBgMode = (v) => { setBgModeRaw(v); queueSave({ card_bg_mode: v }); };
+  const setStartColor = (v) => { setStartColorRaw(v); if (isHex(v)) queueSave({ card_start_color: v }); };
+  const setEndColor = (v) => { setEndColorRaw(v); if (isHex(v)) queueSave({ card_end_color: v }); };
+  const setBorderColor = (v) => { setBorderColorRaw(v); if (isHex(v)) queueSave({ card_border_color: v }); };
+  const setShadowColor = (v) => { setShadowColorRaw(v); if (isHex(v)) queueSave({ card_shadow_color: v }); };
+  const setAngle = (v) => { const n = clamp(v, 0, 360); setAngleRaw(n); queueSave({ card_angle: n }); };
+  const setBlur = (v) => { const n = clamp(v, 0, 40); setBlurRaw(n); queueSave({ card_blur: n }); };
+  const setOpacity = (v) => { const n = clamp(v, 0, 100); setOpacityRaw(n); queueSave({ card_opacity: n }); };
+  const setBorder = (v) => { const n = clamp(v, 0, 12); setBorderRaw(n); queueSave({ card_border: n }); };
+  const setShadow = (v) => { const n = clamp(v, 0, 60); setShadowRaw(n); queueSave({ card_shadow: n }); };
+  const setCorner = (v) => { setCornerRaw(v); queueSave({ card_corner: v }); };
+
+  // Load what's already saved.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      userIdRef.current = user.id;
+
+      // Handle in its own query so a missing appearance column can't hide it.
+      const { data: h } = await supabase.from("profiles").select("handle").eq("id", user.id).maybeSingle();
+      if (!cancelled && h?.handle) setHandle(h.handle);
+
+      const { data: row, error } = await supabase
+        .from("profiles")
+        .select(CARD_COLUMNS)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+
+      if (error) {
+        // Almost always "column does not exist" = migration not run yet.
+        console.error("Appearance load failed:", error);
+        setLoadError(error.message);
+        userIdRef.current = null; // don't try to save into missing columns
+      } else {
+        const v = withCardDefaults(row);
+        setLayoutRaw(v.appearance_layout === "card" ? "card" : "minimal");
+        setBgModeRaw(v.card_bg_mode === "solid" ? "solid" : "gradient");
+        setStartColorRaw(v.card_start_color);
+        setEndColorRaw(v.card_end_color);
+        setAngleRaw(v.card_angle);
+        setBlurRaw(v.card_blur);
+        setOpacityRaw(v.card_opacity);
+        setBorderRaw(v.card_border);
+        setBorderColorRaw(v.card_border_color);
+        setShadowRaw(v.card_shadow);
+        setShadowColorRaw(v.card_shadow_color);
+        setCornerRaw(v.card_corner);
+      }
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(saveTimer.current);
+      // Push anything still waiting so a quick tab switch doesn't lose it.
+      flush();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isCard = layout === "card";
 
@@ -162,8 +267,18 @@ export default function Appearance() {
 
       <div className="dash-profile-body">
         <Card className="dash-profile-section">
-          <div className="dash-card__eyebrow">LAYOUT</div>
+          <div className="dash-card__eyebrow">
+            LAYOUT
+            {status === "saving" ? <span className="ap-hint">Saving…</span> : null}
+            {status === "error" ? <span className="ap-hint ap-hint--error">Save failed</span> : null}
+          </div>
           <h3 className="dash-profile-section__title">Profile Layout</h3>
+          {loadError ? (
+            <div className="ap-notice">
+              Couldn't load your appearance settings. Run appearance_migration.sql in the Supabase SQL
+              editor, then refresh.
+            </div>
+          ) : null}
           <div className="ap-layouts">
             {LAYOUTS.map((opt) => (
               <button
@@ -184,6 +299,11 @@ export default function Appearance() {
               </button>
             ))}
           </div>
+          {handle ? (
+            <a className="ap-view" href={`/${handle}`} target="_blank" rel="noreferrer">
+              View your profile
+            </a>
+          ) : null}
         </Card>
 
         <div className="ap-grid">
@@ -194,7 +314,7 @@ export default function Appearance() {
               <div className="ap-locked__note">Switch to the Card layout to edit these.</div>
             ) : null}
 
-            <fieldset className="ap-fieldset" disabled={!isCard}>
+            <fieldset className="ap-fieldset" disabled={!isCard || loading}>
               <div className="ap-bg">
                 <div className="ap-bg__top">
                   <div className="ap-bg__title">
