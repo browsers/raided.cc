@@ -535,16 +535,16 @@
    because a filter on an element with a CSS mask gets masked away; on the
    wrapper it glows the already-masked result. */
 .public-profile-card__badge--glow-low {
-  filter: drop-shadow(0 0 3px var(--badge-glow, #fff));
+  filter: drop-shadow(0 0 2px var(--badge-glow, #fff));
 }
 .public-profile-card__badge--glow-mid {
-  filter: drop-shadow(0 0 3px var(--badge-glow, #fff))
-    drop-shadow(0 0 8px var(--badge-glow, #fff));
+  filter: drop-shadow(0 0 2px var(--badge-glow, #fff))
+    drop-shadow(0 0 6px var(--badge-glow, #fff));
 }
 .public-profile-card__badge--glow-high {
-  filter: drop-shadow(0 0 4px var(--badge-glow, #fff))
-    drop-shadow(0 0 10px var(--badge-glow, #fff))
-    drop-shadow(0 0 18px var(--badge-glow, #fff));
+  filter: drop-shadow(0 0 2px var(--badge-glow, #fff))
+    drop-shadow(0 0 6px var(--badge-glow, #fff))
+    drop-shadow(0 0 12px var(--badge-glow, #fff));
 }
 
 .public-profile-card__badge-glyph {
