@@ -331,52 +331,20 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       )
     ) : null;
 
-  return (
-    <main
-      className="public-profile-page"
-      style={hasColorBg ? { background: backgroundColor } : undefined}
-    >
-      {hasWallpaper ? (
-        isVideoUrl(backgroundUrl) ? (
-          <video
-            ref={videoRef}
-            className="public-profile-page__bg"
-            src={backgroundUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-          />
-        ) : (
-          <img className="public-profile-page__bg" src={backgroundUrl} alt="" />
-        )
-      ) : null}
-      {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
-      <div
-        ref={cardRef}
-        className={[
-          "public-profile-card",
-          boxed ? "public-profile-card--boxed" : "",
-          gateEnabled && !entered ? "public-profile-card--hidden" : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        style={cardStyle}
-      >
-        {avatarUrl ? (
+  const avatarEl = avatarUrl && !(boxed && avatarHidden) ? (
           <div
-            className="public-profile-card__avatar"
+            className={`public-profile-card__avatar${profile.avatar_shape === "circle" ? " public-profile-card__avatar--circle" : ""}`}
             // Hiding the avatar shouldn't reflow the card, the name
             // stays right where it was, so this keeps the 152x152 box
             // (and its margin) reserved and just hides the pixels.
-            style={avatarHidden ? { visibility: "hidden" } : undefined}
+            style={avatarHidden && !boxed ? { visibility: "hidden" } : undefined}
           >
             <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
           </div>
-        ) : null}
+        ) : null;
 
-        <div className="public-profile-card__name-row">
+  const nameEl = (
           <h1
             className="public-profile-card__name"
             style={
@@ -408,7 +376,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 style={{ filter: glowDropShadow(glowStyle, glowColor) }}
               >
                 <FuzzyText
-                  fontSize={38}
+                  fontSize={boxed ? 30 : 38}
                   fontWeight={800}
                   color="#f5f5f5"
                   enableHover
@@ -428,7 +396,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 <WarpText
                   text={name}
                   color="#f5f5f5"
-                  fontSize={38}
+                  fontSize={boxed ? 30 : 38}
                   fontWeight={800}
                   fontFamily={usernameFontFamily}
                 />
@@ -437,13 +405,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               name
             )}
           </h1>
+  );
 
-          {discordTagLayout === "inline" ? discordTagEl : null}
-        </div>
-
-        {discordTagLayout === "below_name" ? discordTagEl : null}
-
-        {hasBadges ? (
+  const badgesEl = hasBadges ? (
           badgesAnimated ? (
             <div
               className="public-profile-card__badges-marquee"
@@ -509,9 +473,9 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               ))}
             </div>
           )
-        ) : null}
+        ) : null;
 
-        {hasBadges ? (
+  const badgeTooltipEl = hasBadges ? (
           <div
             className={
               badgeTooltip.visible
@@ -522,13 +486,71 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           >
             {badgeTooltip.label}
           </div>
-        ) : null}
+        ) : null;
 
-        {discordTagLayout === "below_badges" ? discordTagEl : null}
+  return (
+    <main
+      className="public-profile-page"
+      style={hasColorBg ? { background: backgroundColor } : undefined}
+    >
+      {hasWallpaper ? (
+        isVideoUrl(backgroundUrl) ? (
+          <video
+            ref={videoRef}
+            className="public-profile-page__bg"
+            src={backgroundUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+          />
+        ) : (
+          <img className="public-profile-page__bg" src={backgroundUrl} alt="" />
+        )
+      ) : null}
+      {hasWallpaper ? <div className="public-profile-page__bg-scrim" /> : null}
 
-        {bio}
-
-        {/* Links go here once that section is built. */}
+      <div
+        ref={cardRef}
+        className={[
+          "public-profile-card",
+          boxed ? "public-profile-card--boxed" : "",
+          gateEnabled && !entered ? "public-profile-card--hidden" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={cardStyle}
+      >
+        {boxed ? (
+          <div className="public-profile-card__row">
+            {avatarEl}
+            <div className="public-profile-card__info">
+              <div className="public-profile-card__name-row public-profile-card__name-row--boxed">
+                {nameEl}
+                {badgesEl}
+                {discordTagLayout === "inline" ? discordTagEl : null}
+              </div>
+              {discordTagLayout !== "inline" ? discordTagEl : null}
+              {bio}
+              {/* Profile links go here (under the bio) once that section is built. */}
+            </div>
+            {badgeTooltipEl}
+          </div>
+        ) : (
+          <>
+            {avatarEl}
+            <div className="public-profile-card__name-row">
+              {nameEl}
+              {discordTagLayout === "inline" ? discordTagEl : null}
+            </div>
+            {discordTagLayout === "below_name" ? discordTagEl : null}
+            {badgesEl}
+            {badgeTooltipEl}
+            {discordTagLayout === "below_badges" ? discordTagEl : null}
+            {bio}
+            {/* Links go here once that section is built. */}
+          </>
+        )}
       </div>
 
       {hasTracks && !audioMuted ? (

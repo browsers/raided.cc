@@ -3,7 +3,7 @@ import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
-import { CARD_COLUMNS } from "../lib/cardStyle";
+import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -44,6 +44,12 @@ export default async function PublicProfilePage({
     .eq("id", profile.id)
     .maybeSingle();
 
+  const { data: avatarShapeRow } = await supabase
+    .from("profiles")
+    .select(AVATAR_SHAPE_COLUMN)
+    .eq("id", profile.id)
+    .maybeSingle();
+
   const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
@@ -77,6 +83,8 @@ export default async function PublicProfilePage({
       profile={{
         ...profile,
         ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
+        avatar_shape:
+          (avatarShapeRow as unknown as { avatar_shape?: string } | null)?.avatar_shape ?? "rounded",
         discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline",
       }}
       bioLines={bioLines ?? []}

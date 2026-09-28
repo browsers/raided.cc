@@ -17,6 +17,15 @@ export const CARD_DEFAULTS = {
   card_corner: 0,
 };
 
+// Avatar shape lives outside CARD_COLUMNS on purpose: it's queried on its
+// own, so a missing column (migration not run yet) can never break the
+// card settings or 404 a profile.
+export const AVATAR_SHAPE_COLUMN = "avatar_shape";
+export const AVATAR_SHAPES = [
+  { value: "rounded", label: "Rounded square" },
+  { value: "circle", label: "Circle" },
+];
+
 export const CARD_COLUMNS = Object.keys(CARD_DEFAULTS).join(", ");
 
 export function isHex(v) {

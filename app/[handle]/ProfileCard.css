@@ -43,11 +43,92 @@
   transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
-/* Card layout: the same column, but boxed. Background, border, radius,
-   shadow and blur come from inline styles (lib/cardStyle.js). */
+/* Card layout: compact horizontal card. Avatar on the left, name + badges
+   next to it, bio underneath, and profile links will sit under the bio.
+   Background, border, radius, shadow and blur come from inline styles
+   (lib/cardStyle.js). */
 .public-profile-card--boxed {
   box-sizing: border-box;
-  padding: 36px 28px;
+  max-width: 420px;
+  padding: 22px 26px;
+  align-items: stretch;
+  text-align: left;
+}
+
+.public-profile-card__row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.public-profile-card__info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.public-profile-card--boxed .public-profile-card__avatar {
+  width: 88px;
+  height: 88px;
+  margin-bottom: 0;
+  /* Same "rounded square" proportions as the big minimal avatar. */
+  border-radius: 18px;
+}
+
+.public-profile-card__name-row--boxed {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.public-profile-card--boxed .public-profile-card__name {
+  font-size: 30px;
+  min-height: calc(30px * 1.15);
+}
+
+.public-profile-card--boxed .public-profile-card__name-warp {
+  width: 220px;
+  height: 64px;
+}
+
+.public-profile-card--boxed .public-profile-card__badges,
+.public-profile-card--boxed .public-profile-card__badges-marquee {
+  margin-top: 0;
+}
+
+.public-profile-card--boxed .public-profile-card__discord-tag--stacked {
+  margin-top: 8px;
+}
+
+.public-profile-card--boxed .public-profile-card__bio {
+  margin-top: 8px;
+  font-size: 15px;
+  min-height: 20px;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  .public-profile-card--boxed {
+    padding: 18px 18px;
+  }
+
+  .public-profile-card__row {
+    gap: 14px;
+  }
+
+  .public-profile-card--boxed .public-profile-card__avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 14px;
+  }
+
+  .public-profile-card--boxed .public-profile-card__name {
+    font-size: 24px;
+    min-height: calc(24px * 1.15);
+  }
 }
 
 .public-profile-card--hidden {
@@ -140,6 +221,12 @@
   border-radius: 30px;
   overflow: hidden;
   margin-bottom: 20px;
+}
+
+/* Avatar shape = circle (Appearance tab). Placed after every size rule so
+   it wins the specificity tie with the boxed radius above. */
+.public-profile-card .public-profile-card__avatar--circle {
+  border-radius: 50%;
 }
 
 .public-profile-card__avatar-img {

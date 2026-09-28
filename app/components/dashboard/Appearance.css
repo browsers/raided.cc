@@ -542,3 +542,8 @@
 .ap-view:hover {
   color: var(--dash-text-primary);
 }
+
+.ap-field--shape {
+  margin-top: 20px;
+  max-width: 280px;
+}

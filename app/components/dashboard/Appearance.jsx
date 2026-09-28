@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import { CARD_COLUMNS, isHex, withCardDefaults } from "../../lib/cardStyle";
+import {
+  AVATAR_SHAPES,
+  AVATAR_SHAPE_COLUMN,
+  CARD_COLUMNS,
+  isHex,
+  withCardDefaults,
+} from "../../lib/cardStyle";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
@@ -123,11 +129,14 @@ function SliderTile({ label, unit, value, min, max, step = 1, onChange, color, o
   );
 }
 
-function LayoutPreview({ kind }) {
+function LayoutPreview({ kind, shape }) {
   return (
     <div className="ap-preview">
       <div className={`ap-preview__stage${kind === "card" ? " ap-preview__stage--card" : ""}`}>
-        <span className="ap-preview__avatar" />
+        <span
+          className="ap-preview__avatar"
+          style={{ borderRadius: shape === "circle" ? "50%" : "8px" }}
+        />
         <span className="ap-preview__name" />
         <span className="ap-preview__badges">
           <i />
@@ -151,6 +160,7 @@ export default function Appearance() {
   const saveTimer = useRef(null);
 
   const [layout, setLayoutRaw] = useState("minimal");
+  const [avatarShape, setAvatarShapeRaw] = useState("rounded"); // "rounded" | "circle"
 
   // Card settings
   const [bgMode, setBgModeRaw] = useState("gradient"); // "solid" | "gradient"
@@ -188,6 +198,20 @@ export default function Appearance() {
     saveTimer.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
   }
 
+  // Avatar shape saves by itself (not in the batch) because its column can
+  // exist or not independently of the card columns.
+  async function setAvatarShape(v) {
+    setAvatarShapeRaw(v);
+    if (!userIdRef.current) return;
+    setStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ [AVATAR_SHAPE_COLUMN]: v })
+      .eq("id", userIdRef.current);
+    if (error) console.error("Avatar shape save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
   // Wrapped setters: same names the JSX already uses, but each one also
   // queues a save. Text colors only save once they're a real hex.
   const setLayout = (v) => { setLayoutRaw(v); queueSave({ appearance_layout: v }); };
@@ -219,6 +243,15 @@ export default function Appearance() {
       // Handle in its own query so a missing appearance column can't hide it.
       const { data: h } = await supabase.from("profiles").select("handle").eq("id", user.id).maybeSingle();
       if (!cancelled && h?.handle) setHandle(h.handle);
+
+      // Own query too: if the avatar_shape migration hasn't run, this just
+      // errors quietly and the shape stays on the rounded default.
+      const { data: shapeRow } = await supabase
+        .from("profiles")
+        .select(AVATAR_SHAPE_COLUMN)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && shapeRow?.[AVATAR_SHAPE_COLUMN] === "circle") setAvatarShapeRaw("circle");
 
       const { data: row, error } = await supabase
         .from("profiles")
@@ -288,7 +321,7 @@ export default function Appearance() {
                 aria-pressed={layout === opt.value}
                 onClick={() => setLayout(opt.value)}
               >
-                <LayoutPreview kind={opt.value} />
+                <LayoutPreview kind={opt.value} shape={avatarShape} />
                 <span className="ap-layout__row">
                   <span className="ap-layout__label">{opt.label}</span>
                   {opt.value === "minimal" ? (
@@ -299,6 +332,21 @@ export default function Appearance() {
               </button>
             ))}
           </div>
+          <label className="ap-field ap-field--shape">
+            <span className="ap-field__label">Avatar Shape</span>
+            <select
+              className="ap-select"
+              value={avatarShape}
+              disabled={loading}
+              onChange={(e) => setAvatarShape(e.target.value)}
+            >
+              {AVATAR_SHAPES.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
           {handle ? (
             <a className="ap-view" href={`/${handle}`} target="_blank" rel="noreferrer">
               View your profile
