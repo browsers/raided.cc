@@ -17,6 +17,10 @@ import "./Profile.css";
 import "./Embed.css";
 
 const EMBED_BUCKET = "embeds";
+// The link people actually share. Fixed to the production domain (not
+// window.location) so it's right even when you're editing from a preview
+// deploy or localhost.
+const SHARE_ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || "https://raided.cc";
 const SAVE_DEBOUNCE_MS = 600;
 
 const EMBED_COLUMNS =
@@ -72,6 +76,10 @@ export default function Embed() {
 
   // Save state for everything else: idle | saving | saved | error
   const [status, setStatus] = useState("idle");
+
+  // "Copy link" button feedback: idle | copied | error
+  const [copyState, setCopyState] = useState("idle");
+  const copyTimer = useRef(null);
 
   const userIdRef = useRef(null);
   const pending = useRef({}); // columns waiting for the next debounced flush
@@ -260,6 +268,36 @@ export default function Embed() {
     const path = storagePathFromPublicUrl(prevUrl, EMBED_BUCKET);
     if (path) supabase.storage.from(EMBED_BUCKET).remove([path]).catch(() => {});
   }
+
+  // --- Copy share link ------------------------------------------------------
+  async function handleCopyLink() {
+    if (!handle) return;
+    const link = `${SHARE_ORIGIN}/${handle}`;
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(link);
+      ok = true;
+    } catch {
+      // Clipboard API can be blocked (http, iframes) — old-school fallback.
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = link;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch {
+        ok = false;
+      }
+    }
+    setCopyState(ok ? "copied" : "error");
+    clearTimeout(copyTimer.current);
+    copyTimer.current = setTimeout(() => setCopyState("idle"), 1800);
+  }
+
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
 
   // --- Derived: exactly what the public page + Discord will use -----------
   const origin = typeof window === "undefined" ? "https://raided.cc" : window.location.origin;
@@ -543,6 +581,28 @@ export default function Embed() {
                     </div>
                   </>
                 ) : null}
+              </div>
+            </div>
+
+            <div className="embed-share">
+              <span className="embed-field__label">Share link</span>
+              <div className="embed-share__row">
+                <input
+                  type="text"
+                  className="embed-input embed-share__url"
+                  readOnly
+                  value={handle ? `${SHARE_ORIGIN}/${handle}` : ""}
+                  placeholder={loading ? "Loading…" : "Claim a handle to get a link"}
+                  onFocus={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  className={`embed-share__copy${copyState === "copied" ? " embed-share__copy--done" : ""}`}
+                  onClick={handleCopyLink}
+                  disabled={!handle}
+                >
+                  {copyState === "copied" ? "Copied!" : copyState === "error" ? "Copy failed" : "Copy link"}
+                </button>
               </div>
             </div>
 
