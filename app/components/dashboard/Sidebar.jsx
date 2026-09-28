@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: "overview", label: "Overview", icon: "/icons/overview.png" },
   { key: "profile", label: "Profile", icon: "/icons/profile.png" },
   { key: "appearance", label: "Appearance", icon: "/icons/appearance.png" },
+  { key: "widgets", label: "Widgets", icon: "/icons/widget.png" },
   { key: "links", label: "Links", icon: "/icons/links.png" },
   { key: "embed", label: "Embed", icon: "/icons/embed.png" },
   { key: "badges", label: "Badges", icon: "/icons/badges.png" },

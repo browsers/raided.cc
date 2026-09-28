@@ -18,6 +18,7 @@ const TAB_CONTENT: Record<string, React.ReactNode> = {
   overview: <Overview />,
   profile: <Profile />,
   appearance: <Appearance />,
+  widgets: <ComingSoon label="Coming soon" />,
   links: <ComingSoon label="Coming soon" />,
   embed: <Embed />,
   badges: <Badges />,
