@@ -27,6 +27,14 @@ export default async function PublicProfilePage({
 
   if (!profile) notFound();
 
+  // Own query so a missing discord_tag_layout column (migration not run
+  // yet) can never make a real profile 404 — it just falls back to inline.
+  const { data: tagLayoutRow } = await supabase
+    .from("profiles")
+    .select("discord_tag_layout")
+    .eq("id", profile.id)
+    .maybeSingle();
+
   const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
@@ -57,7 +65,7 @@ export default async function PublicProfilePage({
 
   return (
     <ProfileCard
-      profile={profile}
+      profile={{ ...profile, discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline" }}
       bioLines={bioLines ?? []}
       badges={badges}
       tracks={trackRows ?? []}

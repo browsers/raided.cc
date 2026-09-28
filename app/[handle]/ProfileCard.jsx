@@ -143,6 +143,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     badges_animated: badgesAnimated,
     badge_color: badgeColor,
     discord_tag_size: discordTagSizeRaw,
+    discord_tag_layout: discordTagLayoutRaw,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
     // reference has a "disable pfp" setting we haven't built yet.
   } = profile;
@@ -158,6 +159,24 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
   const name = displayName?.trim() || handle;
   const discordTagSize = ["sm", "md", "lg"].includes(discordTagSizeRaw) ? discordTagSizeRaw : "md";
+  // "inline" = next to the name (default), otherwise stacked on its own line.
+  const discordTagLayout = ["inline", "below_name", "below_badges"].includes(discordTagLayoutRaw)
+    ? discordTagLayoutRaw
+    : "inline";
+
+  // Built once, placed in one of three spots below depending on layout.
+  const discordTagEl = discordTag ? (
+    <span
+      className={`public-profile-card__discord-tag public-profile-card__discord-tag--${discordTagSize}${
+        discordTagLayout === "inline" ? "" : " public-profile-card__discord-tag--stacked"
+      }`}
+    >
+      {discordTag.badgeUrl ? (
+        <img className="public-profile-card__discord-tag-badge" src={discordTag.badgeUrl} alt="" />
+      ) : null}
+      {discordTag.tag}
+    </span>
+  ) : null;
 
   // The saved font can be scoped to just the username, just the bio, just
   // the badge/UID tooltips, the historical "both" (username + bio), or
@@ -411,21 +430,10 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             )}
           </h1>
 
-          {discordTag ? (
-            <span
-              className={`public-profile-card__discord-tag public-profile-card__discord-tag--${discordTagSize}`}
-            >
-              {discordTag.badgeUrl ? (
-                <img
-                  className="public-profile-card__discord-tag-badge"
-                  src={discordTag.badgeUrl}
-                  alt=""
-                />
-              ) : null}
-              {discordTag.tag}
-            </span>
-          ) : null}
+          {discordTagLayout === "inline" ? discordTagEl : null}
         </div>
+
+        {discordTagLayout === "below_name" ? discordTagEl : null}
 
         {hasBadges ? (
           badgesAnimated ? (
@@ -507,6 +515,8 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             {badgeTooltip.label}
           </div>
         ) : null}
+
+        {discordTagLayout === "below_badges" ? discordTagEl : null}
 
         {bio}
 

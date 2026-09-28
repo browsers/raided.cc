@@ -25,6 +25,14 @@ const GUILD_TAG_SIZES = [
   { value: "lg", label: "Large" },
 ];
 
+// Where the guild tag sits on the public profile. "inline" (next to the
+// name) is the historical default.
+const GUILD_TAG_LAYOUTS = [
+  { value: "inline", label: "Next to name" },
+  { value: "below_name", label: "Under name" },
+  { value: "below_badges", label: "Under badges" },
+];
+
 // Which parts of the profile the selected Font actually gets applied to.
 // "both" is the historical default (username + bio, nothing else).
 const FONT_TARGETS = [
@@ -153,6 +161,9 @@ export default function Identity() {
   const [discordTagSize, setDiscordTagSize] = useState("md");
   const [discordTagSizeStatus, setDiscordTagSizeStatus] = useState("idle");
 
+  const [discordTagLayout, setDiscordTagLayout] = useState("inline");
+  const [discordTagLayoutStatus, setDiscordTagLayoutStatus] = useState("idle");
+
   const [fontTarget, setFontTarget] = useState("both");
   const [fontTargetStatus, setFontTargetStatus] = useState("idle");
 
@@ -211,6 +222,18 @@ export default function Identity() {
       ]);
 
       if (cancelled) return;
+
+      // Separate query on purpose: if the discord_tag_layout migration
+      // hasn't been run yet this errors, and it must not take the rest of
+      // the Identity fields down with it.
+      const { data: layoutRow } = await supabase
+        .from("profiles")
+        .select("discord_tag_layout")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+      if (layoutRow?.discord_tag_layout) setDiscordTagLayout(layoutRow.discord_tag_layout);
 
       if (profile) {
         setDisplayName(profile.display_name ?? "");
@@ -288,6 +311,19 @@ export default function Identity() {
       .update({ discord_tag_size: value })
       .eq("id", userId);
     setDiscordTagSizeStatus(error ? "error" : "idle");
+  }
+
+  // --- Guild tag layout ------------------------------------------------
+  async function handleDiscordTagLayoutChange(value) {
+    setDiscordTagLayout(value);
+    if (!userId) return;
+    setDiscordTagLayoutStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ discord_tag_layout: value })
+      .eq("id", userId);
+    if (error) console.error("Guild tag layout save failed:", error);
+    setDiscordTagLayoutStatus(error ? "error" : "idle");
   }
 
   // --- Glow color ---------------------------------------------------
@@ -495,7 +531,7 @@ export default function Identity() {
         </label>
       </div>
 
-      <div className="identity-field-row identity-field-row--two">
+      <div className="identity-field-row identity-field-row--three">
         <label className="identity-field">
           <span className="identity-field__label">
             Discord User ID <SaveHint status={discordIdStatus} />
@@ -522,6 +558,24 @@ export default function Identity() {
             onChange={(e) => handleDiscordTagSizeChange(e.target.value)}
           >
             {GUILD_TAG_SIZES.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="identity-field">
+          <span className="identity-field__label">
+            Guild Tag Layout <SaveHint status={discordTagLayoutStatus} />
+          </span>
+          <select
+            className="identity-select"
+            value={discordTagLayout}
+            disabled={!userId}
+            onChange={(e) => handleDiscordTagLayoutChange(e.target.value)}
+          >
+            {GUILD_TAG_LAYOUTS.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

@@ -173,6 +173,14 @@
   top: 3px;
 }
 
+/* Stacked layouts (under the name / under the badges): the tag gets its
+   own centered line, so drop the baseline nudge that only exists to line
+   it up beside the name, and give it a little breathing room instead. */
+.public-profile-card__discord-tag--stacked {
+  top: 0;
+  margin-top: 6px;
+}
+
 .public-profile-card__discord-tag--sm {
   height: 24px;
   padding: 0 8px;
