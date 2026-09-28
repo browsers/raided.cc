@@ -1,0 +1,258 @@
+/* Shell, scrolling, cards and form controls come from Profile.css and
+   Appearance.css (ap-select, ap-seg, ap-field, ap-switch). Everything new
+   here is prefixed wg- */
+
+.wg-count {
+  margin-left: auto;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--dash-text-secondary);
+}
+
+/* --- Active list ------------------------------------------------------ */
+
+.wg-active {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.wg-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.wg-row__icon,
+.wg-tile__icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--dash-text-primary);
+}
+
+.wg-row__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wg-row__name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  margin-bottom: 2px;
+}
+
+.wg-row__hint {
+  font-size: 12px;
+  color: var(--dash-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wg-row__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wg-iconbtn,
+.wg-btn {
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--dash-text-secondary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.wg-iconbtn {
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wg-btn {
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wg-iconbtn:hover:not(:disabled),
+.wg-btn:hover {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wg-iconbtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.wg-iconbtn:focus-visible,
+.wg-btn:focus-visible,
+.wg-switch:focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .wg-row {
+    flex-wrap: wrap;
+  }
+
+  .wg-row__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.wg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 28px 16px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--dash-text-secondary);
+}
+
+.wg-empty strong {
+  font-size: 13.5px;
+  color: var(--dash-text-primary);
+}
+
+/* --- Two column: Library | Settings ---------------------------------- */
+
+.wg-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .wg-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wg-library {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .wg-library {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wg-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  transition: border-color 0.15s ease;
+}
+
+.wg-tile--on {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.wg-tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.wg-tile__name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  margin-bottom: 3px;
+}
+
+.wg-tile__hint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--dash-text-secondary);
+}
+
+/* --- Settings card ---------------------------------------------------- */
+
+.wg-field {
+  margin-bottom: 16px;
+}
+
+.wg-seg {
+  align-self: flex-start;
+}
+
+/* --- Switch (own copy so this tab doesn't depend on Badges.css) ------- */
+
+.wg-switch {
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  border: none;
+  padding: 2px;
+  background: var(--dash-track);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s ease;
+}
+
+.wg-switch__knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  transform: translateX(0);
+  transition: transform 0.15s ease;
+}
+
+.wg-switch--on {
+  background: var(--dash-accent);
+}
+
+.wg-switch--on .wg-switch__knob {
+  transform: translateX(16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-switch,
+  .wg-switch__knob,
+  .wg-tile {
+    transition: none;
+  }
+}
