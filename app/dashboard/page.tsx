@@ -1,99 +1,143 @@
-"use client";
+import { notFound } from "next/navigation";
+import { createClient } from "../lib/supabase/server";
+import { getBadgeMeta } from "../lib/badgeCatalog";
+import { getDiscordGuildTag } from "../lib/discord";
+import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
+import { CARD_COLUMNS } from "../lib/cardStyle";
+import ProfileCard from "./ProfileCard";
 
-import { useEffect, useState } from "react";
-import Sidebar from "../components/dashboard/Sidebar";
-import ComingSoon from "../components/dashboard/ComingSoon";
-import Overview from "../components/dashboard/Overview";
-import Profile from "../components/dashboard/Profile";
-import Badges from "../components/dashboard/Badges";
-import Embed from "../components/dashboard/Embed";
-import Appearance from "../components/dashboard/Appearance";
-import NoAccessCard from "../components/NoAccessCard";
-import { supabase } from "../lib/supabaseClient";
-import "./dashboard.css";
+// The public card at raided.cc/[handle]. Server-rendered so it works for
+// signed-out visitors and loads with real data already in the HTML
+// (no avatar/name pop-in). All the actual layout lives in ProfileCard —
+// this file is just lookup + 404 handling.
+export default async function PublicProfilePage({
+  params,
+}: {
+  params: { handle: string };
+}) {
+  const handle = params.handle?.toLowerCase();
+  const supabase = createClient();
 
-// Sidebar items are tabs, not routes — switching one just swaps what
-// renders here, the URL always stays at /dashboard.
-const TAB_CONTENT: Record<string, React.ReactNode> = {
-  overview: <Overview />,
-  profile: <Profile />,
-  appearance: <Appearance />,
-  links: <ComingSoon label="Coming soon" />,
-  embed: <Embed />,
-  badges: <Badges />,
-  settings: <ComingSoon label="Coming soon" />,
-};
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select(
+      "id, handle, display_name, avatar_url, avatar_hidden, background_url, background_type, background_color, glow_color, glow_style, font, font_target, bio_mode, bio_type_speed_ms, bio_delete_hold_ms, bio_delete_speed_ms, bio_cursor, uid, audio_muted, badges_animated, badge_color, username_effect, discord_user_id, discord_tag_size"
+    )
+    .eq("handle", handle)
+    .maybeSingle();
 
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("overview");
-  // Sidebar is a fixed drawer on mobile (see Sidebar.css) — closed by
-  // default so it doesn't cover the content until opened.
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  // null = still checking, true = signed in, false = no session -> gate them out
-  const [hasSession, setHasSession] = useState<boolean | null>(null);
+  if (!profile) notFound();
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setHasSession(Boolean(data.session));
-    });
+  // Own query so a missing discord_tag_layout column (migration not run
+  // yet) can never make a real profile 404 — it just falls back to inline.
+  const { data: tagLayoutRow } = await supabase
+    .from("profiles")
+    .select("discord_tag_layout")
+    .eq("id", profile.id)
+    .maybeSingle();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setHasSession(Boolean(session));
-      }
-    );
+  // Same idea for the Appearance columns: own query, so the migration not
+  // being run yet just means everyone renders the minimal layout.
+  const { data: appearanceRow } = await supabase
+    .from("profiles")
+    .select(CARD_COLUMNS)
+    .eq("id", profile.id)
+    .maybeSingle();
 
-    return () => listener.subscription.unsubscribe();
-  }, []);
+  const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
+    supabase
+      .from("profile_bio_lines")
+      .select("line, position")
+      .eq("profile_id", profile.id)
+      .order("position", { ascending: true }),
+    // Only badges the user has both been granted and left enabled show up
+    // publicly — see profile_badges_migration.sql for how those get granted.
+    supabase
+      .from("profile_badges")
+      .select("badge_key")
+      .eq("profile_id", profile.id)
+      .eq("enabled", true),
+    supabase
+      .from("profile_tracks")
+      .select("url, title")
+      .eq("profile_id", profile.id)
+      .order("position", { ascending: true }),
+    getDiscordGuildTag(profile.discord_user_id),
+  ]);
 
-  // Still checking — render nothing rather than flashing the dashboard
-  // (or the gate screen) while we wait on Supabase.
-  if (hasSession === null) return null;
-
-  if (!hasSession) {
-    return (
-      <main>
-        <div className="bg-video-wrap">
-          <video
-            className="bg-video"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-          >
-            <source src="/videos/grass-bg.mp4" type="video/mp4" />
-          </video>
-        </div>
-        <div className="center-content">
-          <NoAccessCard />
-        </div>
-      </main>
-    );
-  }
+  const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
+    .map((row) => {
+      const meta = getBadgeMeta(row.badge_key);
+      return meta ? { id: row.badge_key, icon: meta.icon, label: meta.label } : null;
+    })
+    .filter((b): b is { id: string; icon: string; label: string } => b !== null);
 
   return (
-    <div className="dash-shell">
-      <button
-        type="button"
-        className="dash-mobile-menu-btn"
-        aria-label="Open menu"
-        onClick={() => setMobileNavOpen(true)}
-      >
-        <span />
-        <span />
-        <span />
-      </button>
-
-      <Sidebar
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        mobileOpen={mobileNavOpen}
-        onCloseMobile={() => setMobileNavOpen(false)}
-      />
-      <main className="dash-content">
-        {TAB_CONTENT[activeTab] ?? TAB_CONTENT.overview}
-      </main>
-    </div>
+    <ProfileCard
+      profile={{
+        ...profile,
+        ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
+        discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline",
+      }}
+      bioLines={bioLines ?? []}
+      badges={badges}
+      tracks={trackRows ?? []}
+      discordTag={discordTag}
+    />
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { handle: string };
+}) {
+  const handle = params.handle?.toLowerCase();
+  const pageTitle = `@${handle} — raided.cc`;
+
+  const origin = getSiteOrigin();
+  const embed = await getEmbedForHandle(handle, origin);
+  if (!embed) return { title: pageTitle };
+
+  const { settings } = embed;
+  const images = settings.imageUrl ? [{ url: settings.imageUrl }] : undefined;
+
+  return {
+    title: pageTitle,
+    description: settings.description || undefined,
+
+    // Open Graph / Twitter tags: what every other app reads, and what
+    // Discord falls back to if it can't use the component embed below.
+    openGraph: {
+      type: "website",
+      url: settings.pageUrl,
+      siteName: "raided.cc",
+      title: settings.title,
+      description: settings.description || undefined,
+      images,
+    },
+    twitter: {
+      card: settings.imageUrl && settings.layout === "large" ? "summary_large_image" : "summary",
+      title: settings.title,
+      description: settings.description || undefined,
+      images: settings.imageUrl ? [settings.imageUrl] : undefined,
+    },
+    // Discord's accent bar color on the fallback card.
+    other: { "theme-color": settings.accent },
+
+    // Discord's component embed (the buttons-under-the-card version).
+    // Metadata API has no first-class "arbitrary <link>", but icons.other
+    // renders a plain <link rel=... href=... type=...> into <head>, which
+    // is exactly what Discord looks for. Nothing else sets icons here, so
+    // this doesn't override a favicon.
+    icons: {
+      other: [
+        {
+          rel: "discord:component-embed",
+          url: `${origin}/api/embed/${handle}`,
+          type: "application/json",
+        },
+      ],
+    },
+  };
 }
