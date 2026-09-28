@@ -547,3 +547,9 @@
   margin-top: 20px;
   max-width: 280px;
 }
+
+.ap-field__hint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--dash-text-secondary);
+}

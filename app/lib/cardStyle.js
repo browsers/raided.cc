@@ -24,6 +24,8 @@ export const AVATAR_SHAPE_COLUMN = "avatar_shape";
 export const AVATAR_SHAPES = [
   { value: "rounded", label: "Rounded square" },
   { value: "circle", label: "Circle" },
+  // Follows the card's corner radius. Only does anything in the Card layout.
+  { value: "match", label: "Match card corners" },
 ];
 
 export const CARD_COLUMNS = Object.keys(CARD_DEFAULTS).join(", ");

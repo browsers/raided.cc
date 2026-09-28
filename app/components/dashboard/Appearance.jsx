@@ -160,7 +160,7 @@ export default function Appearance() {
   const saveTimer = useRef(null);
 
   const [layout, setLayoutRaw] = useState("minimal");
-  const [avatarShape, setAvatarShapeRaw] = useState("rounded"); // "rounded" | "circle"
+  const [avatarShape, setAvatarShapeRaw] = useState("rounded"); // "rounded" | "circle" | "match"
 
   // Card settings
   const [bgMode, setBgModeRaw] = useState("gradient"); // "solid" | "gradient"
@@ -251,7 +251,10 @@ export default function Appearance() {
         .select(AVATAR_SHAPE_COLUMN)
         .eq("id", user.id)
         .maybeSingle();
-      if (!cancelled && shapeRow?.[AVATAR_SHAPE_COLUMN] === "circle") setAvatarShapeRaw("circle");
+      const savedShape = shapeRow?.[AVATAR_SHAPE_COLUMN];
+      if (!cancelled && AVATAR_SHAPES.some((o) => o.value === savedShape)) {
+        setAvatarShapeRaw(savedShape);
+      }
 
       const { data: row, error } = await supabase
         .from("profiles")
@@ -346,6 +349,13 @@ export default function Appearance() {
                 </option>
               ))}
             </select>
+            {avatarShape === "match" ? (
+              <span className="ap-field__hint">
+                {layout === "card"
+                  ? "Your avatar uses the same corners as the card (Corner Radius below)."
+                  : "Only applies in the Card layout. Minimal keeps a rounded square."}
+              </span>
+            ) : null}
           </label>
           {handle ? (
             <a className="ap-view" href={`/${handle}`} target="_blank" rel="noreferrer">

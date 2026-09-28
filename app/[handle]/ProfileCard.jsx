@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
-import { buildCardStyle, isCardLayout } from "../lib/cardStyle";
+import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -340,13 +340,24 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     ) : null;
 
 
+  // "Match card corners": the avatar borrows the card's corner radius (only
+  // in the Card layout; minimal has no card, so it stays a rounded square).
+  // border-radius clamps itself, so a big radius on a small avatar just
+  // becomes a circle instead of breaking.
+  const avatarStyle =
+    boxed && profile.avatar_shape === "match"
+      ? { borderRadius: `${withCardDefaults(profile).card_corner}px` }
+      : avatarHidden && !boxed
+        ? { visibility: "hidden" }
+        : undefined;
+
   const avatarEl = avatarUrl && !(boxed && avatarHidden) ? (
           <div
             className={`public-profile-card__avatar${profile.avatar_shape === "circle" ? " public-profile-card__avatar--circle" : ""}`}
             // Hiding the avatar shouldn't reflow the card, the name
             // stays right where it was, so this keeps the 152x152 box
             // (and its margin) reserved and just hides the pixels.
-            style={avatarHidden && !boxed ? { visibility: "hidden" } : undefined}
+            style={avatarStyle}
           >
             <img className="public-profile-card__avatar-img" src={avatarUrl} alt="" />
           </div>
