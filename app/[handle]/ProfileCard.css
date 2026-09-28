@@ -49,7 +49,9 @@
    (lib/cardStyle.js). */
 .public-profile-card--boxed {
   box-sizing: border-box;
-  max-width: 420px;
+  /* Hugs its content (up to 420px) so it stays centered on the page. */
+  width: fit-content;
+  max-width: min(420px, 100%);
   padding: 22px 26px;
   align-items: stretch;
   text-align: left;
@@ -68,6 +70,33 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+}
+
+/* No avatar: nothing to sit beside, so center everything in the card. */
+.public-profile-card--noavatar .public-profile-card__row {
+  justify-content: center;
+}
+
+.public-profile-card--noavatar .public-profile-card__info {
+  flex: 0 1 auto;
+  align-items: center;
+  text-align: center;
+}
+
+.public-profile-card--noavatar .public-profile-card__name-row--boxed {
+  justify-content: center;
+}
+
+.public-profile-card--boxed.public-profile-card--noavatar .public-profile-card__bio {
+  text-align: center;
+}
+
+.public-profile-card__bio-sizer {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .public-profile-card--boxed .public-profile-card__avatar {

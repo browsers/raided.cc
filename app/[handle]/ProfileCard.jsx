@@ -314,6 +314,14 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     lines.length > 0 ? (
       isTypewriter ? (
         <div className="public-profile-card__bio" style={{ fontFamily: bioFontFamily }}>
+          {boxed ? (
+            // Invisible copy of the longest line: the card sizes itself to
+            // its content, so this keeps its width steady while the
+            // typewriter types and deletes instead of growing/shrinking.
+            <span className="public-profile-card__bio-sizer" aria-hidden="true">
+              {lines.reduce((a, b) => (b.length > a.length ? b : a), "")}
+            </span>
+          ) : null}
           {typedText}
           <span className="public-profile-card__caret">{cursorChar}</span>
         </div>
@@ -515,6 +523,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         className={[
           "public-profile-card",
           boxed ? "public-profile-card--boxed" : "",
+          boxed && !avatarEl ? "public-profile-card--noavatar" : "",
           gateEnabled && !entered ? "public-profile-card--hidden" : "",
         ]
           .filter(Boolean)
