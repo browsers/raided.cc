@@ -531,7 +531,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             <DiscordPresence
               key={w.id}
               presence={presences[w.accountId] ?? null}
-              boxStyle={buildWidgetStyle(widgetStyle)}
+              boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
               tag={w.accountId === profile.discord_user_id ? discordTag : null}
             />
           ) : null

@@ -20,7 +20,9 @@ const VALIDATORS = {
  * Clean whatever came out of the database into a safe, ordered list.
  * Drops anything malformed or unknown instead of throwing.
  * @param {unknown} raw
- * @returns {{ id: string, platform: string, accountId: string }[]}
+ * Each widget can carry its own `style` (see sanitizeWidgetStyle below); null
+ * means "no look of its own", so the profile falls back to the shared style.
+ * @returns {{ id: string, platform: string, accountId: string, style: object | null }[]}
  */
 export function sanitizeWidgets(raw) {
   if (!Array.isArray(raw)) return [];
@@ -38,7 +40,7 @@ export function sanitizeWidgets(raw) {
     if (!id || seen.has(id)) id = `w_${out.length}_${accountId.slice(-4)}`;
     seen.add(id);
 
-    out.push({ id, platform, accountId });
+    out.push({ id, platform, accountId, style: sanitizeWidgetStyle(item.style) });
     if (out.length >= MAX_WIDGETS) break;
   }
   return out;

@@ -8,14 +8,12 @@ import {
   WIDGETS_COLUMN,
   WIDGET_STYLE_COLUMN,
   WIDGET_STYLE_DEFAULTS,
-  buildWidgetStyle,
   isDiscordId,
   newWidgetId,
   sanitizeWidgets,
   sanitizeWidgetStyle,
 } from "../../lib/widgets";
 import { isHex } from "../../lib/cardStyle";
-import DiscordPresence from "../../[handle]/DiscordPresence";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import { ColorField, SliderTile, CornerPicker } from "./StyleControls";
@@ -58,6 +56,18 @@ const SearchIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
     <circle cx="11" cy="11" r="6.5" />
     <path d="M16 16l4.5 4.5" />
+  </svg>
+);
+
+const ChevronIcon = () => (
+  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M1 1l4 4 4-4" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12.5l4.5 4.5L19 7.5" />
   </svg>
 );
 
@@ -170,16 +180,102 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
 const STYLE_SAVE_DEBOUNCE_MS = 600;
 const clamp = (v, min, max) => Math.min(Math.max(Number.isFinite(v) ? v : 0, min), max);
 
-// Fake data so the editor can show a live preview even when the bot can't
-// see you yet.
-const PREVIEW_PRESENCE = {
-  user: { id: "0", username: "you", global_name: "Your name", avatar: null },
-  status: "online",
-  activities: [
-    { type: 4, name: "Custom Status", state: "locked in", emoji: null, details: null, application_id: null, assets: null },
-    { type: 0, name: "A game", state: "In a match", details: "Ranked", emoji: null, application_id: null, assets: null },
-  ],
-};
+// Button that opens a list of the added widgets. Whatever you pick here is the
+// widget the style controls below edit.
+function WidgetPicker({ widgets, selectedId, onSelect, disabled }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selected = widgets.find((w) => w.id === selectedId) ?? null;
+  const sel = selected ? PLATFORM_BY_KEY[selected.platform] : null;
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  // Close if the list empties out or the button gets disabled.
+  useEffect(() => {
+    if (disabled || widgets.length === 0) setOpen(false);
+  }, [disabled, widgets.length]);
+
+  return (
+    <div className="wg-picker" ref={rootRef}>
+      <span className="wg-picker__label">Editing</span>
+      <button
+        type="button"
+        className={`wg-picker__btn${open ? " wg-picker__btn--open" : ""}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled || widgets.length === 0}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {selected ? (
+          <>
+            <span className="wg-picker__icon">
+              <img src={sel.icon} alt="" />
+            </span>
+            <span className="wg-picker__text">
+              <span className="wg-picker__name">{sel.label}</span>
+              <span className="wg-picker__hint">{selected.accountId}</span>
+            </span>
+          </>
+        ) : (
+          <span className="wg-picker__text">
+            <span className="wg-picker__name wg-picker__name--muted">No widgets added yet</span>
+          </span>
+        )}
+        <span className="wg-picker__chevron">
+          <ChevronIcon />
+        </span>
+      </button>
+
+      {open ? (
+        <ul className="wg-picker__menu" role="listbox" aria-label="Choose a widget to edit">
+          {widgets.map((w) => {
+            const p = PLATFORM_BY_KEY[w.platform];
+            const active = w.id === selectedId;
+            return (
+              <li key={w.id} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  className={`wg-picker__opt${active ? " wg-picker__opt--active" : ""}`}
+                  onClick={() => {
+                    onSelect(w.id);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="wg-picker__icon">
+                    <img src={p.icon} alt="" />
+                  </span>
+                  <span className="wg-picker__text">
+                    <span className="wg-picker__name">{p.label}</span>
+                    <span className="wg-picker__hint">{w.accountId}</span>
+                  </span>
+                  {active ? (
+                    <span className="wg-picker__check">
+                      <CheckIcon />
+                    </span>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 
 export default function Widgets() {
   const [widgets, setWidgets] = useState([]); // { id, platform, accountId }
@@ -191,29 +287,46 @@ export default function Widgets() {
   const [status, setStatus] = useState("idle"); // idle | saving | saved | error
   const userIdRef = useRef(null);
 
-  // Widget style (shared by every widget). Saved in profiles.widget_style.
-  const [style, setStyle] = useState({ ...WIDGET_STYLE_DEFAULTS });
-  const [styleError, setStyleError] = useState(null);
-  const styleUserRef = useRef(null);
+  // Widget style is per widget now: each widget carries its own `style` inside
+  // profiles.widgets. The old shared profiles.widget_style column is only read
+  // as the starting look for widgets that don't have their own style yet.
+  const [selectedId, setSelectedId] = useState(null);
+  const [legacyStyle, setLegacyStyle] = useState(null);
+  const widgetsRef = useRef([]); // always the latest list, for debounced saves
   const styleTimer = useRef(null);
-  const stylePending = useRef(null);
+  const stylePending = useRef(false);
 
-  async function flushStyle() {
-    const next = stylePending.current;
-    stylePending.current = null;
-    if (!next || !styleUserRef.current) return;
+  async function saveWidgets(list) {
+    if (!userIdRef.current) return;
+    setStatus("saving");
+    // Only ever store clean styles (a half-typed hex never reaches the database).
+    const clean = list.map((w) => ({ ...w, style: w.style ? sanitizeWidgetStyle(w.style) : null }));
     const { error } = await supabase
       .from("profiles")
-      .update({ [WIDGET_STYLE_COLUMN]: next })
-      .eq("id", styleUserRef.current);
-    if (error) console.error("Widget style save failed:", error);
+      .update({ [WIDGETS_COLUMN]: clean })
+      .eq("id", userIdRef.current);
+    if (error) console.error("Widgets save failed:", error);
     setStatus(error ? "error" : "saved");
   }
 
+  function flushStyle() {
+    if (!stylePending.current) return;
+    stylePending.current = false;
+    saveWidgets(widgetsRef.current);
+  }
+
+  // Which widget the style controls are editing.
+  const selected = widgets.find((w) => w.id === selectedId) ?? widgets[0] ?? null;
+  const baseStyle = legacyStyle ?? { ...WIDGET_STYLE_DEFAULTS };
+  const style = selected?.style ?? baseStyle;
+
   function commitStyle(next) {
-    setStyle(next);
-    if (!styleUserRef.current) return;
-    stylePending.current = next;
+    if (!selected) return;
+    const list = widgetsRef.current.map((w) => (w.id === selected.id ? { ...w, style: next } : w));
+    widgetsRef.current = list;
+    setWidgets(list);
+    if (!userIdRef.current) return;
+    stylePending.current = true;
     setStatus("saving");
     clearTimeout(styleTimer.current);
     styleTimer.current = setTimeout(flushStyle, STYLE_SAVE_DEBOUNCE_MS);
@@ -224,7 +337,14 @@ export default function Widgets() {
   // Text colours only save once they're a real hex.
   const setColor = (key) => (v) => {
     if (isHex(v)) patchStyle({ [key]: v });
-    else setStyle((cur) => ({ ...cur, [key]: v }));
+    else {
+      // Let the box show what's being typed without saving it yet.
+      const list = widgetsRef.current.map((w) =>
+        selected && w.id === selected.id ? { ...w, style: { ...style, [key]: v } } : w
+      );
+      widgetsRef.current = list;
+      setWidgets(list);
+    }
   };
 
   // Load what's already saved.
@@ -253,25 +373,22 @@ export default function Widgets() {
         setLoadError(error.message);
         userIdRef.current = null; // don't try to save into a missing column
       } else {
-        setWidgets(sanitizeWidgets(row?.[WIDGETS_COLUMN]));
+        const list = sanitizeWidgets(row?.[WIDGETS_COLUMN]);
+        widgetsRef.current = list;
+        setWidgets(list);
       }
       setLoading(false);
 
-      // Own query: if the widget_style column doesn't exist yet, only the
-      // style editor is disabled — the widget list keeps working.
+      // Old shared style column. Optional: if it's missing, new widgets just
+      // start from the stock defaults.
       const { data: styleRow, error: styleErr } = await supabase
         .from("profiles")
         .select(WIDGET_STYLE_COLUMN)
         .eq("id", user.id)
         .maybeSingle();
       if (cancelled) return;
-      if (styleErr) {
-        console.error("Widget style load failed:", styleErr);
-        setStyleError(styleErr.message);
-      } else {
-        styleUserRef.current = user.id;
-        setStyle(sanitizeWidgetStyle(styleRow?.[WIDGET_STYLE_COLUMN]) ?? { ...WIDGET_STYLE_DEFAULTS });
-      }
+      if (styleErr) console.warn("Legacy widget style not loaded:", styleErr.message);
+      else setLegacyStyle(sanitizeWidgetStyle(styleRow?.[WIDGET_STYLE_COLUMN]));
     })();
     return () => {
       cancelled = true;
@@ -284,21 +401,20 @@ export default function Widgets() {
 
   // Every change (add, remove, reorder) updates the list and saves it.
   async function commit(next) {
+    widgetsRef.current = next;
     setWidgets(next);
-    if (!userIdRef.current) return;
-    setStatus("saving");
-    const { error } = await supabase
-      .from("profiles")
-      .update({ [WIDGETS_COLUMN]: next })
-      .eq("id", userIdRef.current);
-    if (error) console.error("Widgets save failed:", error);
-    setStatus(error ? "error" : "saved");
+    // This save already carries any style edit that was waiting.
+    stylePending.current = false;
+    clearTimeout(styleTimer.current);
+    await saveWidgets(next);
   }
 
   const atLimit = widgets.length >= MAX_WIDGETS;
 
   const addWidget = ({ platform, accountId }) => {
-    commit([...widgets, { id: newWidgetId(), platform, accountId }]);
+    const id = newWidgetId();
+    commit([...widgets, { id, platform, accountId, style: null }]);
+    setSelectedId(id);
     setModalOpen(false);
   };
 
@@ -444,34 +560,27 @@ export default function Widgets() {
               <div className="dash-card__eyebrow">STYLE</div>
               <h3 className="wg-head__title">Widget Style</h3>
               <div className="wg-head__sub">
-                One look for every widget on your profile. Changes save automatically.
+                Pick a widget, then change how it looks. Changes save automatically.
               </div>
             </div>
             <button
               type="button"
               className="wg-btn wg-btn--ghost"
-              disabled={loading || Boolean(styleError)}
+              disabled={loading || !selected}
               onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
             >
               Reset
             </button>
           </div>
 
-          {styleError ? (
-            <div className="ap-notice">
-              Couldn't load widget style. Add the widget_style column in the Supabase SQL editor
-              (alter table public.profiles add column if not exists widget_style jsonb;), then
-              refresh.
-            </div>
-          ) : null}
+          <WidgetPicker
+            widgets={widgets}
+            selectedId={selected?.id ?? null}
+            onSelect={setSelectedId}
+            disabled={loading}
+          />
 
-          <div className="wg-preview" aria-label="Widget preview">
-            <div className="wg-preview__box" style={{ "--dpw-radius": "14px" }}>
-              <DiscordPresence presence={PREVIEW_PRESENCE} boxStyle={buildWidgetStyle(style)} />
-            </div>
-          </div>
-
-          <fieldset className="ap-fieldset" disabled={loading || Boolean(styleError)}>
+          <fieldset className="ap-fieldset" disabled={loading || !selected}>
             <div className="ap-bg">
               <div className="ap-bg__colors ap-bg__colors--solid">
                 <ColorField label="Background color" value={style.bg_color} onChange={setColor("bg_color")} />
