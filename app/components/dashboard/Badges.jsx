@@ -49,6 +49,12 @@ function BadgeGlyph({ src, color }) {
   );
 }
 
+const GLOW_LEVELS = [
+  { value: "low", label: "Low" },
+  { value: "mid", label: "Medium" },
+  { value: "high", label: "High" },
+];
+
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 export default function Badges() {
@@ -59,6 +65,10 @@ export default function Badges() {
   const [animated, setAnimated] = useState(false);
   const [badgeColor, setBadgeColor] = useState(null);
   const [colorStatus, setColorStatus] = useState("idle");
+  // "off" | "low" | "mid" | "high". lastGlowLevel remembers the strength so
+  // flipping the switch off and on again doesn't reset it.
+  const [badgeGlow, setBadgeGlow] = useState("off");
+  const [lastGlowLevel, setLastGlowLevel] = useState("mid");
 
   // Load whatever's actually been granted to this profile on mount.
   useEffect(() => {
@@ -90,6 +100,19 @@ export default function Badges() {
 
       if (cancelled) return;
 
+      // Own query: if the badge_glow migration hasn't run yet this errors
+      // quietly and everything else here keeps working.
+      const { data: glowRow } = await supabase
+        .from("profiles")
+        .select("badge_glow")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (glowRow && GLOW_LEVELS.some((l) => l.value === glowRow.badge_glow)) {
+        setBadgeGlow(glowRow.badge_glow);
+        setLastGlowLevel(glowRow.badge_glow);
+      }
+
       if (rows) {
         setEarnedKeys(new Set(rows.map((r) => r.badge_key)));
         setEnabledKeys(new Set(rows.filter((r) => r.enabled).map((r) => r.badge_key)));
@@ -116,6 +139,24 @@ export default function Badges() {
       .update({ badges_animated: next })
       .eq("id", userId);
     if (error) setAnimated(!next); // revert on failure
+  }
+
+  async function saveBadgeGlow(next, prev) {
+    if (!userId) return;
+    setBadgeGlow(next);
+    if (next !== "off") setLastGlowLevel(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ badge_glow: next })
+      .eq("id", userId);
+    if (error) {
+      console.error("Badge glow save failed:", error);
+      setBadgeGlow(prev); // revert on failure
+    }
+  }
+
+  function toggleGlow() {
+    saveBadgeGlow(badgeGlow === "off" ? lastGlowLevel : "off", badgeGlow);
   }
 
   async function toggleEnabled(key) {
@@ -200,6 +241,38 @@ export default function Badges() {
               aria-checked={animated}
               aria-label="Toggle animated badges"
               onClick={toggleAnimated}
+            >
+              <span className="dash-badge-switch__knob" />
+            </button>
+          </div>
+
+          <div className="dash-badge-row dash-badge-row--setting dash-badge-row--glow">
+            <div className="dash-badge-row__meta">
+              <span className="dash-badge-row__label">Badge Glow</span>
+              <span className="dash-badge-row__status">
+                Adds a soft glow around your badges
+              </span>
+            </div>
+            <select
+              className="dash-badge-select"
+              aria-label="Badge glow strength"
+              value={badgeGlow === "off" ? lastGlowLevel : badgeGlow}
+              disabled={!userId || badgeGlow === "off"}
+              onChange={(e) => saveBadgeGlow(e.target.value, badgeGlow)}
+            >
+              {GLOW_LEVELS.map((l) => (
+                <option key={l.value} value={l.value}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className={`dash-badge-switch${badgeGlow !== "off" ? " dash-badge-switch--on" : ""}`}
+              role="switch"
+              aria-checked={badgeGlow !== "off"}
+              aria-label="Toggle badge glow"
+              onClick={toggleGlow}
             >
               <span className="dash-badge-switch__knob" />
             </button>

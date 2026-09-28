@@ -70,6 +70,49 @@
   margin: 14px 0 16px;
 }
 
+/* Two setting rows stacked: pull the second up under the first. */
+.dash-badge-row--setting + .dash-badge-row--setting {
+  margin-top: -4px;
+}
+
+.dash-badge-select {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 30px 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background-color: var(--dash-surface);
+  color: var(--dash-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f5f5f5' stroke-opacity='0.5' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.dash-badge-select:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.dash-badge-select:focus {
+  outline: none;
+  border-color: var(--dash-accent);
+}
+
+.dash-badge-select:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dash-badge-select option {
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-primary);
+}
+
 .dash-badge-row__icon {
   flex-shrink: 0;
   width: 32px;
