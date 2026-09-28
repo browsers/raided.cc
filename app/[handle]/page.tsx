@@ -5,6 +5,7 @@ import { getDiscordGuildTag } from "../lib/discord";
 import { getDiscordPresences } from "../lib/discordPresence";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
+import { TILT_COLUMNS } from "../lib/tilt";
 import {
   WIDGETS_COLUMN,
   WIDGET_STYLE_COLUMN,
@@ -62,6 +63,14 @@ export default async function PublicProfilePage({
   const { data: avatarShapeRow } = await supabase
     .from("profiles")
     .select(AVATAR_SHAPE_COLUMN)
+    .eq("id", profile.id)
+    .maybeSingle();
+
+  // 3D tilt settings: own query, so the tilt migration not being run yet
+  // just means the defaults, never a 404.
+  const { data: tiltRow } = await supabase
+    .from("profiles")
+    .select(TILT_COLUMNS)
     .eq("id", profile.id)
     .maybeSingle();
 
@@ -130,6 +139,7 @@ export default async function PublicProfilePage({
       profile={{
         ...profile,
         ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
+        ...((tiltRow as unknown as Record<string, unknown> | null) ?? {}),
         badge_glow: badgeGlowRow?.badge_glow ?? "off",
         avatar_shape:
           (avatarShapeRow as unknown as { avatar_shape?: string } | null)?.avatar_shape ?? "rounded",

@@ -9,14 +9,16 @@ import {
   isHex,
   withCardDefaults,
 } from "../../lib/cardStyle";
+import { TILT_COLUMNS, withTiltDefaults } from "../../lib/tilt";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
 import "./Appearance.css";
 
 // Layout + card settings save to the profiles table and are applied on the
-// public page (see lib/cardStyle.js). Profile Effects, 3D Tilt and Glowing
-// Icons are still local-only for now.
+// public page (see lib/cardStyle.js). 3D Tilt (on/off, intensity, reverse)
+// saves on its own too (see lib/tilt.js). Profile Effects and Glowing Icons
+// are still local-only for now.
 
 const SAVE_DEBOUNCE_MS = 600;
 
@@ -175,9 +177,11 @@ export default function Appearance() {
   const [shadowColor, setShadowColorRaw] = useState("#000000");
   const [corner, setCornerRaw] = useState(0);
 
-  // Effects (not saved yet)
+  // Effects. Tilt saves; profile effect + glowing icons aren't saved yet.
   const [profileEffect, setProfileEffect] = useState("Snow");
-  const [tilt, setTilt] = useState(true);
+  const [tilt, setTiltRaw] = useState(true);
+  const [tiltIntensity, setTiltIntensityRaw] = useState(50);
+  const [tiltReverse, setTiltReverseRaw] = useState(false);
   const [glowIcons, setGlowIcons] = useState(false);
 
   // --- Saving: batches fast changes into one update ----------------------
@@ -211,6 +215,33 @@ export default function Appearance() {
     if (error) console.error("Avatar shape save failed:", error);
     setStatus(error ? "error" : "saved");
   }
+
+  // Tilt settings save on their own (own debounce, own columns) so a missing
+  // tilt migration can't break the card settings above, and vice versa.
+  const tiltPending = useRef({});
+  const tiltTimer = useRef(null);
+  const tiltUserId = useRef(null);
+
+  async function flushTilt() {
+    const cols = tiltPending.current;
+    tiltPending.current = {};
+    if (!tiltUserId.current || Object.keys(cols).length === 0) return;
+    const { error } = await supabase.from("profiles").update(cols).eq("id", tiltUserId.current);
+    if (error) console.error("Tilt save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  function queueTiltSave(cols) {
+    if (!tiltUserId.current) return;
+    Object.assign(tiltPending.current, cols);
+    setStatus("saving");
+    clearTimeout(tiltTimer.current);
+    tiltTimer.current = setTimeout(flushTilt, SAVE_DEBOUNCE_MS);
+  }
+
+  const setTilt = (v) => { setTiltRaw(v); queueTiltSave({ tilt_enabled: v }); };
+  const setTiltIntensity = (v) => { const n = clamp(v, 0, 100); setTiltIntensityRaw(n); queueTiltSave({ tilt_intensity: n }); };
+  const setTiltReverse = (v) => { setTiltReverseRaw(v); queueTiltSave({ tilt_reverse: v }); };
 
   // Wrapped setters: same names the JSX already uses, but each one also
   // queues a save. Text colors only save once they're a real hex.
@@ -256,6 +287,24 @@ export default function Appearance() {
         setAvatarShapeRaw(savedShape);
       }
 
+      // Tilt settings: own query, same reasoning as the avatar shape. If the
+      // migration hasn't run this errors quietly, defaults stay, and tilt
+      // changes just won't save (tiltUserId stays null).
+      const { data: tiltRow, error: tiltError } = await supabase
+        .from("profiles")
+        .select(TILT_COLUMNS)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && !tiltError) {
+        const t = withTiltDefaults(tiltRow);
+        tiltUserId.current = user.id;
+        setTiltRaw(t.tilt_enabled);
+        setTiltIntensityRaw(t.tilt_intensity);
+        setTiltReverseRaw(t.tilt_reverse);
+      } else if (tiltError) {
+        console.error("Tilt load failed (run tilt_migration.sql):", tiltError);
+      }
+
       const { data: row, error } = await supabase
         .from("profiles")
         .select(CARD_COLUMNS)
@@ -289,13 +338,16 @@ export default function Appearance() {
     return () => {
       cancelled = true;
       clearTimeout(saveTimer.current);
+      clearTimeout(tiltTimer.current);
       // Push anything still waiting so a quick tab switch doesn't lose it.
       flush();
+      flushTilt();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isCard = layout === "card";
+  const tiltActive = isCard && tilt;
 
   return (
     <div className="dash-profile-shell">
@@ -501,6 +553,30 @@ export default function Appearance() {
                 </div>
                 <Switch on={tilt && isCard} onChange={isCard ? setTilt : () => {}} label="3D tilt" />
               </div>
+
+              <div className={tiltActive ? "" : "ap-switch--off"}>
+                <SliderTile
+                  label="Tilt Intensity"
+                  unit="%"
+                  min={0}
+                  max={100}
+                  value={tiltIntensity}
+                  onChange={tiltActive ? setTiltIntensity : () => {}}
+                />
+              </div>
+
+              <div className={`ap-switch${tiltActive ? "" : " ap-switch--off"}`}>
+                <div>
+                  <div className="ap-switch__label">Reverse Tilt</div>
+                  <div className="ap-switch__hint">Card comes toward your cursor</div>
+                </div>
+                <Switch
+                  on={tiltReverse && tiltActive}
+                  onChange={tiltActive ? setTiltReverse : () => {}}
+                  label="Reverse tilt"
+                />
+              </div>
+
               <div className="ap-switch">
                 <div>
                   <div className="ap-switch__label">Glowing Icons</div>

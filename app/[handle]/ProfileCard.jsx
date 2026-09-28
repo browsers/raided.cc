@@ -7,6 +7,8 @@ import DiscordPresence from "./DiscordPresence";
 import TimeWidget from "./TimeWidget";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import { buildWidgetStyle } from "../lib/widgets";
+import { withTiltDefaults } from "../lib/tilt";
+import useCardTilt from "./useCardTilt";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -246,6 +248,15 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   // child of that same container, which sidesteps the mismatch
   // entirely regardless of what filter/transform tricks live upstream.
   const cardRef = useRef(null);
+
+  // 3D tilt only applies to the boxed (Card) layout, since Minimal has no
+  // box to tilt. Settings come from the Appearance tab.
+  const tilt = withTiltDefaults(profile);
+  useCardTilt(cardRef, {
+    enabled: boxed && tilt.tilt_enabled,
+    intensity: tilt.tilt_intensity,
+    reverse: tilt.tilt_reverse,
+  });
   const [badgeTooltip, setBadgeTooltip] = useState({ label: "", x: 0, y: 0, visible: false });
 
   function showBadgeTooltip(e, label) {
