@@ -479,11 +479,21 @@
    plain clip with no extra headroom hacks. */
 .public-profile-card__badges-clip {
   overflow: hidden;
-  /* Headroom so a badge's glow isn't sliced off at the top/bottom by the
-     overflow clip; the negative margin cancels it out so the pill keeps
-     its size. */
-  padding: 12px 0;
-  margin: -12px 0;
+  /* overflow:hidden clips anything outside its box, glow included, and a
+     clipped glow reads as a lit-up rectangle. So the clip box is made much
+     taller than the badges (the negative margin cancels it out so the pill
+     keeps its size) and the glow fades out well before it reaches an edge.
+     The sides get a soft fade instead of a hard cut. */
+  padding: 32px 0;
+  margin: -32px 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  /* The oversized box must not steal hover/clicks from the name above it. */
+  pointer-events: none;
+}
+
+.public-profile-card__badges-clip .public-profile-card__badge {
+  pointer-events: auto;
 }
 
 .public-profile-card__badges-track {
