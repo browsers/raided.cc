@@ -6,6 +6,7 @@ import ComingSoon from "../components/dashboard/ComingSoon";
 import Overview from "../components/dashboard/Overview";
 import Profile from "../components/dashboard/Profile";
 import Badges from "../components/dashboard/Badges";
+import Embed from "../components/dashboard/Embed";
 import NoAccessCard from "../components/NoAccessCard";
 import { supabase } from "../lib/supabaseClient";
 import "./dashboard.css";
@@ -17,7 +18,7 @@ const TAB_CONTENT: Record<string, React.ReactNode> = {
   profile: <Profile />,
   appearance: <ComingSoon label="Coming soon" />,
   links: <ComingSoon label="Coming soon" />,
-  embed: <ComingSoon label="Coming soon" />,
+  embed: <Embed />,
   badges: <Badges />,
   settings: <ComingSoon label="Coming soon" />,
 };
