@@ -43,6 +43,13 @@
   transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
+/* Card layout sits in the middle of the screen, both ways. (Minimal keeps
+   its higher-up placement from .public-profile-page.) */
+.public-profile-page--boxed {
+  align-items: center;
+  padding: 32px 20px;
+}
+
 /* Card layout: avatar on the left (big, a bit shorter than the card), name
    + badges side by side next to it, bio underneath, and profile links will
    sit under the bio. The card hugs its content (up to 600px) so it stays

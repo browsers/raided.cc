@@ -498,7 +498,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
 
   return (
     <main
-      className="public-profile-page"
+      className={boxed ? "public-profile-page public-profile-page--boxed" : "public-profile-page"}
       style={hasColorBg ? { background: backgroundColor } : undefined}
     >
       {hasWallpaper ? (
