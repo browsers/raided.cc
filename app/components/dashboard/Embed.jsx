@@ -162,7 +162,7 @@ export default function Embed() {
                 {
                   id: newButtonId(),
                   label: "Open page",
-                  url: row.handle ? `${window.location.origin}/${row.handle}` : "",
+                  url: row.handle ? `${SHARE_ORIGIN}/${row.handle}` : "",
                 },
               ]
         );
@@ -300,7 +300,6 @@ export default function Embed() {
   useEffect(() => () => clearTimeout(copyTimer.current), []);
 
   // --- Derived: exactly what the public page + Discord will use -----------
-  const origin = typeof window === "undefined" ? "https://raided.cc" : window.location.origin;
   const previewTitle = title.trim() || displayName || handle || "Untitled";
   const previewButtons = useMemo(() => sanitizeButtons(buttons), [buttons]);
   const previewImage = pendingPreview || imageUrl;
@@ -316,9 +315,9 @@ export default function Embed() {
         layout,
         imageUrl: imageUrl ? normalizeUrl(imageUrl) : null,
         buttons: previewButtons,
-        pageUrl: `${origin}/${handle}`,
+        pageUrl: `${SHARE_ORIGIN}/${handle}`,
       }),
-    [previewTitle, description, accentHex, layout, imageUrl, previewButtons, origin, handle]
+    [previewTitle, description, accentHex, layout, imageUrl, previewButtons, handle]
   );
 
   const imageHint = !userId

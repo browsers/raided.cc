@@ -19,6 +19,13 @@ export function getSiteOrigin() {
   return `${proto}://${host}`;
 }
 
+// The one "official" address for share links, og:url and the default
+// "Open page" button — no www — regardless of which host the request came
+// in on. Override with NEXT_PUBLIC_SITE_URL if the domain ever changes.
+export function getCanonicalOrigin() {
+  return (process.env.NEXT_PUBLIC_SITE_URL || "https://raided.cc").replace(/\/+$/, "");
+}
+
 /**
  * @returns {Promise<null | { settings: ReturnType<typeof resolveEmbed>, built: ReturnType<typeof buildComponentEmbed> }>}
  *   null when the handle doesn't exist.
@@ -50,7 +57,7 @@ export async function getEmbedForHandle(rawHandle, origin) {
   const settings = resolveEmbed(
     row,
     { handle: profile.handle, displayName: profile.display_name },
-    origin
+    getCanonicalOrigin() // not `origin`: keeps www out of og:url + default button
   );
 
   return { settings, built: buildComponentEmbed(settings) };
