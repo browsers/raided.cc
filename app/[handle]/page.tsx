@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
+import { getDiscordPresences } from "../lib/discordPresence";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
 import { WIDGETS_COLUMN, sanitizeWidgets } from "../lib/widgets";
@@ -83,6 +84,14 @@ export default async function PublicProfilePage({
     getDiscordGuildTag(profile.discord_user_id),
   ]);
 
+  // Presence snapshot for every Discord widget, taken server-side with the
+  // bot token (one gateway session for all of them, cached). Anyone the bot
+  // can't see is just missing from the map and their widget renders nothing.
+  const presenceIds = Array.from(
+    new Set(widgets.filter((w) => w.platform === "discord-presence").map((w) => w.accountId))
+  );
+  const presences = await getDiscordPresences(presenceIds);
+
   const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
     .map((row) => {
       const meta = getBadgeMeta(row.badge_key);
@@ -104,6 +113,7 @@ export default async function PublicProfilePage({
       tracks={trackRows ?? []}
       discordTag={discordTag}
       widgets={widgets}
+      presences={presences}
     />
   );
 }

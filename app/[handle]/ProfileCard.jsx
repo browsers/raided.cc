@@ -121,9 +121,10 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   tracks?: { url: string, title?: string }[],
  *   discordTag?: { tag: string, badgeUrl: string | null } | null,
  *   widgets?: { id: string, platform: string, accountId: string }[],
+ *   presences?: Record<string, any>,
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [] }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {} }) {
   const {
     handle,
     display_name: displayName,
@@ -527,7 +528,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           w.platform === "discord-presence" ? (
             <DiscordPresence
               key={w.id}
-              userId={w.accountId}
+              presence={presences[w.accountId] ?? null}
               tag={w.accountId === profile.discord_user_id ? discordTag : null}
             />
           ) : null

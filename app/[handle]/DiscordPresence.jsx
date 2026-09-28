@@ -1,16 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import "./DiscordPresence.css";
 
-// Presence comes from Lanyard (api.lanyard.rest). Discord only exposes live
-// presence over its gateway, which needs a bot that shares a server with the
-// user, so the bot token alone can't read it. Lanyard's bot does that part:
-// the user joins discord.gg/lanyard once and their status shows up here.
-// Their public API needs no key and allows browser requests.
-const LANYARD = "https://api.lanyard.rest/v1/users/";
-const POLL_MS = 30000;
-
+// Presence is a snapshot the server took with the bot token
+// (see app/lib/discordPresence.js) and passed down as props. It isn't live:
+// it's as fresh as the last server-side refresh, and there's no polling here.
 const STATUS_LABEL = {
   online: "Online",
   idle: "Idle",
@@ -45,17 +37,21 @@ function avatarUrl(user) {
   return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
 }
 
-function pickActivity(data) {
-  if (data.listening_to_spotify && data.spotify) {
+function pickActivity(activities) {
+  const act = (activities ?? []).find((x) => x.type !== 4);
+  if (!act) return null;
+
+  // Spotify comes through as a Listening activity: details = song,
+  // state = artists separated by ";".
+  if (act.type === 2 && act.name === "Spotify") {
     return {
       kind: "Listening to Spotify",
-      name: data.spotify.song,
-      detail: data.spotify.artist,
-      image: data.spotify.album_art_url,
+      name: act.details || "Spotify",
+      detail: (act.state ?? "").replace(/;\s*/g, ", "),
+      image: activityImage(act),
     };
   }
-  const act = (data.activities ?? []).find((a) => a.type !== 4);
-  if (!act) return null;
+
   return {
     kind: KIND_LABEL[act.type] ?? "Playing",
     name: act.name,
@@ -88,57 +84,24 @@ function CustomStatus({ activity }) {
 
 /**
  * @param {{
- *   userId: string,
+ *   presence: {
+ *     user: { id: string, username: string | null, global_name: string | null, avatar: string | null } | null,
+ *     status: string,
+ *     activities: any[],
+ *   } | null | undefined,
  *   tag?: { tag: string, badgeUrl: string | null } | null,
  * }} props
  */
-export default function DiscordPresence({ userId, tag = null }) {
-  const [state, setState] = useState("loading"); // loading | ready | error
-  const [data, setData] = useState(null);
+export default function DiscordPresence({ presence, tag = null }) {
+  // The bot couldn't see this user (not in a shared server, no token, gateway
+  // down). Don't leave visitors looking at an empty box.
+  if (!presence) return null;
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const res = await fetch(`${LANYARD}${userId}`, { cache: "no-store" });
-        const json = await res.json();
-        if (cancelled) return;
-        if (json?.success && json.data) {
-          setData(json.data);
-          setState("ready");
-        } else {
-          // Not in the Lanyard server (or bad ID). Keep old data if we
-          // already had some, otherwise show nothing.
-          setState((s) => (s === "ready" ? s : "error"));
-        }
-      } catch {
-        if (!cancelled) setState((s) => (s === "ready" ? s : "error"));
-      }
-    }
-
-    load();
-    const timer = setInterval(load, POLL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [userId]);
-
-  // Nothing to show: don't leave visitors looking at an empty box.
-  if (state === "error") return null;
-
-  // Reserves the space while loading so the card doesn't jump when the
-  // presence arrives.
-  if (state === "loading" || !data) {
-    return <div className="dpw dpw--loading" aria-hidden="true" />;
-  }
-
-  const user = data.discord_user;
-  const status = STATUS_LABEL[data.discord_status] ? data.discord_status : "offline";
-  const name = user?.global_name || user?.display_name || user?.username || "Discord";
-  const custom = (data.activities ?? []).find((a) => a.type === 4);
-  const activity = status === "offline" ? null : pickActivity(data);
+  const user = presence.user;
+  const status = STATUS_LABEL[presence.status] ? presence.status : "offline";
+  const name = user?.global_name || user?.username || "Discord";
+  const custom = (presence.activities ?? []).find((a) => a.type === 4);
+  const activity = status === "offline" ? null : pickActivity(presence.activities);
 
   return (
     <div className="dpw">

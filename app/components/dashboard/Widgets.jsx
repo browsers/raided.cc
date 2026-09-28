@@ -28,7 +28,7 @@ const PLATFORMS = [
     icon: "/icons/discord.png",
     fieldLabel: "Discord user ID",
     placeholder: "123456789012345678",
-    help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. You must also join discord.gg/lanyard so your status can be read.",
+    help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. You must also be in a server the raided.cc bot is in so your status can be read. It's a snapshot, not live, so it can lag a few minutes.",
     valid: isDiscordId,
   },
 ];
