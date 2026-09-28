@@ -479,6 +479,11 @@
    plain clip with no extra headroom hacks. */
 .public-profile-card__badges-clip {
   overflow: hidden;
+  /* Headroom so a badge's glow isn't sliced off at the top/bottom by the
+     overflow clip; the negative margin cancels it out so the pill keeps
+     its size. */
+  padding: 12px 0;
+  margin: -12px 0;
 }
 
 .public-profile-card__badges-track {
@@ -524,6 +529,22 @@
   height: 100%;
   object-fit: contain;
   display: block;
+}
+
+/* Badge glow. The filter goes on the badge wrapper (not the tinted glyph)
+   because a filter on an element with a CSS mask gets masked away; on the
+   wrapper it glows the already-masked result. */
+.public-profile-card__badge--glow-low {
+  filter: drop-shadow(0 0 3px var(--badge-glow, #fff));
+}
+.public-profile-card__badge--glow-mid {
+  filter: drop-shadow(0 0 3px var(--badge-glow, #fff))
+    drop-shadow(0 0 8px var(--badge-glow, #fff));
+}
+.public-profile-card__badge--glow-high {
+  filter: drop-shadow(0 0 4px var(--badge-glow, #fff))
+    drop-shadow(0 0 10px var(--badge-glow, #fff))
+    drop-shadow(0 0 18px var(--badge-glow, #fff));
 }
 
 .public-profile-card__badge-glyph {

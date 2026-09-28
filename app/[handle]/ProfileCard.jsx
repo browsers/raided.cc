@@ -149,6 +149,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
     audio_muted: audioMuted,
     badges_animated: badgesAnimated,
     badge_color: badgeColor,
+    badge_glow: badgeGlowRaw,
     discord_tag_size: discordTagSizeRaw,
     discord_tag_layout: discordTagLayoutRaw,
     // TODO: profile.avatar_disabled (or similar) once that toggle exists —
@@ -212,6 +213,14 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   const hasVideoBg = hasWallpaper && isVideoUrl(backgroundUrl);
   const hasTracks = tracks.length > 0;
   const hasBadges = badges.length > 0;
+
+  // Badge glow: "off" | "low" | "mid" | "high" from the dashboard. Each badge
+  // glows in its own colour (--badge-glow), or in the custom badge colour
+  // when one is set, so a recoloured set glows to match.
+  const badgeGlow = ["low", "mid", "high"].includes(badgeGlowRaw) ? badgeGlowRaw : "off";
+  const badgeGlowClass = badgeGlow === "off" ? "" : ` public-profile-card__badge--glow-${badgeGlow}`;
+  const badgeGlowStyle = (badge) =>
+    badgeGlow === "off" ? undefined : { "--badge-glow": badgeColor || badge.glow || "#ffffff" };
 
   // A single floating tooltip, positioned relative to the card itself
   // rather than the badge's own CSS box. The badge row sits inside an
@@ -450,7 +459,8 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                     badges.map((badge) => (
                       <span
                         key={`${copy}-${badge.id}`}
-                        className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                        className={`public-profile-card__badge public-profile-card__badge--${badge.id}${badgeGlowClass}`}
+                        style={badgeGlowStyle(badge)}
                         aria-hidden={copy === 1 ? "true" : undefined}
                         onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
                         onMouseLeave={hideBadgeTooltip}
@@ -478,7 +488,8 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               {badges.map((badge) => (
                 <span
                   key={badge.id}
-                  className={`public-profile-card__badge public-profile-card__badge--${badge.id}`}
+                  className={`public-profile-card__badge public-profile-card__badge--${badge.id}${badgeGlowClass}`}
+                  style={badgeGlowStyle(badge)}
                   onMouseEnter={(e) => showBadgeTooltip(e, badge.label)}
                   onMouseLeave={hideBadgeTooltip}
                 >

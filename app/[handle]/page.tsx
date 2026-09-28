@@ -45,6 +45,14 @@ export default async function PublicProfilePage({
 
   // Same idea for the Appearance columns: own query, so the migration not
   // being run yet just means everyone renders the minimal layout.
+  // Badge glow strength: own query so the badge_glow column not existing yet
+  // (migration not run) just means no glow, never a 404.
+  const { data: badgeGlowRow } = await supabase
+    .from("profiles")
+    .select("badge_glow")
+    .eq("id", profile.id)
+    .maybeSingle();
+
   const { data: appearanceRow } = await supabase
     .from("profiles")
     .select(CARD_COLUMNS)
@@ -108,18 +116,21 @@ export default async function PublicProfilePage({
   );
   const presences = await getDiscordPresences(presenceIds);
 
-  const badges: { id: string; icon: string; label: string }[] = (badgeRows ?? [])
+  const badges: { id: string; icon: string; label: string; glow: string }[] = (badgeRows ?? [])
     .map((row) => {
       const meta = getBadgeMeta(row.badge_key);
-      return meta ? { id: row.badge_key, icon: meta.icon, label: meta.label } : null;
+      return meta
+        ? { id: row.badge_key, icon: meta.icon, label: meta.label, glow: meta.glow ?? "#ffffff" }
+        : null;
     })
-    .filter((b): b is { id: string; icon: string; label: string } => b !== null);
+    .filter((b): b is { id: string; icon: string; label: string; glow: string } => b !== null);
 
   return (
     <ProfileCard
       profile={{
         ...profile,
         ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
+        badge_glow: badgeGlowRow?.badge_glow ?? "off",
         avatar_shape:
           (avatarShapeRow as unknown as { avatar_shape?: string } | null)?.avatar_shape ?? "rounded",
         discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline",
