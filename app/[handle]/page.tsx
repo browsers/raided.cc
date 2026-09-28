@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
+import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -71,7 +72,51 @@ export async function generateMetadata({
   params: { handle: string };
 }) {
   const handle = params.handle?.toLowerCase();
+  const pageTitle = `@${handle} — raided.cc`;
+
+  const origin = getSiteOrigin();
+  const embed = await getEmbedForHandle(handle, origin);
+  if (!embed) return { title: pageTitle };
+
+  const { settings } = embed;
+  const images = settings.imageUrl ? [{ url: settings.imageUrl }] : undefined;
+
   return {
-    title: `@${handle} — raided.cc`,
+    title: pageTitle,
+    description: settings.description || undefined,
+
+    // Open Graph / Twitter tags: what every other app reads, and what
+    // Discord falls back to if it can't use the component embed below.
+    openGraph: {
+      type: "website",
+      url: settings.pageUrl,
+      siteName: "raided.cc",
+      title: settings.title,
+      description: settings.description || undefined,
+      images,
+    },
+    twitter: {
+      card: settings.imageUrl && settings.layout === "large" ? "summary_large_image" : "summary",
+      title: settings.title,
+      description: settings.description || undefined,
+      images: settings.imageUrl ? [settings.imageUrl] : undefined,
+    },
+    // Discord's accent bar color on the fallback card.
+    other: { "theme-color": settings.accent },
+
+    // Discord's component embed (the buttons-under-the-card version).
+    // Metadata API has no first-class "arbitrary <link>", but icons.other
+    // renders a plain <link rel=... href=... type=...> into <head>, which
+    // is exactly what Discord looks for. Nothing else sets icons here, so
+    // this doesn't override a favicon.
+    icons: {
+      other: [
+        {
+          rel: "discord:component-embed",
+          url: `${origin}/api/embed/${handle}`,
+          type: "application/json",
+        },
+      ],
+    },
   };
 }

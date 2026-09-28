@@ -50,7 +50,7 @@ function getExtension(file) {
 
 // Recovers the storage object path from one of our own public URLs, so
 // we can delete the old file after a replace/clear.
-function storagePathFromPublicUrl(url, bucket) {
+export function storagePathFromPublicUrl(url, bucket) {
   if (!url) return null;
   const marker = `/storage/v1/object/public/${bucket}/`;
   const idx = url.indexOf(marker);
@@ -71,7 +71,7 @@ function inferKindFromUrl(url) {
 // Uploads a file under a fresh, unique name (so browsers never show a
 // stale cached copy at an old URL), then best-effort deletes whatever
 // used to live at `prevUrl` so storage doesn't pile up old versions.
-async function replaceFile(bucket, userId, prevUrl, file) {
+export async function replaceFile(bucket, userId, prevUrl, file) {
   const path = `${userId}/${crypto.randomUUID()}.${getExtension(file)}`;
   const { error } = await supabase.storage
     .from(bucket)
