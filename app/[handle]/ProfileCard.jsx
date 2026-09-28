@@ -534,7 +534,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           <div className="public-profile-card__row">
             {avatarEl}
             <div className="public-profile-card__info">
-              <div className="public-profile-card__name-row public-profile-card__name-row--boxed">
+              <div className="public-profile-card__name-row">
                 {nameEl}
                 {badgesEl}
                 {discordTagLayout === "inline" ? discordTagEl : null}

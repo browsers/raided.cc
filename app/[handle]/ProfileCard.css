@@ -43,15 +43,19 @@
   transition: opacity 0.5s ease, filter 0.5s ease;
 }
 
-/* Card layout: compact horizontal card. Avatar on the left, name + badges
-   next to it, bio underneath, and profile links will sit under the bio.
-   Background, border, radius, shadow and blur come from inline styles
-   (lib/cardStyle.js). */
+/* Card layout: avatar on the left (big, a bit shorter than the card), name
+   + badges side by side next to it, bio underneath, and profile links will
+   sit under the bio. The card hugs its content (up to 600px) so it stays
+   centered on the page. Background, border, radius, shadow and blur come
+   from inline styles (lib/cardStyle.js).
+
+   NOTE: several base rules (name-row, avatar) are defined further down this
+   file, so the overrides here use two-class selectors to win on specificity
+   instead of relying on source order. */
 .public-profile-card--boxed {
   box-sizing: border-box;
-  /* Hugs its content (up to 420px) so it stays centered on the page. */
   width: fit-content;
-  max-width: min(420px, 100%);
+  max-width: min(600px, 100%);
   padding: 22px 26px;
   align-items: stretch;
   text-align: left;
@@ -60,60 +64,36 @@
 .public-profile-card__row {
   display: flex;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
+  gap: 24px;
   min-width: 0;
 }
 
 .public-profile-card__info {
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-/* No avatar: nothing to sit beside, so center everything in the card. */
-.public-profile-card--noavatar .public-profile-card__row {
-  justify-content: center;
-}
-
-.public-profile-card--noavatar .public-profile-card__info {
-  flex: 0 1 auto;
-  align-items: center;
-  text-align: center;
-}
-
-.public-profile-card--noavatar .public-profile-card__name-row--boxed {
-  justify-content: center;
-}
-
-.public-profile-card--boxed.public-profile-card--noavatar .public-profile-card__bio {
-  text-align: center;
-}
-
-.public-profile-card__bio-sizer {
-  display: block;
-  height: 0;
-  overflow: hidden;
-  visibility: hidden;
-  pointer-events: none;
-}
-
 .public-profile-card--boxed .public-profile-card__avatar {
-  width: 88px;
-  height: 88px;
+  width: 132px;
+  height: 132px;
   margin-bottom: 0;
   /* Same "rounded square" proportions as the big minimal avatar. */
-  border-radius: 18px;
+  border-radius: 26px;
 }
 
-.public-profile-card__name-row--boxed {
+/* Name + badges on one line, left-aligned with everything under them. */
+.public-profile-card--boxed .public-profile-card__name-row {
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 8px 10px;
+  gap: 8px 12px;
 }
 
 .public-profile-card--boxed .public-profile-card__name {
+  flex: 0 0 auto;
   font-size: 30px;
   min-height: calc(30px * 1.15);
 }
@@ -121,6 +101,16 @@
 .public-profile-card--boxed .public-profile-card__name-warp {
   width: 220px;
   height: 64px;
+}
+
+/* The warp canvas is wider than the name and centered on it, so it can
+   spill over the badges. Keep the badges and tag above it so hovering
+   them (tooltips) still works. */
+.public-profile-card--boxed .public-profile-card__badges,
+.public-profile-card--boxed .public-profile-card__badges-marquee,
+.public-profile-card--boxed .public-profile-card__discord-tag {
+  position: relative;
+  z-index: 2;
 }
 
 .public-profile-card--boxed .public-profile-card__badges,
@@ -139,6 +129,28 @@
   text-align: left;
 }
 
+.public-profile-card__bio-sizer {
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* No avatar: nothing to sit beside, so center everything in the card. */
+.public-profile-card--boxed.public-profile-card--noavatar .public-profile-card__info {
+  align-items: center;
+  text-align: center;
+}
+
+.public-profile-card--boxed.public-profile-card--noavatar .public-profile-card__name-row {
+  justify-content: center;
+}
+
+.public-profile-card--boxed.public-profile-card--noavatar .public-profile-card__bio {
+  text-align: center;
+}
+
 @media (max-width: 480px) {
   .public-profile-card--boxed {
     padding: 18px 18px;
@@ -149,9 +161,9 @@
   }
 
   .public-profile-card--boxed .public-profile-card__avatar {
-    width: 68px;
-    height: 68px;
-    border-radius: 14px;
+    width: 84px;
+    height: 84px;
+    border-radius: 16px;
   }
 
   .public-profile-card--boxed .public-profile-card__name {
@@ -254,7 +266,7 @@
 
 /* Avatar shape = circle (Appearance tab). Placed after every size rule so
    it wins the specificity tie with the boxed radius above. */
-.public-profile-card .public-profile-card__avatar--circle {
+.public-profile-card .public-profile-card__avatar.public-profile-card__avatar--circle {
   border-radius: 50%;
 }
 
