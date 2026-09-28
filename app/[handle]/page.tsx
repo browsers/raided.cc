@@ -76,7 +76,7 @@ export default async function PublicProfilePage({
     <ProfileCard
       profile={{
         ...profile,
-        ...(appearanceRow ?? {}),
+        ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
         discord_tag_layout: tagLayoutRow?.discord_tag_layout ?? "inline",
       }}
       bioLines={bioLines ?? []}
