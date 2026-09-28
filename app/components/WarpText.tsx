@@ -17,6 +17,13 @@ export interface Props {
   fontFamily?: string;
   letterSpacing?: string | number;
   lineHeight?: string | number;
+  /**
+   * Opt-in: draw the text on the baseline plain CSS text would use when the
+   * container is vertically centered on the element it replaces (no
+   * fit-to-box shrinking, no em-box "middle" baseline). Lets the effect sit
+   * exactly where the normal text would.
+   */
+  matchCssLine?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -36,6 +43,7 @@ interface RuntimeProps {
   pointerStrength: number;
   refraction: number;
   ripple: boolean;
+  matchCssLine: boolean;
 }
 
 interface RuntimeContext {
@@ -226,6 +234,28 @@ const buildTextCanvas = ({ container, width, height, dpr, props }: BuildTextCanv
   };
   applyFont();
 
+  if (props.matchCssLine) {
+    const text = lines.join(' ');
+    ctx.textBaseline = 'alphabetic';
+    const spacingCtx = ctx as unknown as { letterSpacing?: string };
+    const supportsSpacing = 'letterSpacing' in ctx;
+    if (supportsSpacing) spacingCtx.letterSpacing = `${letterSpacing}px`;
+
+    const m = ctx.measureText(text);
+    const fontAscent = m.fontBoundingBoxAscent ?? fontSizePx * 0.8;
+    const fontDescent = m.fontBoundingBoxDescent ?? fontSizePx * 0.2;
+    // Baseline of a line box centered in this canvas: height/2 + (A - D)/2.
+    const baselineY = height / 2 + (fontAscent - fontDescent) / 2;
+
+    if (supportsSpacing) {
+      ctx.textAlign = 'left';
+      ctx.fillText(text, (width - m.width) / 2, baselineY);
+    } else {
+      drawLine(ctx, text, width / 2, baselineY, letterSpacing);
+    }
+    return canvas;
+  }
+
   const maxWidth = width * 0.86;
   const maxHeight = height * 0.78;
   const widest = Math.max(...lines.map(line => measureLine(ctx, line, letterSpacing)), 1);
@@ -271,6 +301,7 @@ const WarpText = ({
   fontFamily = 'inherit',
   letterSpacing = '-0.06em',
   lineHeight = 0.9,
+  matchCssLine = false,
   className = '',
   style
 }: Props) => {
@@ -289,7 +320,8 @@ const WarpText = ({
     pointerInfluence,
     pointerStrength,
     refraction,
-    ripple
+    ripple,
+    matchCssLine
   });
   const contextRef = useRef<RuntimeContext | null>(null);
 
@@ -308,7 +340,8 @@ const WarpText = ({
       pointerInfluence,
       pointerStrength,
       refraction,
-      ripple
+      ripple,
+      matchCssLine
     };
 
     if (contextRef.current) {
@@ -329,7 +362,8 @@ const WarpText = ({
     pointerInfluence,
     pointerStrength,
     refraction,
-    ripple
+    ripple,
+    matchCssLine
   ]);
 
   useEffect(() => {

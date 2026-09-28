@@ -19,6 +19,15 @@ const FuzzyText = ({
   glitchDuration = 200,
   gradient = null,
   letterSpacing = 0,
+  // Opt-in "sit exactly where plain CSS text would" mode. Instead of
+  // cropping the canvas to the ink of this particular string (which
+  // makes the text jump up/down depending on which letters it has),
+  // the canvas is symmetric around the text's line box and the text is
+  // drawn on the same baseline the browser would use. Center the canvas
+  // on the element you want the text to replace and it lines up.
+  alignToCssLine = false,
+  // CSS letter-spacing to mirror, in px (only used with alignToCssLine).
+  trackingPx = 0,
   className = ''
 }) => {
   const canvasRef = useRef(null);
@@ -70,8 +79,15 @@ const FuzzyText = ({
       offCtx.font = `${fontWeight} ${fontSizeStr} ${computedFontFamily}`;
       offCtx.textBaseline = 'alphabetic';
 
+      const supportsCtxSpacing = 'letterSpacing' in offCtx;
+      if (alignToCssLine && trackingPx && supportsCtxSpacing) offCtx.letterSpacing = `${trackingPx}px`;
+
       let totalWidth = 0;
-      if (letterSpacing !== 0) {
+      if (alignToCssLine && trackingPx && !supportsCtxSpacing) {
+        // No ctx.letterSpacing (older browsers): CSS adds spacing after every
+        // character including the last, so mirror that.
+        for (const char of text) totalWidth += offCtx.measureText(char).width + trackingPx;
+      } else if (letterSpacing !== 0) {
         for (const char of text) {
           totalWidth += offCtx.measureText(char).width + letterSpacing;
         }
@@ -86,18 +102,43 @@ const FuzzyText = ({
       const actualAscent = metrics.actualBoundingBoxAscent ?? numericFontSize;
       const actualDescent = metrics.actualBoundingBoxDescent ?? numericFontSize * 0.2;
 
-      const textBoundingWidth = Math.ceil(letterSpacing !== 0 ? totalWidth : actualLeft + actualRight);
-      const tightHeight = Math.ceil(actualAscent + actualDescent);
+      let textBoundingWidth = Math.ceil(letterSpacing !== 0 ? totalWidth : actualLeft + actualRight);
+      let tightHeight = Math.ceil(actualAscent + actualDescent);
 
       const extraWidthBuffer = 10;
-      const offscreenWidth = textBoundingWidth + extraWidthBuffer;
+      let offscreenWidth = textBoundingWidth + extraWidthBuffer;
+      let xOffset = extraWidthBuffer / 2;
+      let baselineY = actualAscent;
+
+      if (alignToCssLine) {
+        const advance = trackingPx && !supportsCtxSpacing ? totalWidth : metrics.width;
+        // Font-level ascent/descent = what CSS uses to place the baseline
+        // inside a line box (independent of the letters in the string).
+        const fontAscent = metrics.fontBoundingBoxAscent ?? numericFontSize * 0.8;
+        const fontDescent = metrics.fontBoundingBoxDescent ?? numericFontSize * 0.2;
+        // In a line box centered on the element, the baseline sits this far
+        // below the center: ((A + D) / 2) - D = (A - D) / 2.
+        const shift = (fontAscent - fontDescent) / 2;
+        const half =
+          Math.ceil(
+            Math.max(actualAscent - shift, actualDescent + shift, (fontAscent + fontDescent) / 2)
+          ) + 4;
+        tightHeight = half * 2; // even, so the centered canvas never lands on a half pixel
+        baselineY = half + shift;
+
+        let w = Math.ceil(advance) + extraWidthBuffer;
+        if (w % 2) w += 1;
+        offscreenWidth = w;
+        xOffset = (w - advance) / 2; // advance box centered, like CSS text-align: center
+        textBoundingWidth = Math.ceil(advance);
+      }
 
       offscreen.width = offscreenWidth;
       offscreen.height = tightHeight;
 
-      const xOffset = extraWidthBuffer / 2;
       offCtx.font = `${fontWeight} ${fontSizeStr} ${computedFontFamily}`;
       offCtx.textBaseline = 'alphabetic';
+      if (alignToCssLine && trackingPx && supportsCtxSpacing) offCtx.letterSpacing = `${trackingPx}px`;
 
       if (gradient && Array.isArray(gradient) && gradient.length >= 2) {
         const grad = offCtx.createLinearGradient(0, 0, offscreenWidth, 0);
@@ -107,7 +148,17 @@ const FuzzyText = ({
         offCtx.fillStyle = color;
       }
 
-      if (letterSpacing !== 0) {
+      if (alignToCssLine) {
+        if (trackingPx && !supportsCtxSpacing) {
+          let xPos = xOffset;
+          for (const char of text) {
+            offCtx.fillText(char, xPos, baselineY);
+            xPos += offCtx.measureText(char).width + trackingPx;
+          }
+        } else {
+          offCtx.fillText(text, xOffset, baselineY);
+        }
+      } else if (letterSpacing !== 0) {
         let xPos = xOffset;
         for (const char of text) {
           offCtx.fillText(char, xPos, actualAscent);
@@ -326,7 +377,9 @@ const FuzzyText = ({
     glitchInterval,
     glitchDuration,
     gradient,
-    letterSpacing
+    letterSpacing,
+    alignToCssLine,
+    trackingPx
   ]);
 
   return <canvas ref={canvasRef} className={className} />;
