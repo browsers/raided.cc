@@ -568,6 +568,12 @@
   gap: 14px;
 }
 
+.wg-clock__selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .wg-toggles {
   display: flex;
   flex-wrap: wrap;

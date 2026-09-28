@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient";
 import {
+  CLOCK_LAYOUTS,
   CLOCK_OPTION_DEFAULTS,
+  CLOCK_SIZES,
   MAX_WIDGETS,
   WIDGETS_COLUMN,
   WIDGET_STYLE_COLUMN,
@@ -46,7 +48,7 @@ const PLATFORMS = [
     icon: "/icons/clock.svg",
     fieldLabel: "Timezone",
     placeholder: "Europe/London",
-    help: "Pick a timezone from the list (like America/New_York), or use your device's. Visitors see this time no matter where they are. Change 12/24h, seconds, the date line and the place name after adding.",
+    help: "Pick a timezone from the list (like America/New_York), or use your device's. Visitors see this time no matter where they are. Change the size, layout, 12/24h, seconds, the date line and the place name after adding.",
     valid: isTimezone,
     numeric: false,
   },
@@ -252,7 +254,7 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
   );
 }
 
-// 12/24h, seconds, date line, and the place name. Controlled: parent decides
+// Size, layout, 12/24h, seconds, date line, and the place name. Controlled: parent decides
 // when to save (the modal keeps it in state, the settings panel saves each change).
 function ClockOptionsEditor({ value, onChange, onLabelCommit }) {
   const opts = sanitizeClockOptions(value);
@@ -264,6 +266,36 @@ function ClockOptionsEditor({ value, onChange, onLabelCommit }) {
 
   return (
     <div className="wg-clock">
+      <div className="wg-clock__selects">
+        <label className="ap-field">
+          <span className="wg-modal__label">Size</span>
+          <select
+            className="ap-select"
+            value={opts.size}
+            onChange={(e) => onChange({ size: e.target.value })}
+          >
+            {CLOCK_SIZES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="ap-field">
+          <span className="wg-modal__label">Layout</span>
+          <select
+            className="ap-select"
+            value={opts.layout}
+            onChange={(e) => onChange({ layout: e.target.value })}
+          >
+            {CLOCK_LAYOUTS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <div className="wg-toggles" role="group" aria-label="Clock options">
         <button
           type="button"

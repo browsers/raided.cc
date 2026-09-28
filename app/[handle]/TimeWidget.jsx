@@ -55,7 +55,7 @@ function formatParts(now, zone, opts) {
 /**
  * @param {{
  *   zone: string,
- *   options?: { hour12?: boolean, seconds?: boolean, date?: boolean, label?: string } | null,
+ *   options?: { hour12?: boolean, seconds?: boolean, date?: boolean, label?: string, size?: string, layout?: string } | null,
  *   boxStyle?: Record<string, string>,
  * }} props
  */
@@ -75,6 +75,8 @@ export default function TimeWidget({ zone, options = null, boxStyle }) {
   }, []);
 
   const place = opts.label || placeFromZone(zone);
+  const placeholder = opts.seconds ? "--:--:--" : "--:--";
+  const rootClass = `twg twg--size-${opts.size} twg--layout-${opts.layout}`;
 
   let view = null;
   if (now) {
@@ -85,16 +87,63 @@ export default function TimeWidget({ zone, options = null, boxStyle }) {
     }
   }
 
+  // Flip layout: every digit gets its own tile, colons sit between them.
+  const tiles = (text) => (
+    <>
+      <span className="twg__sr">{view ? text : ""}</span>
+      <span className="twg__tiles" aria-hidden="true">
+        {text.split("").map((ch, i) =>
+          ch === ":" ? (
+            <span key={i} className="twg__colon">
+              :
+            </span>
+          ) : (
+            <span key={i} className={`twg__tile${view ? "" : " twg__placeholder"}`}>
+              {ch}
+            </span>
+          )
+        )}
+        {view?.dayPeriod ? <span className="twg__period">{view.dayPeriod}</span> : null}
+      </span>
+    </>
+  );
+
+  // Terminal layout: a little shell prompt. Place on the left, offset on the right.
+  if (opts.layout === "terminal") {
+    return (
+      <div className={rootClass} style={boxStyle}>
+        <div className="twg__bar">
+          <span className="twg__path">~/{place.toLowerCase().replace(/\s+/g, "-")}</span>
+          <span className="twg__offset">{view?.offset ?? "\u00A0"}</span>
+        </div>
+        <div className="twg__time" aria-live="off">
+          {view ? (
+            <>
+              {view.digits}
+              {view.dayPeriod ? <span className="twg__period">{view.dayPeriod}</span> : null}
+            </>
+          ) : (
+            <span className="twg__placeholder">{placeholder}</span>
+          )}
+          <span className="twg__cursor" aria-hidden="true" />
+        </div>
+        {opts.date ? <div className="twg__date"># {view?.date ?? "\u00A0"}</div> : null}
+      </div>
+    );
+  }
+
   return (
-    <div className="twg" style={boxStyle}>
+    <div className={rootClass} style={boxStyle}>
       <div className="twg__time" aria-live="off">
-        {view ? (
+        {opts.layout === "flip" ? (
+          tiles(view ? view.digits : placeholder)
+        ) : view ? (
           <>
             {view.digits}
             {view.dayPeriod ? <span className="twg__period">{view.dayPeriod}</span> : null}
           </>
         ) : (
-          <span className="twg__placeholder">{opts.seconds ? "--:--:--" : "--:--"}</span>
+          <span className="twg__placeholder">{placeholder}</span>
         )}
       </div>
       {opts.date ? <div className="twg__date">{view?.date ?? "\u00A0"}</div> : null}
