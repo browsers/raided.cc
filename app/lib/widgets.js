@@ -32,16 +32,36 @@ const VALIDATORS = {
 
 // Per-widget settings for the current-time widget (stored on the widget as
 // `options`). Everything is optional; missing values fall back to these.
+// Digit size, biggest first. "large" is the original look, so clocks saved
+// before size/layout existed render exactly as they did.
+export const CLOCK_SIZES = [
+  { value: "large", label: "Large" },
+  { value: "medium", label: "Medium" },
+  { value: "small", label: "Small" },
+];
+
+// "minimal" is the original stacked look. Add new layouts here, then style
+// them in [handle]/TimeWidget.css (.twg--layout-<value>).
+export const CLOCK_LAYOUTS = [
+  { value: "minimal", label: "Minimal" },
+  { value: "flip", label: "Flip" },
+  { value: "terminal", label: "Terminal" },
+];
+
+const pick = (list, v, fallback) => (list.some((x) => x.value === v) ? v : fallback);
+
 export const CLOCK_OPTION_DEFAULTS = {
   hour12: false, // false = 24h, true = 12h with AM/PM
   seconds: true, // show :SS
   date: true, // show the date line under the time
   label: "", // custom name for the place (blank = derived from the timezone)
+  size: "large", // see CLOCK_SIZES
+  layout: "minimal", // see CLOCK_LAYOUTS
 };
 
 /**
  * @param {unknown} raw
- * @returns {{ hour12: boolean, seconds: boolean, date: boolean, label: string }}
+ * @returns {{ hour12: boolean, seconds: boolean, date: boolean, label: string, size: string, layout: string }}
  */
 export function sanitizeClockOptions(raw) {
   const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
@@ -51,6 +71,8 @@ export function sanitizeClockOptions(raw) {
     seconds: typeof o.seconds === "boolean" ? o.seconds : d.seconds,
     date: typeof o.date === "boolean" ? o.date : d.date,
     label: typeof o.label === "string" ? o.label.trim().slice(0, 32) : d.label,
+    size: pick(CLOCK_SIZES, o.size, d.size),
+    layout: pick(CLOCK_LAYOUTS, o.layout, d.layout),
   };
 }
 
