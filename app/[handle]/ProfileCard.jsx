@@ -165,11 +165,17 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   // before this setting existed keep behaving exactly as they did.
   const fontStack = font ? `"${font}", var(--font-sans), sans-serif` : undefined;
   const fontTarget = fontTargetRaw || "both";
-  const usernameFontFamily = ["username", "both", "all"].includes(fontTarget)
+  const usernameFontFamily = ["username", "both", "tooltips_username", "all"].includes(fontTarget)
     ? fontStack
     : undefined;
-  const bioFontFamily = ["bio", "both", "all"].includes(fontTarget) ? fontStack : undefined;
-  const tooltipFontFamily = ["tooltips", "all"].includes(fontTarget) ? fontStack : undefined;
+  const bioFontFamily = ["bio", "both", "tooltips_bio", "all"].includes(fontTarget)
+    ? fontStack
+    : undefined;
+  const tooltipFontFamily = ["tooltips", "tooltips_username", "tooltips_bio", "all"].includes(
+    fontTarget
+  )
+    ? fontStack
+    : undefined;
 
   const hasWallpaper = backgroundType !== "color" && Boolean(backgroundUrl);
   const hasColorBg = backgroundType === "color" && Boolean(backgroundColor);

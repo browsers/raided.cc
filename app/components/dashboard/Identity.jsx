@@ -32,6 +32,8 @@ const FONT_TARGETS = [
   { value: "username", label: "Username Only" },
   { value: "bio", label: "Bio Only" },
   { value: "tooltips", label: "Tooltips Only" },
+  { value: "tooltips_username", label: "Tooltips & Username" },
+  { value: "tooltips_bio", label: "Tooltips & Bio" },
   { value: "all", label: "Everything" },
 ];
 
