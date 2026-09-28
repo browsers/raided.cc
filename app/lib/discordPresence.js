@@ -71,6 +71,8 @@ async function getDiscordUser(id, token) {
       username: u.username ?? null,
       global_name: u.global_name ?? null,
       avatar: u.avatar ?? null,
+      // Bitfield of the badges on their profile (decoded in discordBadges.js).
+      public_flags: Number(u.public_flags) || 0,
     };
   } catch {
     return null;
@@ -228,7 +230,7 @@ async function fetchBatch(ids, token) {
  * (no shared server, gateway down, no token) are left out.
  *
  * @param {string[]} userIds
- * @returns {Promise<Record<string, { user: { id: string, username: string | null, global_name: string | null, avatar: string | null } | null, status: "online" | "idle" | "dnd" | "offline", activities: any[] }>>}
+ * @returns {Promise<Record<string, { user: { id: string, username: string | null, global_name: string | null, avatar: string | null, public_flags: number } | null, status: "online" | "idle" | "dnd" | "offline", activities: any[] }>>}
  */
 export async function getDiscordPresences(userIds) {
   const token = process.env.DISCORD_BOT_TOKEN;

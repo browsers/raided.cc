@@ -99,6 +99,22 @@
   object-fit: contain;
 }
 
+.dpw__badges {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dpw__badge {
+  flex: 0 0 auto;
+  display: block;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
 .dpw__custom {
   display: flex;
   align-items: center;

@@ -1,3 +1,4 @@
+import { decodeDiscordBadges } from "../lib/discordBadges";
 import "./DiscordPresence.css";
 
 // Presence is a snapshot the server took with the bot token
@@ -85,7 +86,7 @@ function CustomStatus({ activity }) {
 /**
  * @param {{
  *   presence: {
- *     user: { id: string, username: string | null, global_name: string | null, avatar: string | null } | null,
+ *     user: { id: string, username: string | null, global_name: string | null, avatar: string | null, public_flags?: number } | null,
  *     status: string,
  *     activities: any[],
  *   } | null | undefined,
@@ -103,6 +104,7 @@ export default function DiscordPresence({ presence, tag = null, boxStyle }) {
   const name = user?.global_name || user?.username || "Discord";
   const custom = (presence.activities ?? []).find((a) => a.type === 4);
   const activity = status === "offline" ? null : pickActivity(presence.activities);
+  const badges = decodeDiscordBadges(user?.public_flags);
 
   return (
     <div className="dpw" style={boxStyle}>
@@ -118,6 +120,23 @@ export default function DiscordPresence({ presence, tag = null, boxStyle }) {
               <span className="dpw__tag">
                 {tag.badgeUrl ? <img src={tag.badgeUrl} alt="" /> : null}
                 {tag.tag}
+              </span>
+            ) : null}
+            {badges.length > 0 ? (
+              <span className="dpw__badges">
+                {badges.map((b) => (
+                  <img
+                    key={b.key}
+                    className="dpw__badge"
+                    src={b.icon}
+                    alt={b.label}
+                    title={b.label}
+                    // A dead icon URL should just disappear, not show a broken image.
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ))}
               </span>
             ) : null}
           </div>
