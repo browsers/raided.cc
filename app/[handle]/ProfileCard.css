@@ -600,3 +600,24 @@
     opacity: 0;
   }
 }
+
+/* --- Widgets (Widgets tab) ------------------------------------------- */
+
+.public-profile-card__widgets {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+  margin-top: 20px;
+}
+
+/* Card layout: the card hugs the avatar + name row, so the widgets must not
+   push it wider. width:0 + min-width:100% makes them take exactly the row's
+   width (left edge of the avatar to the right edge of the badges). */
+.public-profile-card__widgets--boxed {
+  width: 0;
+  min-width: 100%;
+  max-width: none;
+  margin-top: 18px;
+}

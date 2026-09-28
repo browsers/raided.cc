@@ -4,6 +4,7 @@ import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
+import { WIDGETS_COLUMN, sanitizeWidgets } from "../lib/widgets";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -50,6 +51,17 @@ export default async function PublicProfilePage({
     .eq("id", profile.id)
     .maybeSingle();
 
+  // Widgets: own query too, so the widgets column not existing yet (migration
+  // not run) just means no widgets, never a 404.
+  const { data: widgetsRow } = await supabase
+    .from("profiles")
+    .select(WIDGETS_COLUMN)
+    .eq("id", profile.id)
+    .maybeSingle();
+  const widgets = sanitizeWidgets(
+    (widgetsRow as unknown as Record<string, unknown> | null)?.[WIDGETS_COLUMN]
+  );
+
   const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
@@ -91,6 +103,7 @@ export default async function PublicProfilePage({
       badges={badges}
       tracks={trackRows ?? []}
       discordTag={discordTag}
+      widgets={widgets}
     />
   );
 }

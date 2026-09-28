@@ -390,3 +390,7 @@
     transition: none;
   }
 }
+
+.wg-modal__help--error {
+  color: #ff9c9c;
+}

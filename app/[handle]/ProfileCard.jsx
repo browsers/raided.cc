@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
+import DiscordPresence from "./DiscordPresence";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import "./ProfileCard.css";
 
@@ -119,9 +120,10 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   badges?: { id: string, icon: string, label?: string }[],
  *   tracks?: { url: string, title?: string }[],
  *   discordTag?: { tag: string, badgeUrl: string | null } | null,
+ *   widgets?: { id: string, platform: string, accountId: string }[],
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [] }) {
   const {
     handle,
     display_name: displayName,
@@ -507,6 +509,32 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
           </div>
         ) : null;
 
+  // Widgets from the dashboard's Widgets tab, in the order the user set.
+  // Boxed: full width under the avatar + name row (left edge of the avatar
+  // to the right edge of the badges). Minimal: centered under everything.
+  // The guild tag was looked up for the profile's own Discord ID, so it only
+  // rides along on a widget that uses that same ID.
+  const widgetCornerRadius = boxed
+    ? Math.min(Number(withCardDefaults(profile).card_corner) || 0, 18)
+    : 14;
+  const widgetsEl =
+    widgets.length > 0 ? (
+      <div
+        className={`public-profile-card__widgets${boxed ? " public-profile-card__widgets--boxed" : ""}`}
+        style={{ "--dpw-radius": `${widgetCornerRadius}px` }}
+      >
+        {widgets.map((w) =>
+          w.platform === "discord-presence" ? (
+            <DiscordPresence
+              key={w.id}
+              userId={w.accountId}
+              tag={w.accountId === profile.discord_user_id ? discordTag : null}
+            />
+          ) : null
+        )}
+      </div>
+    ) : null;
+
   return (
     <main
       className={boxed ? "public-profile-page public-profile-page--boxed" : "public-profile-page"}
@@ -542,6 +570,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         style={cardStyle}
       >
         {boxed ? (
+          <>
           <div className="public-profile-card__row">
             {avatarEl}
             <div className="public-profile-card__info">
@@ -556,6 +585,8 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             </div>
             {badgeTooltipEl}
           </div>
+          {widgetsEl}
+          </>
         ) : (
           <>
             {avatarEl}
@@ -569,6 +600,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             {discordTagLayout === "below_badges" ? discordTagEl : null}
             {bio}
             {/* Links go here once that section is built. */}
+            {widgetsEl}
           </>
         )}
       </div>

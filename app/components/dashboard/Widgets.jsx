@@ -2,14 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { supabase } from "../../lib/supabaseClient";
+import {
+  MAX_WIDGETS,
+  WIDGETS_COLUMN,
+  isDiscordId,
+  newWidgetId,
+  sanitizeWidgets,
+} from "../../lib/widgets";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
 import "./Appearance.css";
 import "./Widgets.css";
 
-// LAYOUT ONLY for now — everything here is local state. Nothing is saved
-// or shown on the public profile yet (that's the next pass).
+// The list saves to profiles.widgets (see widgets_migration.sql) and is
+// rendered on the public profile by [handle]/ProfileCard.jsx.
 //
 // To add a widget type later, add an entry here. The modal picker and the
 // list both read from this array.
@@ -20,9 +28,8 @@ const PLATFORMS = [
     icon: "/icons/discord.png",
     fieldLabel: "Discord user ID",
     placeholder: "123456789012345678",
-    help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID.",
-    // Discord IDs are 17–20 digit numbers.
-    valid: (v) => /^\d{17,20}$/.test(v.trim()),
+    help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. You must also join discord.gg/lanyard so your status can be read.",
+    valid: isDiscordId,
   },
 ];
 
@@ -58,12 +65,14 @@ const GripIcon = () => (
   </svg>
 );
 
-function AddWidgetModal({ onClose, onAdd }) {
+function AddWidgetModal({ onClose, onAdd, existing }) {
   const [platformKey, setPlatformKey] = useState(PLATFORMS[0].key);
   const [accountId, setAccountId] = useState("");
   const inputRef = useRef(null);
   const platform = PLATFORM_BY_KEY[platformKey];
-  const ok = platform.valid(accountId);
+  const valid = platform.valid(accountId);
+  const dup = valid && existing.some((w) => w.platform === platformKey && w.accountId === accountId.trim());
+  const ok = valid && !dup;
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -126,11 +135,14 @@ function AddWidgetModal({ onClose, onAdd }) {
               }}
             />
             {/* Layout only — hooks up to the real lookup later. */}
-            <button type="button" className="wg-btn wg-btn--ghost" disabled={!ok}>
+            <button type="button" className="wg-btn wg-btn--ghost" disabled={!valid}>
               <SearchIcon />
               Preview
             </button>
           </div>
+          {dup ? (
+            <span className="wg-modal__help wg-modal__help--error">You already added this one.</span>
+          ) : null}
           <span className="wg-modal__help">{platform.help}</span>
         </label>
 
@@ -153,41 +165,90 @@ export default function Widgets() {
   const [modalOpen, setModalOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
   const [overId, setOverId] = useState(null);
-  const nextId = useRef(1);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | saving | saved | error
+  const userIdRef = useRef(null);
+
+  // Load what's already saved.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+      userIdRef.current = user.id;
+
+      const { data: row, error } = await supabase
+        .from("profiles")
+        .select(WIDGETS_COLUMN)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+
+      if (error) {
+        // Almost always "column does not exist" = migration not run yet.
+        console.error("Widgets load failed:", error);
+        setLoadError(error.message);
+        userIdRef.current = null; // don't try to save into a missing column
+      } else {
+        setWidgets(sanitizeWidgets(row?.[WIDGETS_COLUMN]));
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Every change (add, remove, reorder) updates the list and saves it.
+  async function commit(next) {
+    setWidgets(next);
+    if (!userIdRef.current) return;
+    setStatus("saving");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ [WIDGETS_COLUMN]: next })
+      .eq("id", userIdRef.current);
+    if (error) console.error("Widgets save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  const atLimit = widgets.length >= MAX_WIDGETS;
 
   const addWidget = ({ platform, accountId }) => {
-    setWidgets((prev) => [...prev, { id: nextId.current++, platform, accountId }]);
+    commit([...widgets, { id: newWidgetId(), platform, accountId }]);
     setModalOpen(false);
   };
 
-  const removeWidget = (id) => setWidgets((prev) => prev.filter((w) => w.id !== id));
+  const removeWidget = (id) => commit(widgets.filter((w) => w.id !== id));
 
   // Move `fromId` to the slot currently held by `toId`.
   const moveTo = (fromId, toId) => {
     if (fromId === toId) return;
-    setWidgets((prev) => {
-      const from = prev.findIndex((w) => w.id === fromId);
-      const to = prev.findIndex((w) => w.id === toId);
-      if (from < 0 || to < 0) return prev;
-      const next = [...prev];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return next;
-    });
+    const from = widgets.findIndex((w) => w.id === fromId);
+    const to = widgets.findIndex((w) => w.id === toId);
+    if (from < 0 || to < 0) return;
+    const next = [...widgets];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    commit(next);
   };
 
   // Keyboard reordering from the grip: ArrowUp / ArrowDown.
   const onGripKey = (e, id) => {
     if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
     e.preventDefault();
-    setWidgets((prev) => {
-      const i = prev.findIndex((w) => w.id === id);
-      const j = i + (e.key === "ArrowUp" ? -1 : 1);
-      if (i < 0 || j < 0 || j >= prev.length) return prev;
-      const next = [...prev];
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    });
+    const i = widgets.findIndex((w) => w.id === id);
+    const j = i + (e.key === "ArrowUp" ? -1 : 1);
+    if (i < 0 || j < 0 || j >= widgets.length) return;
+    const next = [...widgets];
+    [next[i], next[j]] = [next[j], next[i]];
+    commit(next);
   };
 
   const endDrag = () => {
@@ -203,17 +264,35 @@ export default function Widgets() {
         <Card className="dash-profile-section">
           <div className="wg-head">
             <div className="wg-head__text">
-              <div className="dash-card__eyebrow">WIDGETS</div>
+              <div className="dash-card__eyebrow">
+                WIDGETS
+                {status === "saving" ? <span className="ap-hint">Saving…</span> : null}
+                {status === "saved" ? <span className="ap-hint">Saved</span> : null}
+                {status === "error" ? <span className="ap-hint ap-hint--error">Save failed</span> : null}
+              </div>
               <h3 className="wg-head__title">Profile Widgets</h3>
               <div className="wg-head__sub">
                 Add live widgets to your profile and drag them into the order you want.
               </div>
             </div>
-            <button type="button" className="wg-btn wg-btn--primary" onClick={() => setModalOpen(true)}>
+            <button
+              type="button"
+              className="wg-btn wg-btn--primary"
+              disabled={loading || Boolean(loadError) || atLimit}
+              title={atLimit ? `Max ${MAX_WIDGETS} widgets` : undefined}
+              onClick={() => setModalOpen(true)}
+            >
               <PlusIcon />
               Add Widget
             </button>
           </div>
+
+          {loadError ? (
+            <div className="ap-notice">
+              Couldn't load your widgets. Run widgets_migration.sql in the Supabase SQL editor, then
+              refresh.
+            </div>
+          ) : null}
 
           <div className="wg-list">
             {widgets.length === 0 ? (
@@ -283,7 +362,9 @@ export default function Widgets() {
         </Card>
       </div>
 
-      {modalOpen ? <AddWidgetModal onClose={() => setModalOpen(false)} onAdd={addWidget} /> : null}
+      {modalOpen ? (
+        <AddWidgetModal onClose={() => setModalOpen(false)} onAdd={addWidget} existing={widgets} />
+      ) : null}
     </div>
   );
 }
