@@ -1,0 +1,505 @@
+/* Shell, scrolling and scrollbar come from Profile.css so this tab matches
+   the rest. Everything here is prefixed ap- */
+
+.ap-layouts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .ap-layouts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ap-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  text-align: left;
+  font-family: inherit;
+  color: var(--dash-text-primary);
+  background: var(--dash-surface-raised);
+  border: 1px solid var(--dash-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.ap-layout:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.ap-layout--active {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ap-layout__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ap-layout__label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.ap-layout__tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--dash-text-secondary);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ap-layout__hint {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--dash-text-secondary);
+}
+
+/* --- Mini preview inside each layout tile -------------------------- */
+
+.ap-preview {
+  height: 150px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 60%),
+    #050506;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ap-preview__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 26px;
+  border: 1px solid transparent;
+}
+
+.ap-preview__stage--card {
+  padding: 16px 34px;
+  border-radius: 8px;
+  border-color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ap-preview__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ap-preview__name {
+  width: 62px;
+  height: 8px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.ap-preview__badges {
+  display: flex;
+  gap: 5px;
+}
+
+.ap-preview__badges i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.ap-preview__bio {
+  width: 84px;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* --- Two column grid: Card Settings | Effects ---------------------- */
+
+.ap-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .ap-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ap-locked > *:not(.dash-card__eyebrow):not(.dash-profile-section__title):not(.ap-locked__note) {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ap-locked__note {
+  font-size: 12.5px;
+  color: var(--dash-text-secondary);
+  margin: -8px 0 16px;
+}
+
+.ap-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+/* --- Fields -------------------------------------------------------- */
+
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ap-field__label,
+.ap-tile__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dash-text-tertiary);
+}
+
+.ap-input,
+.ap-select,
+.ap-num {
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-primary);
+  font-family: inherit;
+  font-size: 13.5px;
+  transition: border-color 0.15s ease;
+}
+
+.ap-input,
+.ap-select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+}
+
+.ap-input:hover,
+.ap-select:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.ap-input:focus,
+.ap-select:focus,
+.ap-num:focus {
+  outline: none;
+  border-color: var(--dash-accent);
+}
+
+.ap-select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f5f5f5' stroke-opacity='0.5' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.ap-select option {
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-primary);
+}
+
+/* --- Container background block ------------------------------------ */
+
+.ap-bg {
+  padding: 14px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.ap-bg__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.ap-bg__title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ap-bg__title strong {
+  font-size: 14px;
+  color: var(--dash-text-primary);
+}
+
+.ap-bg__sub {
+  font-size: 12px;
+  color: var(--dash-text-secondary);
+}
+
+.ap-seg {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-border);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ap-seg__btn {
+  height: 28px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dash-text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.ap-seg__btn:hover {
+  color: var(--dash-text-primary);
+}
+
+.ap-seg__btn--active {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--dash-text-primary);
+}
+
+.ap-bg__colors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 86px;
+  gap: 12px;
+}
+
+.ap-bg__colors--solid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 520px) {
+  .ap-bg__colors {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ap-color {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ap-color__swatch {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+}
+
+/* --- Slider tiles --------------------------------------------------- */
+
+.ap-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 520px) {
+  .ap-tiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ap-tile {
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.ap-tile__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ap-tile__label {
+  color: var(--dash-text-primary);
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 700;
+}
+
+.ap-tile__num {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+}
+
+.ap-num {
+  width: 46px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 5px;
+  text-align: center;
+  font-size: 12px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.ap-num::-webkit-outer-spin-button,
+.ap-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ap-tile__unit {
+  font-size: 12px;
+  color: var(--dash-text-tertiary);
+}
+
+.ap-tile__swatch {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  cursor: pointer;
+}
+
+.ap-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.ap-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  border: none;
+}
+
+.ap-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #f5f5f5;
+  border: none;
+}
+
+/* --- Corner radius picker -------------------------------------------- */
+
+.ap-corners {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 520px) {
+  .ap-corners {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.ap-corner {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.ap-corner:hover {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.ap-corner--active {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* --- Effects card ---------------------------------------------------- */
+
+.ap-effects .ap-field {
+  margin-bottom: 16px;
+}
+
+.ap-switches {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.ap-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.ap-switch--off {
+  opacity: 0.5;
+}
+
+.ap-switch__label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+  margin-bottom: 2px;
+}
+
+.ap-switch__hint {
+  font-size: 12px;
+  color: var(--dash-text-secondary);
+}
