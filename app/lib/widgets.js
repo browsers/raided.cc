@@ -3,6 +3,8 @@
 // queried on its own (see [handle]/page.tsx), so a missing column (migration
 // not run yet) can never break a profile.
 
+import { isHex } from "./cardStyle";
+
 export const WIDGETS_COLUMN = "widgets";
 export const MAX_WIDGETS = 8;
 
@@ -44,4 +46,83 @@ export function sanitizeWidgets(raw) {
 
 export function newWidgetId() {
   return `w_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+
+// ---------------------------------------------------------------------------
+// Widget style: one look shared by every widget on a profile (opacity,
+// border, shadow, ...). Lives in its own jsonb column and is queried on its
+// own, same as the widgets list, so a missing column can never break a
+// profile. `null` (nothing saved) means "use the stock look from the CSS".
+// ---------------------------------------------------------------------------
+
+export const WIDGET_STYLE_COLUMN = "widget_style";
+
+export const WIDGET_STYLE_DEFAULTS = {
+  bg_color: "#ffffff",
+  opacity: 5, // % — background fill strength
+  blur: 0, // px — backdrop blur
+  border: 1, // px
+  border_color: "#2a2a2a",
+  shadow: 0, // px
+  shadow_color: "#000000",
+  corner: null, // px, or null = follow the profile card's corner radius
+};
+
+const clampNum = (v, fallback, min, max) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(n, min), max);
+};
+
+function hexToRgba(hex, alpha) {
+  let h = isHex(hex) ? hex.slice(1) : "ffffff";
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * Clean whatever came out of the database into a full, safe style object.
+ * Returns null when nothing usable was saved (=> stock look).
+ * @param {unknown} raw
+ */
+export function sanitizeWidgetStyle(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const d = WIDGET_STYLE_DEFAULTS;
+  return {
+    bg_color: isHex(raw.bg_color) ? raw.bg_color : d.bg_color,
+    opacity: clampNum(raw.opacity, d.opacity, 0, 100),
+    blur: clampNum(raw.blur, d.blur, 0, 40),
+    border: clampNum(raw.border, d.border, 0, 12),
+    border_color: isHex(raw.border_color) ? raw.border_color : d.border_color,
+    shadow: clampNum(raw.shadow, d.shadow, 0, 60),
+    shadow_color: isHex(raw.shadow_color) ? raw.shadow_color : d.shadow_color,
+    corner:
+      raw.corner === null || raw.corner === undefined
+        ? null
+        : clampNum(raw.corner, 12, 0, 40),
+  };
+}
+
+/**
+ * Inline style for a widget box. Returns undefined for "no saved style" so
+ * the CSS defaults apply untouched.
+ * @param {ReturnType<typeof sanitizeWidgetStyle>} style
+ */
+export function buildWidgetStyle(style) {
+  if (!style) return undefined;
+  const out = {
+    background: hexToRgba(style.bg_color, style.opacity / 100),
+    border: style.border > 0 ? `${style.border}px solid ${style.border_color}` : "none",
+    boxShadow: style.shadow > 0 ? `0 0 ${style.shadow}px ${style.shadow_color}` : "none",
+  };
+  if (style.blur > 0) {
+    out.backdropFilter = `blur(${style.blur}px)`;
+    out.WebkitBackdropFilter = `blur(${style.blur}px)`;
+  }
+  if (style.corner !== null) out.borderRadius = `${style.corner}px`;
+  return out;
 }

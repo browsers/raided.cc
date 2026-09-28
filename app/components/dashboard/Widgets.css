@@ -394,3 +394,27 @@
 .wg-modal__help--error {
   color: #ff9c9c;
 }
+
+/* ---- Widget style editor ---- */
+
+.wg-preview {
+  margin: 18px 0 20px;
+  padding: 22px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-border);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    #0c0c0d;
+  display: flex;
+  justify-content: center;
+}
+
+.wg-preview__box {
+  width: 100%;
+  max-width: 360px;
+}
+
+.wg-match {
+  margin-top: 12px;
+  display: flex;
+}

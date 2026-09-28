@@ -90,9 +90,10 @@ function CustomStatus({ activity }) {
  *     activities: any[],
  *   } | null | undefined,
  *   tag?: { tag: string, badgeUrl: string | null } | null,
+ *   boxStyle?: Record<string, string>,
  * }} props
  */
-export default function DiscordPresence({ presence, tag = null }) {
+export default function DiscordPresence({ presence, tag = null, boxStyle }) {
   // The bot couldn't see this user (not in a shared server, no token, gateway
   // down). Don't leave visitors looking at an empty box.
   if (!presence) return null;
@@ -104,7 +105,7 @@ export default function DiscordPresence({ presence, tag = null }) {
   const activity = status === "offline" ? null : pickActivity(presence.activities);
 
   return (
-    <div className="dpw">
+    <div className="dpw" style={boxStyle}>
       <div className="dpw__main">
         <div className="dpw__avatar">
           <img src={avatarUrl(user)} alt="" />

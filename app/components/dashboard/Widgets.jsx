@@ -6,12 +6,19 @@ import { supabase } from "../../lib/supabaseClient";
 import {
   MAX_WIDGETS,
   WIDGETS_COLUMN,
+  WIDGET_STYLE_COLUMN,
+  WIDGET_STYLE_DEFAULTS,
+  buildWidgetStyle,
   isDiscordId,
   newWidgetId,
   sanitizeWidgets,
+  sanitizeWidgetStyle,
 } from "../../lib/widgets";
+import { isHex } from "../../lib/cardStyle";
+import DiscordPresence from "../../[handle]/DiscordPresence";
 import TopBar from "./TopBar";
 import Card from "./Card";
+import { ColorField, SliderTile, CornerPicker } from "./StyleControls";
 import "./Profile.css";
 import "./Appearance.css";
 import "./Widgets.css";
@@ -160,6 +167,20 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
   );
 }
 
+const STYLE_SAVE_DEBOUNCE_MS = 600;
+const clamp = (v, min, max) => Math.min(Math.max(Number.isFinite(v) ? v : 0, min), max);
+
+// Fake data so the editor can show a live preview even when the bot can't
+// see you yet.
+const PREVIEW_PRESENCE = {
+  user: { id: "0", username: "you", global_name: "Your name", avatar: null },
+  status: "online",
+  activities: [
+    { type: 4, name: "Custom Status", state: "locked in", emoji: null, details: null, application_id: null, assets: null },
+    { type: 0, name: "A game", state: "In a match", details: "Ranked", emoji: null, application_id: null, assets: null },
+  ],
+};
+
 export default function Widgets() {
   const [widgets, setWidgets] = useState([]); // { id, platform, accountId }
   const [modalOpen, setModalOpen] = useState(false);
@@ -169,6 +190,42 @@ export default function Widgets() {
   const [loadError, setLoadError] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | saving | saved | error
   const userIdRef = useRef(null);
+
+  // Widget style (shared by every widget). Saved in profiles.widget_style.
+  const [style, setStyle] = useState({ ...WIDGET_STYLE_DEFAULTS });
+  const [styleError, setStyleError] = useState(null);
+  const styleUserRef = useRef(null);
+  const styleTimer = useRef(null);
+  const stylePending = useRef(null);
+
+  async function flushStyle() {
+    const next = stylePending.current;
+    stylePending.current = null;
+    if (!next || !styleUserRef.current) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ [WIDGET_STYLE_COLUMN]: next })
+      .eq("id", styleUserRef.current);
+    if (error) console.error("Widget style save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  function commitStyle(next) {
+    setStyle(next);
+    if (!styleUserRef.current) return;
+    stylePending.current = next;
+    setStatus("saving");
+    clearTimeout(styleTimer.current);
+    styleTimer.current = setTimeout(flushStyle, STYLE_SAVE_DEBOUNCE_MS);
+  }
+
+  const patchStyle = (patch) => commitStyle({ ...style, ...patch });
+  const setNum = (key, min, max) => (v) => patchStyle({ [key]: clamp(v, min, max) });
+  // Text colours only save once they're a real hex.
+  const setColor = (key) => (v) => {
+    if (isHex(v)) patchStyle({ [key]: v });
+    else setStyle((cur) => ({ ...cur, [key]: v }));
+  };
 
   // Load what's already saved.
   useEffect(() => {
@@ -199,10 +256,30 @@ export default function Widgets() {
         setWidgets(sanitizeWidgets(row?.[WIDGETS_COLUMN]));
       }
       setLoading(false);
+
+      // Own query: if the widget_style column doesn't exist yet, only the
+      // style editor is disabled — the widget list keeps working.
+      const { data: styleRow, error: styleErr } = await supabase
+        .from("profiles")
+        .select(WIDGET_STYLE_COLUMN)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (styleErr) {
+        console.error("Widget style load failed:", styleErr);
+        setStyleError(styleErr.message);
+      } else {
+        styleUserRef.current = user.id;
+        setStyle(sanitizeWidgetStyle(styleRow?.[WIDGET_STYLE_COLUMN]) ?? { ...WIDGET_STYLE_DEFAULTS });
+      }
     })();
     return () => {
       cancelled = true;
+      clearTimeout(styleTimer.current);
+      // Push anything still waiting so a quick tab switch doesn't lose it.
+      flushStyle();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Every change (add, remove, reorder) updates the list and saves it.
@@ -359,6 +436,75 @@ export default function Widgets() {
               </ul>
             )}
           </div>
+        </Card>
+
+        <Card className="dash-profile-section">
+          <div className="wg-head">
+            <div className="wg-head__text">
+              <div className="dash-card__eyebrow">STYLE</div>
+              <h3 className="wg-head__title">Widget Style</h3>
+              <div className="wg-head__sub">
+                One look for every widget on your profile. Changes save automatically.
+              </div>
+            </div>
+            <button
+              type="button"
+              className="wg-btn wg-btn--ghost"
+              disabled={loading || Boolean(styleError)}
+              onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
+            >
+              Reset
+            </button>
+          </div>
+
+          {styleError ? (
+            <div className="ap-notice">
+              Couldn't load widget style. Add the widget_style column in the Supabase SQL editor
+              (alter table public.profiles add column if not exists widget_style jsonb;), then
+              refresh.
+            </div>
+          ) : null}
+
+          <div className="wg-preview" aria-label="Widget preview">
+            <div className="wg-preview__box" style={{ "--dpw-radius": "14px" }}>
+              <DiscordPresence presence={PREVIEW_PRESENCE} boxStyle={buildWidgetStyle(style)} />
+            </div>
+          </div>
+
+          <fieldset className="ap-fieldset" disabled={loading || Boolean(styleError)}>
+            <div className="ap-bg">
+              <div className="ap-bg__colors ap-bg__colors--solid">
+                <ColorField label="Background color" value={style.bg_color} onChange={setColor("bg_color")} />
+              </div>
+            </div>
+
+            <div className="ap-tiles">
+              <SliderTile label="Blur" unit="px" value={style.blur} min={0} max={40} onChange={setNum("blur", 0, 40)} />
+              <SliderTile label="Opacity" unit="%" value={style.opacity} min={0} max={100} onChange={setNum("opacity", 0, 100)} />
+              <SliderTile
+                label="Border"
+                unit="px"
+                value={style.border}
+                min={0}
+                max={12}
+                onChange={setNum("border", 0, 12)}
+                color={style.border_color}
+                onColor={setColor("border_color")}
+              />
+              <SliderTile
+                label="Shadow"
+                unit="px"
+                value={style.shadow}
+                min={0}
+                max={60}
+                onChange={setNum("shadow", 0, 60)}
+                color={style.shadow_color}
+                onColor={setColor("shadow_color")}
+              />
+            </div>
+
+            <CornerPicker value={style.corner} onChange={(v) => patchStyle({ corner: v })} />
+          </fieldset>
         </Card>
       </div>
 

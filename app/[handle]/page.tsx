@@ -5,7 +5,12 @@ import { getDiscordGuildTag } from "../lib/discord";
 import { getDiscordPresences } from "../lib/discordPresence";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
-import { WIDGETS_COLUMN, sanitizeWidgets } from "../lib/widgets";
+import {
+  WIDGETS_COLUMN,
+  WIDGET_STYLE_COLUMN,
+  sanitizeWidgets,
+  sanitizeWidgetStyle,
+} from "../lib/widgets";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -63,6 +68,17 @@ export default async function PublicProfilePage({
     (widgetsRow as unknown as Record<string, unknown> | null)?.[WIDGETS_COLUMN]
   );
 
+  // Widget look (opacity/border/shadow...): own query again, so a missing
+  // widget_style column just means the stock look.
+  const { data: widgetStyleRow } = await supabase
+    .from("profiles")
+    .select(WIDGET_STYLE_COLUMN)
+    .eq("id", profile.id)
+    .maybeSingle();
+  const widgetStyle = sanitizeWidgetStyle(
+    (widgetStyleRow as unknown as Record<string, unknown> | null)?.[WIDGET_STYLE_COLUMN]
+  );
+
   const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
@@ -114,6 +130,7 @@ export default async function PublicProfilePage({
       discordTag={discordTag}
       widgets={widgets}
       presences={presences}
+      widgetStyle={widgetStyle}
     />
   );
 }

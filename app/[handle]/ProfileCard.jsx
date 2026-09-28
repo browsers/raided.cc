@@ -5,6 +5,7 @@ import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
 import DiscordPresence from "./DiscordPresence";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
+import { buildWidgetStyle } from "../lib/widgets";
 import "./ProfileCard.css";
 
 const GLOW_SHADOWS = {
@@ -122,9 +123,10 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   discordTag?: { tag: string, badgeUrl: string | null } | null,
  *   widgets?: { id: string, platform: string, accountId: string }[],
  *   presences?: Record<string, any>,
+ *   widgetStyle?: object | null,
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {} }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {}, widgetStyle = null }) {
   const {
     handle,
     display_name: displayName,
@@ -529,6 +531,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             <DiscordPresence
               key={w.id}
               presence={presences[w.accountId] ?? null}
+              boxStyle={buildWidgetStyle(widgetStyle)}
               tag={w.accountId === profile.discord_user_id ? discordTag : null}
             />
           ) : null
