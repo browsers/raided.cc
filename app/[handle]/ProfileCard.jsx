@@ -217,10 +217,18 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
   // Badge glow: "off" | "low" | "mid" | "high" from the dashboard. Each badge
   // glows in its own colour (--badge-glow), or in the custom badge colour
   // when one is set, so a recoloured set glows to match.
+  const BADGE_GLOW_COLORS = {
+    owner: "#ffb020",
+    staff: "#00b7ff",
+    partner: "#7b8ff0",
+    "bug-hunter": "#3ddc84",
+    verified: "#00a8f0",
+    developer: "#e8e8e8",
+  };
   const badgeGlow = ["low", "mid", "high"].includes(badgeGlowRaw) ? badgeGlowRaw : "off";
   const badgeGlowClass = badgeGlow === "off" ? "" : ` public-profile-card__badge--glow-${badgeGlow}`;
   const badgeGlowStyle = (badge) =>
-    badgeGlow === "off" ? undefined : { "--badge-glow": badgeColor || badge.glow || "#ffffff" };
+    badgeGlow === "off" ? undefined : { "--badge-glow": badgeColor || BADGE_GLOW_COLORS[badge.id] || badge.glow || "#ffffff" };
 
   // A single floating tooltip, positioned relative to the card itself
   // rather than the badge's own CSS box. The badge row sits inside an
