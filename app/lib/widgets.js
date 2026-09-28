@@ -11,10 +11,48 @@ export const MAX_WIDGETS = 8;
 // Discord user IDs are 17-20 digit numbers.
 export const isDiscordId = (v) => /^\d{17,20}$/.test(String(v ?? "").trim());
 
+// Current-time widget: the "account" is an IANA timezone name, e.g.
+// "Europe/London". Intl throws a RangeError for anything it doesn't know.
+export const isTimezone = (v) => {
+  const s = String(v ?? "").trim();
+  if (!s || s.length > 64) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: s });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // platform key -> account id validator. Add new widget types here too.
 const VALIDATORS = {
   "discord-presence": isDiscordId,
+  "current-time": isTimezone,
 };
+
+// Per-widget settings for the current-time widget (stored on the widget as
+// `options`). Everything is optional; missing values fall back to these.
+export const CLOCK_OPTION_DEFAULTS = {
+  hour12: false, // false = 24h, true = 12h with AM/PM
+  seconds: true, // show :SS
+  date: true, // show the date line under the time
+  label: "", // custom name for the place (blank = derived from the timezone)
+};
+
+/**
+ * @param {unknown} raw
+ * @returns {{ hour12: boolean, seconds: boolean, date: boolean, label: string }}
+ */
+export function sanitizeClockOptions(raw) {
+  const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const d = CLOCK_OPTION_DEFAULTS;
+  return {
+    hour12: typeof o.hour12 === "boolean" ? o.hour12 : d.hour12,
+    seconds: typeof o.seconds === "boolean" ? o.seconds : d.seconds,
+    date: typeof o.date === "boolean" ? o.date : d.date,
+    label: typeof o.label === "string" ? o.label.trim().slice(0, 32) : d.label,
+  };
+}
 
 /**
  * Clean whatever came out of the database into a safe, ordered list.
@@ -22,7 +60,8 @@ const VALIDATORS = {
  * @param {unknown} raw
  * Each widget can carry its own `style` (see sanitizeWidgetStyle below); null
  * means "no look of its own", so the profile falls back to the shared style.
- * @returns {{ id: string, platform: string, accountId: string, style: object | null }[]}
+ * `options` only exists on current-time widgets (see sanitizeClockOptions).
+ * @returns {{ id: string, platform: string, accountId: string, style: object | null, options: object | null }[]}
  */
 export function sanitizeWidgets(raw) {
   if (!Array.isArray(raw)) return [];
@@ -40,7 +79,13 @@ export function sanitizeWidgets(raw) {
     if (!id || seen.has(id)) id = `w_${out.length}_${accountId.slice(-4)}`;
     seen.add(id);
 
-    out.push({ id, platform, accountId, style: sanitizeWidgetStyle(item.style) });
+    out.push({
+      id,
+      platform,
+      accountId,
+      style: sanitizeWidgetStyle(item.style),
+      options: platform === "current-time" ? sanitizeClockOptions(item.options) : null,
+    });
     if (out.length >= MAX_WIDGETS) break;
   }
   return out;

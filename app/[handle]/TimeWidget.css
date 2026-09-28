@@ -1,0 +1,68 @@
+/* Public current-time widget. --dpw-radius is set by ProfileCard so it follows
+   the card's corner setting, same as the Discord presence widget. */
+
+.twg {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 16px 16px;
+  text-align: center;
+  border-radius: var(--dpw-radius, 12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f5f5;
+}
+
+.twg__time {
+  font-size: clamp(30px, 9vw, 44px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.twg__placeholder {
+  opacity: 0.25;
+}
+
+.twg__period {
+  margin-left: 6px;
+  font-size: 0.4em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(245, 245, 245, 0.6);
+}
+
+.twg__date {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(245, 245, 245, 0.75);
+}
+
+.twg__place {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+  max-width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(245, 245, 245, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.twg__offset {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(245, 245, 245, 0.7);
+}

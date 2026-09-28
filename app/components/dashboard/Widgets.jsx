@@ -4,12 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient";
 import {
+  CLOCK_OPTION_DEFAULTS,
   MAX_WIDGETS,
   WIDGETS_COLUMN,
   WIDGET_STYLE_COLUMN,
   WIDGET_STYLE_DEFAULTS,
   isDiscordId,
+  isTimezone,
   newWidgetId,
+  sanitizeClockOptions,
   sanitizeWidgets,
   sanitizeWidgetStyle,
 } from "../../lib/widgets";
@@ -35,8 +38,37 @@ const PLATFORMS = [
     placeholder: "123456789012345678",
     help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID. You must also be in a server the raided.cc bot is in so your status can be read. It's a snapshot, not live, so it can lag a few minutes.",
     valid: isDiscordId,
+    numeric: true,
+  },
+  {
+    key: "current-time",
+    label: "Current time",
+    icon: "/icons/clock.svg",
+    fieldLabel: "Timezone",
+    placeholder: "Europe/London",
+    help: "Pick a timezone from the list (like America/New_York), or use your device's. Visitors see this time no matter where they are. Change 12/24h, seconds, the date line and the place name after adding.",
+    valid: isTimezone,
+    numeric: false,
   },
 ];
+
+// Every timezone name this browser knows, for the autocomplete list.
+// (Intl.supportedValuesOf is missing on very old browsers — the input still works.)
+const TIMEZONES = (() => {
+  try {
+    return Intl.supportedValuesOf("timeZone");
+  } catch {
+    return [];
+  }
+})();
+
+const deviceTimezone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  } catch {
+    return "";
+  }
+};
 
 const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]));
 
@@ -85,6 +117,7 @@ const GripIcon = () => (
 function AddWidgetModal({ onClose, onAdd, existing }) {
   const [platformKey, setPlatformKey] = useState(PLATFORMS[0].key);
   const [accountId, setAccountId] = useState("");
+  const [clockOpts, setClockOpts] = useState({ ...CLOCK_OPTION_DEFAULTS });
   const inputRef = useRef(null);
   const platform = PLATFORM_BY_KEY[platformKey];
   const valid = platform.valid(accountId);
@@ -102,7 +135,11 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
 
   const submit = () => {
     if (!ok) return;
-    onAdd({ platform: platformKey, accountId: accountId.trim() });
+    onAdd({
+      platform: platformKey,
+      accountId: accountId.trim(),
+      options: platformKey === "current-time" ? sanitizeClockOptions(clockOpts) : null,
+    });
   };
 
   return createPortal(
@@ -128,7 +165,12 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
               role="radio"
               aria-checked={platformKey === p.key}
               className={`wg-platform${platformKey === p.key ? " wg-platform--active" : ""}`}
-              onClick={() => setPlatformKey(p.key)}
+              onClick={() => {
+                if (p.key !== platformKey) {
+                  setPlatformKey(p.key);
+                  setAccountId(""); // a Discord ID means nothing as a timezone and vice versa
+                }
+              }}
             >
               <img src={p.icon} alt="" />
               {p.label}
@@ -142,7 +184,10 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
             <input
               ref={inputRef}
               type="text"
-              inputMode="numeric"
+              inputMode={platform.numeric ? "numeric" : "text"}
+              list={platformKey === "current-time" ? "wg-timezones" : undefined}
+              autoComplete="off"
+              spellCheck={false}
               className="ap-input"
               placeholder={platform.placeholder}
               value={accountId}
@@ -151,17 +196,47 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
                 if (e.key === "Enter") submit();
               }}
             />
-            {/* Layout only — hooks up to the real lookup later. */}
-            <button type="button" className="wg-btn wg-btn--ghost" disabled={!valid}>
-              <SearchIcon />
-              Preview
-            </button>
+            {platformKey === "current-time" ? (
+              <button
+                type="button"
+                className="wg-btn wg-btn--ghost"
+                onClick={() => setAccountId(deviceTimezone())}
+              >
+                Use my device
+              </button>
+            ) : (
+              // Layout only — hooks up to the real lookup later.
+              <button type="button" className="wg-btn wg-btn--ghost" disabled={!valid}>
+                <SearchIcon />
+                Preview
+              </button>
+            )}
           </div>
+          {platformKey === "current-time" ? (
+            <datalist id="wg-timezones">
+              {TIMEZONES.map((z) => (
+                <option key={z} value={z} />
+              ))}
+            </datalist>
+          ) : null}
+          {accountId.trim() && !valid ? (
+            <span className="wg-modal__help wg-modal__help--error">
+              {platformKey === "current-time"
+                ? "That isn't a timezone name. Try something like Europe/London."
+                : "That doesn't look like a valid ID."}
+            </span>
+          ) : null}
           {dup ? (
             <span className="wg-modal__help wg-modal__help--error">You already added this one.</span>
           ) : null}
           <span className="wg-modal__help">{platform.help}</span>
         </label>
+
+        {platformKey === "current-time" ? (
+          <div className="wg-modal__field">
+            <ClockOptionsEditor value={clockOpts} onChange={(patch) => setClockOpts({ ...clockOpts, ...patch })} />
+          </div>
+        ) : null}
 
         <div className="wg-modal__actions">
           <button type="button" className="wg-btn wg-btn--text" onClick={onClose}>
@@ -174,6 +249,134 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
       </div>
     </div>,
     document.body
+  );
+}
+
+// 12/24h, seconds, date line, and the place name. Controlled: parent decides
+// when to save (the modal keeps it in state, the settings panel saves each change).
+function ClockOptionsEditor({ value, onChange, onLabelCommit }) {
+  const opts = sanitizeClockOptions(value);
+  const [label, setLabel] = useState(opts.label);
+  const commitLabel = () => {
+    const next = label.trim().slice(0, 32);
+    if (next !== opts.label) (onLabelCommit ?? ((l) => onChange({ label: l })))(next);
+  };
+
+  return (
+    <div className="wg-clock">
+      <div className="wg-toggles" role="group" aria-label="Clock options">
+        <button
+          type="button"
+          className={`wg-toggle${opts.hour12 ? "" : " wg-toggle--on"}`}
+          aria-pressed={!opts.hour12}
+          onClick={() => onChange({ hour12: false })}
+        >
+          24-hour
+        </button>
+        <button
+          type="button"
+          className={`wg-toggle${opts.hour12 ? " wg-toggle--on" : ""}`}
+          aria-pressed={opts.hour12}
+          onClick={() => onChange({ hour12: true })}
+        >
+          12-hour
+        </button>
+        <button
+          type="button"
+          className={`wg-toggle${opts.seconds ? " wg-toggle--on" : ""}`}
+          aria-pressed={opts.seconds}
+          onClick={() => onChange({ seconds: !opts.seconds })}
+        >
+          Seconds
+        </button>
+        <button
+          type="button"
+          className={`wg-toggle${opts.date ? " wg-toggle--on" : ""}`}
+          aria-pressed={opts.date}
+          onClick={() => onChange({ date: !opts.date })}
+        >
+          Date
+        </button>
+      </div>
+      <label className="ap-field">
+        <span className="wg-modal__label">Place name (optional)</span>
+        <input
+          type="text"
+          className="ap-input"
+          maxLength={32}
+          placeholder="Shown under the time, e.g. Home"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          onBlur={commitLabel}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+        />
+      </label>
+    </div>
+  );
+}
+
+// Edit a clock after it's added: timezone + the options above. Text fields save
+// on blur/Enter (not every keystroke); the toggles save immediately.
+function ClockSettings({ widget, onChange }) {
+  const [zone, setZone] = useState(widget.accountId);
+  useEffect(() => setZone(widget.accountId), [widget.id, widget.accountId]);
+  const zoneOk = isTimezone(zone);
+
+  const commitZone = () => {
+    const next = zone.trim();
+    if (next && next !== widget.accountId && isTimezone(next)) onChange({ accountId: next });
+    else setZone(widget.accountId);
+  };
+
+  return (
+    <div className="wg-clock-settings">
+      <div className="dash-card__eyebrow">CLOCK SETTINGS</div>
+      <label className="ap-field">
+        <span className="wg-modal__label">Timezone</span>
+        <div className="wg-modal__inputrow">
+          <input
+            type="text"
+            list="wg-timezones-edit"
+            autoComplete="off"
+            spellCheck={false}
+            className="ap-input"
+            value={zone}
+            onChange={(e) => setZone(e.target.value)}
+            onBlur={commitZone}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+          />
+          <button
+            type="button"
+            className="wg-btn wg-btn--ghost"
+            onClick={() => {
+              const z = deviceTimezone();
+              if (z && isTimezone(z)) onChange({ accountId: z });
+            }}
+          >
+            Use my device
+          </button>
+        </div>
+        <datalist id="wg-timezones-edit">
+          {TIMEZONES.map((z) => (
+            <option key={z} value={z} />
+          ))}
+        </datalist>
+        {zone.trim() && !zoneOk ? (
+          <span className="wg-modal__help wg-modal__help--error">
+            That isn't a timezone name. Try something like Europe/London.
+          </span>
+        ) : null}
+      </label>
+      <ClockOptionsEditor
+        key={widget.id}
+        value={widget.options}
+        onChange={(patch) => onChange({ options: sanitizeClockOptions({ ...widget.options, ...patch }) })}
+      />
+    </div>
   );
 }
 
@@ -411,14 +614,19 @@ export default function Widgets() {
 
   const atLimit = widgets.length >= MAX_WIDGETS;
 
-  const addWidget = ({ platform, accountId }) => {
+  const addWidget = ({ platform, accountId, options = null }) => {
     const id = newWidgetId();
-    commit([...widgets, { id, platform, accountId, style: null }]);
+    commit([...widgets, { id, platform, accountId, style: null, options }]);
     setSelectedId(id);
     setModalOpen(false);
   };
 
   const removeWidget = (id) => commit(widgets.filter((w) => w.id !== id));
+
+  // Change a widget's own settings (timezone, clock options). Uses the ref so
+  // it never works from a stale list.
+  const updateWidget = (id, patch) =>
+    commit(widgetsRef.current.map((w) => (w.id === id ? { ...w, ...patch } : w)));
 
   // Move `fromId` to the slot currently held by `toId`.
   const moveTo = (fromId, toId) => {
@@ -579,6 +787,10 @@ export default function Widgets() {
             onSelect={setSelectedId}
             disabled={loading}
           />
+
+          {selected?.platform === "current-time" ? (
+            <ClockSettings widget={selected} onChange={(patch) => updateWidget(selected.id, patch)} />
+          ) : null}
 
           <fieldset className="ap-fieldset" disabled={loading || !selected}>
             <div className="ap-bg">

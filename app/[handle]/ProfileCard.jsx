@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
 import DiscordPresence from "./DiscordPresence";
+import TimeWidget from "./TimeWidget";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import { buildWidgetStyle } from "../lib/widgets";
 import "./ProfileCard.css";
@@ -526,16 +527,29 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         className={`public-profile-card__widgets${boxed ? " public-profile-card__widgets--boxed" : ""}`}
         style={{ "--dpw-radius": `${widgetCornerRadius}px` }}
       >
-        {widgets.map((w) =>
-          w.platform === "discord-presence" ? (
-            <DiscordPresence
-              key={w.id}
-              presence={presences[w.accountId] ?? null}
-              boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
-              tag={w.accountId === profile.discord_user_id ? discordTag : null}
-            />
-          ) : null
-        )}
+        {widgets.map((w) => {
+          if (w.platform === "discord-presence") {
+            return (
+              <DiscordPresence
+                key={w.id}
+                presence={presences[w.accountId] ?? null}
+                boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
+                tag={w.accountId === profile.discord_user_id ? discordTag : null}
+              />
+            );
+          }
+          if (w.platform === "current-time") {
+            return (
+              <TimeWidget
+                key={w.id}
+                zone={w.accountId}
+                options={w.options}
+                boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
+              />
+            );
+          }
+          return null;
+        })}
       </div>
     ) : null;
 
