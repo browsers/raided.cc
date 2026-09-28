@@ -1,80 +1,11 @@
-/* Page shell: scrolls internally like the Profile tab */
-.dash-embed-shell {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 6px;
-  margin-right: -6px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
-}
-
-.dash-embed-shell::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dash-embed-shell::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
-}
-
-/* --- Header ------------------------------------------------------- */
-
-.dash-embed-header {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
-  background: var(--dash-surface);
-  border: 1px solid var(--dash-border);
-  border-radius: 8px;
-}
-
-.dash-embed-save {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.dash-embed-save__status {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--dash-text-tertiary);
-}
-
-.dash-embed-save__btn {
-  min-width: 132px;
-  height: 40px;
-  padding: 0 20px;
-  border-radius: 6px;
-  border: 1px solid var(--dash-border);
-  background: var(--dash-surface-raised);
-  color: var(--dash-text-secondary);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
-}
-
-.dash-embed-save__btn:hover {
-  color: var(--dash-text-primary);
-  border-color: rgba(255, 255, 255, 0.16);
-}
+/* Shell, scrolling and custom scrollbar come from Profile.css
+   (dash-profile-shell / dash-profile-body) so this tab matches the rest. */
 
 /* --- Two-column body --------------------------------------------- */
 
 .dash-embed-body {
   flex: 0 0 auto;
+  min-width: 0;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
   gap: 24px;
@@ -85,19 +16,6 @@
   .dash-embed-body {
     grid-template-columns: 1fr;
   }
-}
-
-@media (max-width: 640px) {
-  .dash-embed-header {
-    padding: 16px;
-  }
-}
-
-.dash-embed-panel__title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--dash-text-primary);
-  margin-bottom: 16px;
 }
 
 /* --- Form fields (same look as the Identity tab) ------------------ */
