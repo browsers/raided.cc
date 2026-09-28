@@ -10,11 +10,36 @@ import "./Embed.css";
 // defaultValue (uncontrolled) and the buttons have no handlers, so this
 // just renders the final structure for us to hook up later.
 const PLACEHOLDER = {
-  siteName: "RAIDED.CC",
   title: "die",
   description: "Your description goes here",
   accent: "#2b2d31",
+  buttons: [
+    { label: "Open page", url: "https://raided.cc/die" },
+    { label: "Discord", url: "https://discord.gg/" },
+  ],
 };
+
+// Small "opens a link" arrow used on the link buttons, same idea as
+// Discord's own link buttons.
+function ExternalIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14 4h6v6" />
+      <path d="M20 4l-9 9" />
+      <path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />
+    </svg>
+  );
+}
 
 export default function Embed() {
   return (
@@ -91,6 +116,39 @@ export default function Embed() {
                 <span className="embed-image-tile__hint">Click to replace image</span>
               </div>
             </div>
+
+            <div className="embed-buttons">
+              <div className="embed-buttons__header">
+                <span className="embed-field__label">Buttons</span>
+                <button type="button" className="embed-buttons__add">
+                  + Add button
+                </button>
+              </div>
+
+              {PLACEHOLDER.buttons.map((b, i) => (
+                <div className="embed-button-row" key={i}>
+                  <input
+                    type="text"
+                    className="embed-input embed-button-row__label"
+                    defaultValue={b.label}
+                    placeholder="Label"
+                  />
+                  <input
+                    type="text"
+                    className="embed-input embed-button-row__url"
+                    defaultValue={b.url}
+                    placeholder="https://"
+                  />
+                  <button
+                    type="button"
+                    className="embed-button-row__remove"
+                    aria-label="Remove button"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+            </div>
           </Card>
 
           {/* Right: live preview */}
@@ -99,16 +157,30 @@ export default function Embed() {
             <h3 className="dash-profile-section__title">Social Embed</h3>
 
             <div className="embed-preview">
-              <div className="embed-preview__image" />
-              <div className="embed-preview__footer">
-                <span
-                  className="embed-preview__bar"
-                  style={{ background: PLACEHOLDER.accent }}
-                />
-                <div className="embed-preview__text">
-                  <div className="embed-preview__site">{PLACEHOLDER.siteName}</div>
-                  <div className="embed-preview__title">{PLACEHOLDER.title}</div>
-                  <div className="embed-preview__desc">{PLACEHOLDER.description}</div>
+              <span
+                className="embed-preview__bar"
+                style={{ background: PLACEHOLDER.accent }}
+              />
+              <div className="embed-preview__content">
+                <div className="embed-preview__top">
+                  <div className="embed-preview__text">
+                    <div className="embed-preview__title">{PLACEHOLDER.title}</div>
+                    <div className="embed-preview__desc">{PLACEHOLDER.description}</div>
+                  </div>
+                  <div className="embed-preview__thumb" />
+                </div>
+
+                <div className="embed-preview__image" />
+
+                <div className="embed-preview__divider" />
+
+                <div className="embed-preview__buttons">
+                  {PLACEHOLDER.buttons.map((b, i) => (
+                    <button type="button" className="embed-preview__button" key={i}>
+                      <span>{b.label}</span>
+                      <ExternalIcon />
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
