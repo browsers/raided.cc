@@ -1,47 +1,29 @@
 /* Shell, scrolling, cards and form controls come from Profile.css and
-   Appearance.css (ap-select, ap-seg, ap-field). Everything new here is
-   prefixed wg- */
+   Appearance.css (ap-field, ap-input). Everything new here is prefixed wg- */
 
-/* --- Header row ------------------------------------------------------- */
+/* --- Header ----------------------------------------------------------- */
 
 .wg-head {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-bottom: 20px;
-  margin-bottom: 22px;
-  border-bottom: 1px solid var(--dash-border);
-}
-
-.wg-head__icon {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  border: 1px solid var(--dash-border);
-  background: var(--dash-surface-raised);
-}
-
-.wg-head__icon img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .wg-head__text {
-  flex: 1;
   min-width: 0;
+}
+
+.wg-head__text .dash-card__eyebrow {
+  margin-bottom: 10px;
 }
 
 .wg-head__title {
   font-size: 16px;
   font-weight: 700;
   color: var(--dash-text-primary);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .wg-head__sub {
@@ -50,312 +32,361 @@
   color: var(--dash-text-secondary);
 }
 
-/* --- Body: preview | settings ----------------------------------------- */
-
-.wg-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 32px;
-  align-items: start;
-  transition: opacity 0.15s ease;
-}
-
-.wg-body--off {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-@media (max-width: 960px) {
-  .wg-body {
-    grid-template-columns: 1fr;
-    gap: 28px;
+@media (max-width: 520px) {
+  .wg-head {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
-.wg-col {
-  min-width: 0;
-}
+/* --- Buttons ---------------------------------------------------------- */
 
-.wg-col__head {
-  display: flex;
+.wg-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 34px;
-  margin-bottom: 14px;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
 
-.wg-col__label {
-  font-size: 13px;
-  font-weight: 700;
+.wg-btn:focus-visible,
+.wg-iconbtn:focus-visible,
+.wg-grip:focus-visible,
+.wg-platform:focus-visible,
+.wg-modal__close:focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 2px;
+}
+
+.wg-btn--primary {
+  background: var(--dash-accent);
+  color: #0a0a0b;
+}
+
+.wg-btn--primary:hover:not(:disabled) {
+  background: #9695d3;
+}
+
+.wg-btn--ghost {
+  background: var(--dash-surface);
+  border-color: var(--dash-border);
+  color: var(--dash-text-secondary);
+}
+
+.wg-btn--ghost:hover:not(:disabled) {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wg-btn--text {
+  background: transparent;
+  color: var(--dash-text-secondary);
+}
+
+.wg-btn--text:hover {
   color: var(--dash-text-primary);
 }
 
-.wg-note {
-  margin-top: 12px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--dash-text-tertiary);
+.wg-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
-/* --- Preview stage ---------------------------------------------------- */
+/* --- The box under the button ---------------------------------------- */
 
-.wg-stage {
+.wg-list {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  min-height: 140px;
+}
+
+.wg-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 250px;
-  padding: 28px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--dash-border);
-  background:
-    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.07), transparent 60%),
-    #050506;
+  gap: 4px;
+  min-height: 116px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--dash-text-secondary);
 }
 
-.wg-pv__label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--dash-text-tertiary);
+.wg-empty strong {
+  font-size: 13.5px;
+  color: var(--dash-text-primary);
 }
 
-.wg-pv {
-  width: 100%;
-  max-width: 300px;
+.wg-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  transition: padding 0.15s ease, gap 0.15s ease;
+  gap: 8px;
 }
 
-.wg-pv--glass {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-}
-
-.wg-pv--solid {
-  background: #151517;
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-.wg-pv--outline {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.28);
-}
-
-.wg-pv--flat {
-  background: transparent;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.wg-pv--compact {
-  padding: 10px 12px;
-  gap: 10px;
-}
-
-.wg-pv--compact.wg-pv--flat {
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.wg-pv__main {
+.wg-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 10px 12px 10px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+  transition: border-color 0.15s ease, opacity 0.15s ease;
 }
 
-.wg-pv__avatar {
-  position: relative;
+.wg-row--dragging {
+  opacity: 0.4;
+}
+
+.wg-row--over {
+  border-color: var(--dash-accent);
+}
+
+.wg-grip {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3a3a44, #1c1c22);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.wg-pv--compact .wg-pv__avatar {
-  width: 36px;
-  height: 36px;
-}
-
-.wg-dot {
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  border: 3px solid #0a0a0b;
-  box-sizing: content-box;
-  transform: translate(1px, 1px);
-}
-
-.wg-dot--online { background: #23a55a; }
-.wg-dot--idle { background: #f0b232; }
-.wg-dot--dnd { background: #f23f43; }
-.wg-dot--offline { background: #80848e; }
-
-.wg-pv__who {
-  min-width: 0;
-}
-
-.wg-pv__name {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--dash-text-primary);
-}
-
-.wg-pv__custom {
-  margin-top: 2px;
-  font-size: 12.5px;
-  color: var(--dash-text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.wg-pv__activity {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.wg-pv--compact .wg-pv__activity {
-  padding-top: 8px;
-}
-
-.wg-pv__art {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, var(--dash-accent), #3b3a66);
-}
-
-.wg-pv--compact .wg-pv__art {
-  width: 30px;
-  height: 30px;
-}
-
-.wg-pv__atext {
-  min-width: 0;
-}
-
-.wg-pv__akind {
-  font-size: 11px;
-  font-weight: 600;
+  justify-content: center;
+  width: 24px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
   color: var(--dash-text-tertiary);
-  margin-bottom: 1px;
+  cursor: grab;
 }
 
-.wg-pv__aname {
-  font-size: 13px;
-  font-weight: 700;
+.wg-grip:hover {
   color: var(--dash-text-primary);
 }
 
-/* --- Settings --------------------------------------------------------- */
-
-.wg-selects {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 8px;
+.wg-row:active .wg-grip {
+  cursor: grabbing;
 }
 
-@media (max-width: 520px) {
-  .wg-selects {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Plain rows split by hairlines instead of a box per option */
-.wg-opts {
-  display: flex;
-  flex-direction: column;
-}
-
-.wg-opt {
+.wg-row__icon {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--dash-border);
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
 }
 
-.wg-opt:last-child {
-  border-bottom: none;
+.wg-row__icon img,
+.wg-platform img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
-.wg-opt__title {
+.wg-row__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.wg-row__name {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--dash-text-primary);
   margin-bottom: 2px;
 }
 
-.wg-opt__hint {
+.wg-row__hint {
   font-size: 12px;
-  line-height: 1.4;
+  color: var(--dash-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wg-iconbtn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: transparent;
+  color: var(--dash-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.wg-iconbtn:hover {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* --- Modal ------------------------------------------------------------ */
+
+.wg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+.wg-modal {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  color: var(--dash-text-primary);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 520px) {
+  .wg-modal {
+    padding: 20px 16px;
+  }
+}
+
+.wg-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dash-text-secondary);
+  cursor: pointer;
+}
+
+.wg-modal__close:hover {
+  color: var(--dash-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.wg-modal__title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 40px 6px 0;
+}
+
+.wg-modal__sub {
+  margin: 0 0 22px;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--dash-text-secondary);
 }
 
-/* --- Switch (own copy so this tab doesn't depend on Badges.css) ------- */
+.wg-platforms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
+}
 
-.wg-switch {
-  flex-shrink: 0;
-  width: 38px;
-  height: 22px;
-  border-radius: 999px;
-  border: none;
-  padding: 2px;
-  background: var(--dash-track);
-  cursor: pointer;
+.wg-platform {
   display: flex;
   align-items: center;
-  transition: background 0.15s ease;
+  gap: 10px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+  color: var(--dash-text-primary);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.wg-switch__knob {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #f5f5f5;
-  transform: translateX(0);
-  transition: transform 0.15s ease;
+.wg-platform:hover {
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.wg-switch--on {
-  background: var(--dash-accent);
+.wg-platform--active {
+  border-color: var(--dash-accent);
+  background: rgba(var(--dash-accent-rgb), 0.1);
 }
 
-.wg-switch--on .wg-switch__knob {
-  transform: translateX(16px);
+.wg-modal__field {
+  margin-bottom: 24px;
 }
 
-.wg-switch:focus-visible {
-  outline: 2px solid var(--dash-accent);
-  outline-offset: 2px;
+.wg-modal__label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+}
+
+.wg-modal__inputrow {
+  display: flex;
+  gap: 10px;
+}
+
+.wg-modal__inputrow .ap-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--dash-surface);
+}
+
+.wg-modal__help {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--dash-text-tertiary);
+}
+
+.wg-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .wg-modal__inputrow {
+    flex-direction: column;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .wg-switch,
-  .wg-switch__knob,
-  .wg-body,
-  .wg-pv {
+  .wg-btn,
+  .wg-row,
+  .wg-iconbtn,
+  .wg-platform {
     transition: none;
   }
 }

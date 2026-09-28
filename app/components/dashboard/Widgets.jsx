@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
@@ -8,102 +9,191 @@ import "./Appearance.css";
 import "./Widgets.css";
 
 // LAYOUT ONLY for now — everything here is local state. Nothing is saved
-// or rendered on the public profile yet (that's the next pass).
-// Discord Presence is the only widget for now; more get added later.
-
-const POSITIONS = [
-  { value: "below", label: "Below links" },
-  { value: "above", label: "Above links" },
-  { value: "bottom", label: "Bottom of card" },
+// or shown on the public profile yet (that's the next pass).
+//
+// To add a widget type later, add an entry here. The modal picker and the
+// list both read from this array.
+const PLATFORMS = [
+  {
+    key: "discord-presence",
+    label: "Discord presence",
+    icon: "/icons/discord.png",
+    fieldLabel: "Discord user ID",
+    placeholder: "123456789012345678",
+    help: "Discord → Settings → Advanced → Developer Mode, then right-click your name → Copy User ID.",
+    // Discord IDs are 17–20 digit numbers.
+    valid: (v) => /^\d{17,20}$/.test(v.trim()),
+  },
 ];
 
-const WIDGET_STYLES = [
-  { value: "glass", label: "Glass" },
-  { value: "solid", label: "Solid" },
-  { value: "outline", label: "Outline" },
-  { value: "flat", label: "Flat (no container)" },
-];
+const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]));
 
-// Preview only — lets you see how each status dot looks.
-const STATUSES = [
-  { value: "online", label: "Online" },
-  { value: "idle", label: "Idle" },
-  { value: "dnd", label: "DND" },
-  { value: "offline", label: "Offline" },
-];
+const PlusIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+);
 
-function Switch({ on, onChange, label, disabled }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      disabled={disabled}
-      className={`wg-switch${on ? " wg-switch--on" : ""}`}
-      onClick={() => onChange(!on)}
+const CloseIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <path d="M6 6l12 12M18 6L6 18" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="M16 16l4.5 4.5" />
+  </svg>
+);
+
+const GripIcon = () => (
+  <svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor" aria-hidden="true">
+    <circle cx="4" cy="4" r="1.4" />
+    <circle cx="10" cy="4" r="1.4" />
+    <circle cx="4" cy="9" r="1.4" />
+    <circle cx="10" cy="9" r="1.4" />
+    <circle cx="4" cy="14" r="1.4" />
+    <circle cx="10" cy="14" r="1.4" />
+  </svg>
+);
+
+function AddWidgetModal({ onClose, onAdd }) {
+  const [platformKey, setPlatformKey] = useState(PLATFORMS[0].key);
+  const [accountId, setAccountId] = useState("");
+  const inputRef = useRef(null);
+  const platform = PLATFORM_BY_KEY[platformKey];
+  const ok = platform.valid(accountId);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const submit = () => {
+    if (!ok) return;
+    onAdd({ platform: platformKey, accountId: accountId.trim() });
+  };
+
+  return createPortal(
+    <div
+      className="wg-overlay"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
     >
-      <span className="wg-switch__knob" />
-    </button>
-  );
-}
+      <div className="wg-modal" role="dialog" aria-modal="true" aria-labelledby="wg-modal-title">
+        <button type="button" className="wg-modal__close" aria-label="Close" onClick={onClose}>
+          <CloseIcon />
+        </button>
 
-function OptionRow({ title, hint, children }) {
-  return (
-    <div className="wg-opt">
-      <div className="wg-opt__text">
-        <div className="wg-opt__title">{title}</div>
-        {hint ? <div className="wg-opt__hint">{hint}</div> : null}
-      </div>
-      {children}
-    </div>
-  );
-}
+        <h2 id="wg-modal-title" className="wg-modal__title">Add widget</h2>
+        <p className="wg-modal__sub">Pick a platform, enter your account, and preview it before adding.</p>
 
-// Fake Discord presence, driven by the settings on the right.
-function PresencePreview({ status, showDot, showActivity, showCustom, compact, styleKey, showLabel }) {
-  return (
-    <div className="wg-stage">
-      {showLabel ? <div className="wg-pv__label">Discord</div> : null}
-      <div
-        className={`wg-pv wg-pv--${styleKey}${compact ? " wg-pv--compact" : ""}`}
-      >
-        <div className="wg-pv__main">
-          <div className="wg-pv__avatar">
-            {showDot ? <span className={`wg-dot wg-dot--${status}`} /> : null}
-          </div>
-          <div className="wg-pv__who">
-            <div className="wg-pv__name">die</div>
-            {showCustom ? <div className="wg-pv__custom">your custom status</div> : null}
-          </div>
+        <div className="wg-platforms" role="radiogroup" aria-label="Platform">
+          {PLATFORMS.map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              role="radio"
+              aria-checked={platformKey === p.key}
+              className={`wg-platform${platformKey === p.key ? " wg-platform--active" : ""}`}
+              onClick={() => setPlatformKey(p.key)}
+            >
+              <img src={p.icon} alt="" />
+              {p.label}
+            </button>
+          ))}
         </div>
 
-        {showActivity && status !== "offline" ? (
-          <div className="wg-pv__activity">
-            <span className="wg-pv__art" />
-            <div className="wg-pv__atext">
-              <div className="wg-pv__akind">Playing</div>
-              <div className="wg-pv__aname">Sample game</div>
-            </div>
+        <label className="ap-field wg-modal__field">
+          <span className="wg-modal__label">{platform.fieldLabel}</span>
+          <div className="wg-modal__inputrow">
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              className="ap-input"
+              placeholder={platform.placeholder}
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submit();
+              }}
+            />
+            {/* Layout only — hooks up to the real lookup later. */}
+            <button type="button" className="wg-btn wg-btn--ghost" disabled={!ok}>
+              <SearchIcon />
+              Preview
+            </button>
           </div>
-        ) : null}
+          <span className="wg-modal__help">{platform.help}</span>
+        </label>
+
+        <div className="wg-modal__actions">
+          <button type="button" className="wg-btn wg-btn--text" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" className="wg-btn wg-btn--primary" disabled={!ok} onClick={submit}>
+            Add widget
+          </button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
 export default function Widgets() {
-  const [enabled, setEnabled] = useState(true);
+  const [widgets, setWidgets] = useState([]); // { id, platform, accountId }
+  const [modalOpen, setModalOpen] = useState(false);
+  const [dragId, setDragId] = useState(null);
+  const [overId, setOverId] = useState(null);
+  const nextId = useRef(1);
 
-  const [position, setPosition] = useState("below");
-  const [widgetStyle, setWidgetStyle] = useState("glass");
-  const [showDot, setShowDot] = useState(true);
-  const [showActivity, setShowActivity] = useState(true);
-  const [showCustom, setShowCustom] = useState(true);
-  const [showLabel, setShowLabel] = useState(false);
-  const [compact, setCompact] = useState(false);
+  const addWidget = ({ platform, accountId }) => {
+    setWidgets((prev) => [...prev, { id: nextId.current++, platform, accountId }]);
+    setModalOpen(false);
+  };
 
-  const [previewStatus, setPreviewStatus] = useState("online");
+  const removeWidget = (id) => setWidgets((prev) => prev.filter((w) => w.id !== id));
+
+  // Move `fromId` to the slot currently held by `toId`.
+  const moveTo = (fromId, toId) => {
+    if (fromId === toId) return;
+    setWidgets((prev) => {
+      const from = prev.findIndex((w) => w.id === fromId);
+      const to = prev.findIndex((w) => w.id === toId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  };
+
+  // Keyboard reordering from the grip: ArrowUp / ArrowDown.
+  const onGripKey = (e, id) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    setWidgets((prev) => {
+      const i = prev.findIndex((w) => w.id === id);
+      const j = i + (e.key === "ArrowUp" ? -1 : 1);
+      if (i < 0 || j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
+
+  const endDrag = () => {
+    setDragId(null);
+    setOverId(null);
+  };
 
   return (
     <div className="dash-profile-shell">
@@ -112,107 +202,88 @@ export default function Widgets() {
       <div className="dash-profile-body">
         <Card className="dash-profile-section">
           <div className="wg-head">
-            <span className="wg-head__icon">
-              <img src="/icons/discord.png" alt="" />
-            </span>
             <div className="wg-head__text">
-              <h3 className="wg-head__title">Discord Presence</h3>
+              <div className="dash-card__eyebrow">WIDGETS</div>
+              <h3 className="wg-head__title">Profile Widgets</h3>
               <div className="wg-head__sub">
-                Show your live status and what you're playing on your profile.
+                Add live widgets to your profile and drag them into the order you want.
               </div>
             </div>
-            <Switch on={enabled} onChange={setEnabled} label="Enable Discord Presence" />
+            <button type="button" className="wg-btn wg-btn--primary" onClick={() => setModalOpen(true)}>
+              <PlusIcon />
+              Add Widget
+            </button>
           </div>
 
-          <div className={`wg-body${enabled ? "" : " wg-body--off"}`}>
-            <div className="wg-col">
-              <div className="wg-col__head">
-                <span className="wg-col__label">Preview</span>
-                <div className="ap-seg">
-                  {STATUSES.map((s) => (
-                    <button
-                      key={s.value}
-                      type="button"
-                      className={`ap-seg__btn${previewStatus === s.value ? " ap-seg__btn--active" : ""}`}
-                      onClick={() => setPreviewStatus(s.value)}
+          <div className="wg-list">
+            {widgets.length === 0 ? (
+              <div className="wg-empty">
+                <strong>No widgets yet</strong>
+                <span>Hit Add Widget to put your first one on your profile.</span>
+              </div>
+            ) : (
+              <ul className="wg-rows">
+                {widgets.map((w) => {
+                  const p = PLATFORM_BY_KEY[w.platform];
+                  return (
+                    <li
+                      key={w.id}
+                      className={`wg-row${dragId === w.id ? " wg-row--dragging" : ""}${
+                        overId === w.id && dragId !== w.id ? " wg-row--over" : ""
+                      }`}
+                      draggable
+                      onDragStart={(e) => {
+                        setDragId(w.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        // Firefox needs data set for the drag to start.
+                        e.dataTransfer.setData("text/plain", String(w.id));
+                      }}
+                      onDragOver={(e) => {
+                        if (dragId === null) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (overId !== w.id) setOverId(w.id);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (dragId !== null) moveTo(dragId, w.id);
+                        endDrag();
+                      }}
+                      onDragEnd={endDrag}
                     >
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <PresencePreview
-                status={previewStatus}
-                showDot={showDot}
-                showActivity={showActivity}
-                showCustom={showCustom}
-                compact={compact}
-                styleKey={widgetStyle}
-                showLabel={showLabel}
-              />
-              <div className="wg-note">
-                Sample data. Your real presence needs your Discord User ID set in the Profile tab.
-              </div>
-            </div>
-
-            <div className="wg-col">
-              <div className="wg-col__head">
-                <span className="wg-col__label">Settings</span>
-              </div>
-
-              <div className="wg-selects">
-                <label className="ap-field">
-                  <span className="ap-field__label">Position</span>
-                  <select
-                    className="ap-select"
-                    value={position}
-                    onChange={(e) => setPosition(e.target.value)}
-                  >
-                    {POSITIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="ap-field">
-                  <span className="ap-field__label">Style</span>
-                  <select
-                    className="ap-select"
-                    value={widgetStyle}
-                    onChange={(e) => setWidgetStyle(e.target.value)}
-                  >
-                    {WIDGET_STYLES.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-
-              <div className="wg-opts">
-                <OptionRow title="Status dot" hint="Online, idle, DND or offline on your avatar">
-                  <Switch on={showDot} onChange={setShowDot} label="Status dot" />
-                </OptionRow>
-                <OptionRow title="Activity" hint="The game or app you're currently using">
-                  <Switch on={showActivity} onChange={setShowActivity} label="Activity" />
-                </OptionRow>
-                <OptionRow title="Custom status" hint="Your Discord custom status text">
-                  <Switch on={showCustom} onChange={setShowCustom} label="Custom status" />
-                </OptionRow>
-                <OptionRow title="Label" hint="Small “Discord” title above the widget">
-                  <Switch on={showLabel} onChange={setShowLabel} label="Label" />
-                </OptionRow>
-                <OptionRow title="Compact" hint="Tighter padding and spacing">
-                  <Switch on={compact} onChange={setCompact} label="Compact" />
-                </OptionRow>
-              </div>
-            </div>
+                      <button
+                        type="button"
+                        className="wg-grip"
+                        aria-label={`Reorder ${p.label}. Use the up and down arrow keys.`}
+                        onKeyDown={(e) => onGripKey(e, w.id)}
+                      >
+                        <GripIcon />
+                      </button>
+                      <span className="wg-row__icon">
+                        <img src={p.icon} alt="" />
+                      </span>
+                      <div className="wg-row__text">
+                        <div className="wg-row__name">{p.label}</div>
+                        <div className="wg-row__hint">{w.accountId}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="wg-iconbtn"
+                        aria-label={`Remove ${p.label}`}
+                        onClick={() => removeWidget(w.id)}
+                      >
+                        <CloseIcon />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </Card>
       </div>
+
+      {modalOpen ? <AddWidgetModal onClose={() => setModalOpen(false)} onAdd={addWidget} /> : null}
     </div>
   );
 }
