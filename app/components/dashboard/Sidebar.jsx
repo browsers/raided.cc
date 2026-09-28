@@ -7,14 +7,18 @@ import { supabase } from "../../lib/supabaseClient";
 import { onDisplayNameChange } from "../../lib/profileBus";
 import "./Sidebar.css";
 
+// iconScale: some of the icon PNGs have more empty margin around the glyph
+// than the others (badges.png only fills ~84% of its canvas), so they look
+// small at the same 16px box. Scaling the image up evens them out without
+// touching the row layout. Nudge a number if an icon still looks off.
 const NAV_ITEMS = [
   { key: "overview", label: "Overview", icon: "/icons/overview.png" },
   { key: "profile", label: "Profile", icon: "/icons/profile.png" },
   { key: "appearance", label: "Appearance", icon: "/icons/appearance.png" },
-  { key: "widgets", label: "Widgets", icon: "/icons/widget.png" },
+  { key: "widgets", label: "Widgets", icon: "/icons/widget.png", iconScale: 1.3 },
   { key: "links", label: "Links", icon: "/icons/links.png" },
   { key: "embed", label: "Embed", icon: "/icons/embed.png" },
-  { key: "badges", label: "Badges", icon: "/icons/badges.png" },
+  { key: "badges", label: "Badges", icon: "/icons/badges.png", iconScale: 1.19 },
   { key: "settings", label: "Settings", icon: "/icons/settings.png" },
 ];
 
@@ -123,7 +127,7 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
             opacity: indicator.ready ? 1 : 0,
           }}
         />
-        {NAV_ITEMS.map(({ key, label, icon }) => {
+        {NAV_ITEMS.map(({ key, label, icon, iconScale }) => {
           const active = activeTab === key;
           return (
             <button
@@ -138,7 +142,12 @@ export default function Sidebar({ activeTab, onSelectTab, mobileOpen, onCloseMob
               }}
               className={`dash-nav-item${active ? " dash-nav-item--active" : ""}`}
             >
-              <img src={icon} alt="" className="dash-nav-item__icon" />
+              <img
+                src={icon}
+                alt=""
+                className="dash-nav-item__icon"
+                style={iconScale ? { transform: `scale(${iconScale})` } : undefined}
+              />
               <span>{label}</span>
             </button>
           );
