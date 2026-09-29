@@ -136,6 +136,8 @@ export const WIDGET_STYLE_DEFAULTS = {
   shadow: 0, // px
   shadow_color: "#000000",
   corner: null, // px, or null = follow the profile card's corner radius
+  hover_effect: true, // mouse-tracking tilt + glow on hover, like the badges
+  hover_reactivity: 3, // 1 (subtle) - 5 (strong), see [handle]/useWidgetHover.js
 };
 
 const clampNum = (v, fallback, min, max) => {
@@ -173,6 +175,8 @@ export function sanitizeWidgetStyle(raw) {
       raw.corner === null || raw.corner === undefined
         ? null
         : clampNum(raw.corner, 12, 0, 40),
+    hover_effect: typeof raw.hover_effect === "boolean" ? raw.hover_effect : d.hover_effect,
+    hover_reactivity: Math.round(clampNum(raw.hover_reactivity, d.hover_reactivity, 1, 5)),
   };
 }
 

@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { decodeDiscordBadges } from "../lib/discordBadges";
+import useWidgetHover from "./useWidgetHover";
 import "./DiscordPresence.css";
 
 // Presence is a snapshot the server took with the bot token
@@ -94,7 +96,13 @@ function CustomStatus({ activity }) {
  *   boxStyle?: Record<string, string>,
  * }} props
  */
-export default function DiscordPresence({ presence, tag = null, boxStyle }) {
+export default function DiscordPresence({ presence, tag = null, boxStyle, hover = null }) {
+  const boxRef = useRef(null);
+  useWidgetHover(boxRef, {
+    enabled: hover?.hover_effect ?? true,
+    reactivity: hover?.hover_reactivity ?? 3,
+  });
+
   // The bot couldn't see this user (not in a shared server, no token, gateway
   // down). Don't leave visitors looking at an empty box.
   if (!presence) return null;
@@ -107,7 +115,7 @@ export default function DiscordPresence({ presence, tag = null, boxStyle }) {
   const badges = decodeDiscordBadges(user?.public_flags);
 
   return (
-    <div className="dpw" style={boxStyle}>
+    <div className="dpw" style={boxStyle} ref={boxRef}>
       <div className="dpw__main">
         <div className="dpw__avatar">
           <img src={avatarUrl(user)} alt="" />

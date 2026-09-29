@@ -6,6 +6,22 @@
 
 import "./Appearance.css";
 
+// Same switch as the Appearance tab's badge toggles (shares its CSS class).
+export function Switch({ on, onChange, label }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      className={`dash-badge-switch${on ? " dash-badge-switch--on" : ""}`}
+      onClick={() => onChange(!on)}
+    >
+      <span className="dash-badge-switch__knob" />
+    </button>
+  );
+}
+
 export function ColorField({ label, value, onChange }) {
   return (
     <div className="ap-field">

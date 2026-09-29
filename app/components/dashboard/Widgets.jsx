@@ -21,7 +21,7 @@ import {
 import { isHex } from "../../lib/cardStyle";
 import TopBar from "./TopBar";
 import Card from "./Card";
-import { ColorField, SliderTile, CornerPicker } from "./StyleControls";
+import { ColorField, SliderTile, CornerPicker, Switch } from "./StyleControls";
 import "./Profile.css";
 import "./Appearance.css";
 import "./Widgets.css";
@@ -857,6 +857,29 @@ export default function Widgets() {
             </div>
 
             <CornerPicker value={style.corner} onChange={(v) => patchStyle({ corner: v })} />
+
+            <div className="ap-switch">
+              <div>
+                <div className="ap-switch__label">Hover Effect</div>
+                <div className="ap-switch__hint">A little 3D tilt when a visitor's cursor is over it</div>
+              </div>
+              <Switch
+                on={style.hover_effect}
+                onChange={(v) => patchStyle({ hover_effect: v })}
+                label="Widget hover effect"
+              />
+            </div>
+
+            <div className={style.hover_effect ? "" : "ap-switch--off"}>
+              <SliderTile
+                label="Reactivity"
+                unit=""
+                min={1}
+                max={5}
+                value={style.hover_reactivity}
+                onChange={style.hover_effect ? (v) => patchStyle({ hover_reactivity: v }) : () => {}}
+              />
+            </div>
           </fieldset>
         </Card>
       </div>
