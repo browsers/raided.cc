@@ -127,6 +127,7 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   discordTag?: { tag: string, badgeUrl: string | null } | null,
  *   widgets?: { id: string, platform: string, accountId: string }[],
  *   presences?: Record<string, any>,
+ *   twitterProfiles?: Record<string, any>,
  *   widgetStyle?: object | null,
  * }} props
  */
