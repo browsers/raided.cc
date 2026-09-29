@@ -858,27 +858,29 @@ export default function Widgets() {
 
             <CornerPicker value={style.corner} onChange={(v) => patchStyle({ corner: v })} />
 
-            <div className="ap-switch">
-              <div>
-                <div className="ap-switch__label">Hover Effect</div>
-                <div className="ap-switch__hint">A little 3D tilt when a visitor's cursor is over it</div>
+            <div className="ap-switches">
+              <div className="ap-switch">
+                <div>
+                  <div className="ap-switch__label">Hover Effect</div>
+                  <div className="ap-switch__hint">A little pop when a visitor's cursor is over it</div>
+                </div>
+                <Switch
+                  on={style.hover_effect}
+                  onChange={(v) => patchStyle({ hover_effect: v })}
+                  label="Widget hover effect"
+                />
               </div>
-              <Switch
-                on={style.hover_effect}
-                onChange={(v) => patchStyle({ hover_effect: v })}
-                label="Widget hover effect"
-              />
-            </div>
 
-            <div className={style.hover_effect ? "" : "ap-switch--off"}>
-              <SliderTile
-                label="Reactivity"
-                unit=""
-                min={1}
-                max={5}
-                value={style.hover_reactivity}
-                onChange={style.hover_effect ? (v) => patchStyle({ hover_reactivity: v }) : () => {}}
-              />
+              <div className={style.hover_effect ? "" : "ap-switch--off"}>
+                <SliderTile
+                  label="Reactivity"
+                  unit=""
+                  min={1}
+                  max={5}
+                  value={style.hover_reactivity}
+                  onChange={style.hover_effect ? (v) => patchStyle({ hover_reactivity: v }) : () => {}}
+                />
+              </div>
             </div>
           </fieldset>
         </Card>

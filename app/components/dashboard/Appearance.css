@@ -465,6 +465,13 @@
   border-color: rgba(255, 255, 255, 0.55);
 }
 
+/* Breathing room below Corner Radius, matching the space every other
+   section here already gets (ap-bg, ap-tiles) — Corner Radius was the one
+   block with nothing under it, so whatever followed sat flush against it. */
+.ap-field--corners {
+  margin-bottom: 20px;
+}
+
 /* --- Effects card ---------------------------------------------------- */
 
 .ap-effects .ap-field {
