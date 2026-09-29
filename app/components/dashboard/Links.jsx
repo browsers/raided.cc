@@ -1,26 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TopBar from "./TopBar";
 import Card from "./Card";
+import { supabase } from "../../lib/supabaseClient";
+import { isHex } from "../../lib/cardStyle";
+import {
+  LINKS_COLUMN,
+  LINK_DEFAULTS,
+  LINK_PLATFORMS as PLATFORMS,
+  LINK_PLATFORM_BY_KEY as PLATFORM_BY_KEY,
+  sanitizeLinks,
+} from "../../lib/links";
 import "./Profile.css";
+import "./Appearance.css";
 import "./Links.css";
 
-// Layout only for now: nothing here saves and nothing shows on the public
-// profile yet. To add a platform later, drop its icon in public/link/ and
-// add an entry here. The picker grid and the list both read this array.
-const PLATFORMS = [
-  { key: "discord", label: "Discord", icon: "/link/discord.png", placeholder: "https://discord.gg/invite" },
-  { key: "x", label: "X", icon: "/link/x.png", placeholder: "https://x.com/username" },
-  { key: "tiktok", label: "TikTok", icon: "/link/tiktik.png", placeholder: "https://tiktok.com/@username" },
-];
-
-const PLATFORM_BY_KEY = Object.fromEntries(PLATFORMS.map((p) => [p.key, p]));
-
-const DEFAULT_ICON_COLOR = "#ffffff";
-const DEFAULT_HOVER_COLOR = "#ff0101";
-
-const isHex = (v) => /^#([0-9a-fA-F]{6})$/.test(v);
+// Saves to profiles.profile_links (jsonb). The platform list, defaults and
+// validation all live in lib/links.js so this tab and the public profile
+// always agree. To add a platform, drop its icon in public/link/ and add a
+// line to LINK_PLATFORMS there.
+const DEFAULT_ICON_COLOR = LINK_DEFAULTS.iconColor;
+const DEFAULT_HOVER_COLOR = LINK_DEFAULTS.hoverColor;
+const SAVE_DEBOUNCE_MS = 600;
 
 // The icon PNGs are solid shapes, so they're drawn as a mask over a
 // background colour. That's what lets the icon colour and hover colour
@@ -75,37 +77,123 @@ export default function Links() {
   const [links, setLinks] = useState([]); // [{ platform, url }]
   const [dragKey, setDragKey] = useState(null);
   const [overKey, setOverKey] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [status, setStatus] = useState("idle"); // idle | saving | saved | error
+
+  const userIdRef = useRef(null);
+  // Always the latest values, so a debounced save never works from stale state.
+  const latest = useRef({ iconColor, hoverColor, links });
+  const timer = useRef(null);
+  const pending = useRef(false);
+
+  async function save() {
+    pending.current = false;
+    if (!userIdRef.current) return;
+    const { iconColor: ic, hoverColor: hc, links: items } = latest.current;
+    // sanitizeLinks drops unknown/duplicate platforms and swaps a half-typed
+    // hex for the default, so junk never reaches the database.
+    const clean = sanitizeLinks({ iconColor: ic, hoverColor: hc, items });
+    const { error } = await supabase
+      .from("profiles")
+      .update({ [LINKS_COLUMN]: clean })
+      .eq("id", userIdRef.current);
+    if (error) console.error("Links save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  // Every change goes through here: update state, then save shortly after
+  // (debounced so typing a URL isn't one request per keystroke).
+  function commit(patch) {
+    latest.current = { ...latest.current, ...patch };
+    if ("links" in patch) setLinks(patch.links);
+    if ("iconColor" in patch) setIconColor(patch.iconColor);
+    if ("hoverColor" in patch) setHoverColor(patch.hoverColor);
+    if (!userIdRef.current) return;
+    pending.current = true;
+    setStatus("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(save, SAVE_DEBOUNCE_MS);
+  }
+
+  // Load what's already saved.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user || cancelled) {
+        if (!cancelled) setLoading(false);
+        return;
+      }
+
+      const { data: row, error } = await supabase
+        .from("profiles")
+        .select(LINKS_COLUMN)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (cancelled) return;
+
+      if (error) {
+        // Almost always "column does not exist" = migration not run yet.
+        console.error("Links load failed:", error);
+        setLoadError(error.message);
+      } else {
+        userIdRef.current = user.id;
+        const saved = sanitizeLinks(row?.[LINKS_COLUMN]);
+        latest.current = { iconColor: saved.iconColor, hoverColor: saved.hoverColor, links: saved.items };
+        setIconColor(saved.iconColor);
+        setHoverColor(saved.hoverColor);
+        setLinks(saved.items);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer.current);
+      // Push anything still waiting so a quick tab switch doesn't lose it.
+      if (pending.current) save();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const has = (key) => links.some((l) => l.platform === key);
 
   // Clicking a platform adds it to the list, clicking it again takes it off.
   function togglePlatform(key) {
-    setLinks((prev) =>
-      prev.some((l) => l.platform === key)
-        ? prev.filter((l) => l.platform !== key)
-        : [...prev, { platform: key, url: "" }]
-    );
+    commit({
+      links: has(key)
+        ? links.filter((l) => l.platform !== key)
+        : [...links, { platform: key, url: "" }],
+    });
   }
 
   function setUrl(key, url) {
-    setLinks((prev) => prev.map((l) => (l.platform === key ? { ...l, url } : l)));
+    commit({ links: links.map((l) => (l.platform === key ? { ...l, url } : l)) });
   }
 
   function removeLink(key) {
-    setLinks((prev) => prev.filter((l) => l.platform !== key));
+    commit({ links: links.filter((l) => l.platform !== key) });
   }
 
   function moveTo(fromKey, toKey) {
     if (fromKey === toKey) return;
-    setLinks((prev) => {
-      const from = prev.findIndex((l) => l.platform === fromKey);
-      const to = prev.findIndex((l) => l.platform === toKey);
-      if (from < 0 || to < 0) return prev;
-      const next = [...prev];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return next;
-    });
+    const from = links.findIndex((l) => l.platform === fromKey);
+    const to = links.findIndex((l) => l.platform === toKey);
+    if (from < 0 || to < 0) return;
+    const next = [...links];
+    const [item] = next.splice(from, 1);
+    next.splice(to, 0, item);
+    commit({ links: next });
+  }
+
+  // Colours only save once they're a real hex; until then the box just shows
+  // what's being typed.
+  function setColor(kind, v) {
+    if (isHex(v)) commit({ [kind]: v });
+    else if (kind === "iconColor") setIconColor(v);
+    else setHoverColor(v);
   }
 
   function endDrag() {
@@ -124,12 +212,24 @@ export default function Links() {
 
       <div className="dash-profile-body">
         <Card className="dash-profile-section lk-card" style={cssVars}>
-          <div className="dash-card__eyebrow">LINKS</div>
+          <div className="dash-card__eyebrow">
+            LINKS{" "}
+            {status === "saving" ? <span className="ap-hint">Saving…</span> : null}
+            {status === "saved" ? <span className="ap-hint">Saved</span> : null}
+            {status === "error" ? <span className="ap-hint ap-hint--error">Save failed</span> : null}
+          </div>
           <h3 className="dash-profile-section__title">Links</h3>
 
+          {loadError ? (
+            <div className="ap-notice">
+              Couldn't load your links: {loadError}. Make sure the profile_links column exists on
+              profiles (run the SQL in the Supabase SQL editor), then refresh.
+            </div>
+          ) : null}
+
           <div className="lk-colors">
-            <ColorField label="Icon Color" value={iconColor} onChange={setIconColor} />
-            <ColorField label="Hover Color" value={hoverColor} onChange={setHoverColor} />
+            <ColorField label="Icon Color" value={iconColor} onChange={(v) => setColor("iconColor", v)} />
+            <ColorField label="Hover Color" value={hoverColor} onChange={(v) => setColor("hoverColor", v)} />
           </div>
 
           <div className="lk-section">
@@ -143,6 +243,7 @@ export default function Links() {
                   title={p.label}
                   aria-label={p.label}
                   aria-pressed={has(p.key)}
+                  disabled={loading || Boolean(loadError)}
                   className={`lk-platform${has(p.key) ? " lk-platform--active" : ""}`}
                   onClick={() => togglePlatform(p.key)}
                 >
