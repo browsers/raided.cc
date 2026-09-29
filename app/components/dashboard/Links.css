@@ -1,0 +1,287 @@
+/* Shell, scrolling and the card come from Profile.css / Card.css.
+   Everything new here is prefixed lk-. The colours arrive as --lk-icon and
+   --lk-hover on the card, set from the two colour fields. */
+
+.lk-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dash-text-tertiary);
+}
+
+.lk-subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+}
+
+/* --- Colours ---------------------------------------------------------- */
+
+.lk-colors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .lk-colors {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lk-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+}
+
+.lk-color {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lk-color__swatch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--dash-border);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+/* The native picker sits invisibly over the swatch so clicking the circle
+   opens it. */
+.lk-color__swatch input[type="color"] {
+  position: absolute;
+  inset: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  opacity: 0;
+  cursor: pointer;
+}
+
+.lk-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+  color: var(--dash-text-primary);
+  font-size: 13.5px;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.lk-input::placeholder {
+  color: var(--dash-text-tertiary);
+}
+
+.lk-input:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.lk-input:focus {
+  outline: none;
+  border-color: var(--dash-accent);
+}
+
+.lk-input--invalid,
+.lk-input--invalid:hover {
+  border-color: rgba(255, 107, 107, 0.6);
+}
+
+/* --- Sections inside the one big box ----------------------------------- */
+
+.lk-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--dash-border);
+}
+
+/* --- Icon glyph (tinted PNG) --------------------------------------------- */
+
+.lk-glyph {
+  display: block;
+  width: 18px;
+  height: 18px;
+  background-color: var(--lk-icon, #fff);
+  -webkit-mask: var(--lk-src) center / contain no-repeat;
+  mask: var(--lk-src) center / contain no-repeat;
+  transition: background-color 0.15s ease;
+}
+
+/* --- Platform picker ------------------------------------------------------ */
+
+.lk-platforms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.lk-platform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.lk-platform:hover .lk-glyph,
+.lk-row__icon:hover .lk-glyph {
+  background-color: var(--lk-hover, #ff0101);
+}
+
+.lk-platform:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.lk-platform--active {
+  border-color: rgba(255, 1, 1, 0.55);
+  border-color: color-mix(in srgb, var(--lk-hover, #ff0101) 55%, transparent);
+}
+
+.lk-platform:focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 2px;
+}
+
+/* --- Added links ------------------------------------------------------------ */
+
+.lk-empty {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--dash-text-tertiary);
+}
+
+.lk-rows {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lk-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface-raised);
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.lk-row--dragging {
+  opacity: 0.4;
+}
+
+.lk-row--over {
+  border-color: var(--dash-accent);
+}
+
+.lk-grip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  color: var(--dash-text-tertiary);
+  cursor: grab;
+}
+
+.lk-row:hover .lk-grip {
+  color: var(--dash-text-primary);
+}
+
+.lk-row:active .lk-grip {
+  cursor: grabbing;
+}
+
+.lk-row__icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+}
+
+.lk-row__name {
+  flex: 0 0 96px;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--dash-text-primary);
+}
+
+.lk-row__url {
+  flex: 1;
+  min-width: 0;
+}
+
+.lk-remove {
+  flex: 0 0 auto;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--dash-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.lk-remove:hover {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+@media (max-width: 640px) {
+  .lk-row {
+    flex-wrap: wrap;
+  }
+
+  .lk-row__name {
+    flex: 1;
+  }
+
+  .lk-row__url {
+    flex: 1 1 100%;
+    order: 5;
+  }
+
+  .lk-remove {
+    order: 4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-row,
+  .lk-platform,
+  .lk-glyph {
+    transition: none;
+  }
+}
