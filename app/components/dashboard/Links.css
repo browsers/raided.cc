@@ -239,6 +239,57 @@
   min-width: 0;
 }
 
+/* Input with a fixed, non-editable prefix in front of it. Looks like one
+   .lk-input; the focus ring goes on the whole box. */
+.lk-affix {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+  font-size: 13.5px;
+  cursor: text;
+  transition: border-color 0.15s ease;
+}
+
+.lk-affix:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.lk-affix:focus-within {
+  border-color: var(--dash-accent);
+}
+
+.lk-affix__prefix {
+  flex: 0 0 auto;
+  color: var(--dash-text-tertiary);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.lk-affix__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dash-text-primary);
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.lk-affix__input:focus {
+  outline: none;
+}
+
+.lk-affix__input::placeholder {
+  color: var(--dash-text-tertiary);
+  opacity: 0.6;
+}
+
 .lk-remove {
   flex: 0 0 auto;
   height: 40px;

@@ -17,13 +17,73 @@ export const LINK_DEFAULTS = {
 
 // To add a platform: drop its icon in public/link/ and add a line here.
 // The icons are solid shapes, drawn as a mask so they can be recoloured.
+//
+// Each platform has a fixed `prefix`: users only type the part after it (the
+// username / invite code), so a link can only ever point at that site.
+//   chars: characters allowed in the typed part, min/max: its length.
+//   placeholder: example of the typed part (shown inside the input).
 export const LINK_PLATFORMS = [
-  { key: "discord", label: "Discord", icon: "/link/discord.png", placeholder: "https://discord.gg/invite" },
-  { key: "x", label: "X", icon: "/link/x.png", placeholder: "https://x.com/username" },
-  { key: "tiktok", label: "TikTok", icon: "/link/tiktik.png", placeholder: "https://tiktok.com/@username" },
+  { key: "discord", label: "Discord", icon: "/link/discord.png", prefix: "https://discord.gg/", placeholder: "invite", chars: /[^A-Za-z0-9-]/g, min: 2, max: 32 },
+  { key: "x", label: "X", icon: "/link/x.png", prefix: "https://x.com/", placeholder: "username", chars: /[^A-Za-z0-9_]/g, min: 1, max: 15 },
+  { key: "tiktok", label: "TikTok", icon: "/link/tiktik.png", prefix: "https://tiktok.com/@", placeholder: "username", chars: /[^A-Za-z0-9._]/g, min: 1, max: 24 },
 ];
 
 export const LINK_PLATFORM_BY_KEY = Object.fromEntries(LINK_PLATFORMS.map((p) => [p.key, p]));
+
+// Drops the platform's own prefix if the user pasted a full link (with or
+// without https://, with or without www.), plus a leading @ and a trailing /.
+function stripPrefix(p, raw) {
+  let s = String(raw ?? "").trim();
+  const bare = p.prefix.replace(/^https:\/\//, "");
+  for (const pre of [p.prefix, `http://${bare}`, `https://www.${bare}`, `www.${bare}`, bare]) {
+    if (s.toLowerCase().startsWith(pre.toLowerCase())) {
+      s = s.slice(pre.length);
+      break;
+    }
+  }
+  return s.replace(/^@+/, "").replace(/\/+$/, "");
+}
+
+/**
+ * Typing filter for the editor input: pasted full links lose their prefix and
+ * any character the platform doesn't allow (slashes, ?, spaces...) is removed
+ * as it's typed. Lenient on length, so half-typed input still shows.
+ * @param {string} platform
+ * @param {unknown} raw
+ * @returns {string}
+ */
+export function filterLinkSuffix(platform, raw) {
+  const p = LINK_PLATFORM_BY_KEY[platform];
+  if (!p) return "";
+  return stripPrefix(p, raw).replace(p.chars, "").slice(0, p.max);
+}
+
+/**
+ * Strict version: the typed part if it is a complete valid one, else "".
+ * @param {string} platform
+ * @param {unknown} raw
+ * @returns {string}
+ */
+export function cleanLinkSuffix(platform, raw) {
+  const p = LINK_PLATFORM_BY_KEY[platform];
+  if (!p) return "";
+  const s = stripPrefix(p, raw);
+  if (s.length < p.min || s.length > p.max || s.replace(p.chars, "") !== s) return "";
+  return s;
+}
+
+/**
+ * The full saved URL (prefix + typed part), or "" when the typed part isn't
+ * valid yet. Accepts either the typed part or a full link.
+ * @param {string} platform
+ * @param {unknown} raw
+ * @returns {string}
+ */
+export function buildLinkUrl(platform, raw) {
+  const p = LINK_PLATFORM_BY_KEY[platform];
+  const suffix = cleanLinkSuffix(platform, raw);
+  return p && suffix ? `${p.prefix}${suffix}` : "";
+}
 
 /**
  * Turns whatever was typed into a safe http(s) URL, or null. Adds https://
@@ -47,9 +107,11 @@ export function normalizeLinkUrl(v) {
 }
 
 /**
- * Editor version: keeps rows whose URL is still blank or half typed, so
- * adding an icon and typing the link later works. Drops unknown platforms
- * and duplicates.
+ * Editor version: keeps rows whose link is still blank or half typed (saved
+ * as an empty url), so adding an icon and typing the link later works. Every
+ * url is rebuilt from the platform's fixed prefix, so nothing else can get
+ * through, even if the database is written to directly. Drops unknown
+ * platforms and duplicates.
  * @param {unknown} raw
  * @returns {{ iconColor: string, hoverColor: string, items: { platform: string, url: string }[] }}
  */
@@ -63,7 +125,7 @@ export function sanitizeLinks(raw) {
       const platform = String(it.platform ?? "");
       if (!LINK_PLATFORM_BY_KEY[platform] || seen.has(platform)) continue;
       seen.add(platform);
-      items.push({ platform, url: String(it.url ?? "").trim().slice(0, 300) });
+      items.push({ platform, url: buildLinkUrl(platform, it.url) });
     }
   }
   return {

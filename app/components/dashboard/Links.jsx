@@ -11,12 +11,15 @@ import {
   LINK_PLATFORMS as PLATFORMS,
   LINK_PLATFORM_BY_KEY as PLATFORM_BY_KEY,
   sanitizeLinks,
+  filterLinkSuffix,
+  cleanLinkSuffix,
 } from "../../lib/links";
 import "./Profile.css";
 import "./Appearance.css";
 import "./Links.css";
 
-// Saves to profiles.profile_links (jsonb). The platform list, defaults and
+// Each row only edits the part after the platform's fixed prefix (the username
+// or invite code); the prefix is added on save. Saves to profiles.profile_links (jsonb). The platform list, defaults and
 // validation all live in lib/links.js so this tab and the public profile
 // always agree. To add a platform, drop its icon in public/link/ and add a
 // line to LINK_PLATFORMS there.
@@ -91,8 +94,10 @@ export default function Links() {
     pending.current = false;
     if (!userIdRef.current) return;
     const { iconColor: ic, hoverColor: hc, links: items } = latest.current;
-    // sanitizeLinks drops unknown/duplicate platforms and swaps a half-typed
-    // hex for the default, so junk never reaches the database.
+    // `items[].url` holds just the typed part here. sanitizeLinks rebuilds the
+    // full URL from the platform's prefix (blank if incomplete), drops
+    // unknown/duplicate platforms and swaps a half-typed hex for the default,
+    // so junk never reaches the database.
     const clean = sanitizeLinks({ iconColor: ic, hoverColor: hc, items });
     const { error } = await supabase
       .from("profiles")
@@ -142,10 +147,12 @@ export default function Links() {
       } else {
         userIdRef.current = user.id;
         const saved = sanitizeLinks(row?.[LINKS_COLUMN]);
-        latest.current = { iconColor: saved.iconColor, hoverColor: saved.hoverColor, links: saved.items };
+        // Saved URLs are full links; the editor only shows the part after the prefix.
+        const rows = saved.items.map((l) => ({ platform: l.platform, url: cleanLinkSuffix(l.platform, l.url) }));
+        latest.current = { iconColor: saved.iconColor, hoverColor: saved.hoverColor, links: rows };
         setIconColor(saved.iconColor);
         setHoverColor(saved.hoverColor);
-        setLinks(saved.items);
+        setLinks(rows);
       }
       setLoading(false);
     })();
@@ -170,7 +177,10 @@ export default function Links() {
   }
 
   function setUrl(key, url) {
-    commit({ links: links.map((l) => (l.platform === key ? { ...l, url } : l)) });
+    // Filtered as it's typed: pasted full links lose their prefix and characters
+    // the platform doesn't allow can't be entered.
+    const value = filterLinkSuffix(key, url);
+    commit({ links: links.map((l) => (l.platform === key ? { ...l, url: value } : l)) });
   }
 
   function removeLink(key) {
@@ -294,14 +304,21 @@ export default function Links() {
                         <Glyph src={p.icon} />
                       </span>
                       <span className="lk-row__name">{p.label}</span>
-                      <input
-                        type="text"
-                        className="lk-input lk-row__url"
-                        value={l.url}
-                        placeholder={p.placeholder}
-                        spellCheck={false}
-                        onChange={(e) => setUrl(l.platform, e.target.value)}
-                      />
+                      <label className="lk-affix lk-row__url">
+                        <span className="lk-affix__prefix">{p.prefix}</span>
+                        <input
+                          type="text"
+                          className="lk-affix__input"
+                          value={l.url}
+                          placeholder={p.placeholder}
+                          maxLength={p.max + p.prefix.length}
+                          spellCheck={false}
+                          autoCapitalize="off"
+                          autoCorrect="off"
+                          aria-label={`${p.label} ${p.placeholder}`}
+                          onChange={(e) => setUrl(l.platform, e.target.value)}
+                        />
+                      </label>
                       <button type="button" className="lk-remove" onClick={() => removeLink(l.platform)}>
                         Remove
                       </button>
