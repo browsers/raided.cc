@@ -10,6 +10,7 @@ import {
   withCardDefaults,
 } from "../../lib/cardStyle";
 import { TILT_COLUMNS, withTiltDefaults } from "../../lib/tilt";
+import { VIEWS_COLUMNS, VIEWS_POSITIONS, withViewsDefaults } from "../../lib/views";
 import TopBar from "./TopBar";
 import Card from "./Card";
 import "./Profile.css";
@@ -163,6 +164,8 @@ export default function Appearance() {
 
   const [layout, setLayoutRaw] = useState("minimal");
   const [avatarShape, setAvatarShapeRaw] = useState("rounded"); // "rounded" | "circle" | "match"
+  const [viewsPosition, setViewsPositionRaw] = useState("page-right");
+  const [viewsGlass, setViewsGlassRaw] = useState(true);
 
   // Card settings
   const [bgMode, setBgModeRaw] = useState("gradient"); // "solid" | "gradient"
@@ -215,6 +218,22 @@ export default function Appearance() {
     if (error) console.error("Avatar shape save failed:", error);
     setStatus(error ? "error" : "saved");
   }
+
+  // Views counter settings (position + glass border) save on their own too,
+  // so a missing views migration can't break anything else. viewsUserId
+  // stays null if the columns don't exist, and changes just won't save.
+  const viewsUserId = useRef(null);
+
+  async function saveViews(cols) {
+    if (!viewsUserId.current) return;
+    setStatus("saving");
+    const { error } = await supabase.from("profiles").update(cols).eq("id", viewsUserId.current);
+    if (error) console.error("Views save failed:", error);
+    setStatus(error ? "error" : "saved");
+  }
+
+  const setViewsPosition = (v) => { setViewsPositionRaw(v); saveViews({ views_position: v }); };
+  const setViewsGlass = (v) => { setViewsGlassRaw(v); saveViews({ views_glass: v }); };
 
   // Tilt settings save on their own (own debounce, own columns) so a missing
   // tilt migration can't break the card settings above, and vice versa.
@@ -285,6 +304,21 @@ export default function Appearance() {
       const savedShape = shapeRow?.[AVATAR_SHAPE_COLUMN];
       if (!cancelled && AVATAR_SHAPES.some((o) => o.value === savedShape)) {
         setAvatarShapeRaw(savedShape);
+      }
+
+      // Views counter settings: own query, same reasoning as the avatar shape.
+      const { data: viewsRow, error: viewsError } = await supabase
+        .from("profiles")
+        .select(VIEWS_COLUMNS)
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && !viewsError) {
+        const vw = withViewsDefaults(viewsRow);
+        viewsUserId.current = user.id;
+        setViewsPositionRaw(vw.views_position);
+        setViewsGlassRaw(vw.views_glass);
+      } else if (viewsError) {
+        console.error("Views settings load failed (run views_migration.sql):", viewsError);
       }
 
       // Tilt settings: own query, same reasoning as the avatar shape. If the
@@ -387,28 +421,60 @@ export default function Appearance() {
               </button>
             ))}
           </div>
-          <label className="ap-field ap-field--shape">
-            <span className="ap-field__label">Avatar Shape</span>
-            <select
-              className="ap-select"
-              value={avatarShape}
-              disabled={loading}
-              onChange={(e) => setAvatarShape(e.target.value)}
-            >
-              {AVATAR_SHAPES.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-            {avatarShape === "match" ? (
-              <span className="ap-field__hint">
-                {layout === "card"
-                  ? "Your avatar uses the same corners as the card (Corner Radius below)."
-                  : "Only applies in the Card layout. Minimal keeps a rounded square."}
-              </span>
-            ) : null}
-          </label>
+          <div className="ap-field-row">
+            <label className="ap-field ap-field--shape">
+              <span className="ap-field__label">Avatar Shape</span>
+              <select
+                className="ap-select"
+                value={avatarShape}
+                disabled={loading}
+                onChange={(e) => setAvatarShape(e.target.value)}
+              >
+                {AVATAR_SHAPES.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {avatarShape === "match" ? (
+                <span className="ap-field__hint">
+                  {layout === "card"
+                    ? "Your avatar uses the same corners as the card (Corner Radius below)."
+                    : "Only applies in the Card layout. Minimal keeps a rounded square."}
+                </span>
+              ) : null}
+            </label>
+            <label className="ap-field ap-field--shape">
+              <span className="ap-field__label">Views Position</span>
+              <select
+                className="ap-select"
+                value={viewsPosition}
+                disabled={loading}
+                onChange={(e) => setViewsPosition(e.target.value)}
+              >
+                {VIEWS_POSITIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              {viewsPosition.startsWith("card-") && layout !== "card" ? (
+                <span className="ap-field__hint">
+                  Only applies in the Card layout. Minimal keeps it in the page corner.
+                </span>
+              ) : null}
+            </label>
+          </div>
+
+          <div className="ap-switch ap-views-glass">
+            <div>
+              <div className="ap-switch__label">Views Glass Border</div>
+              <div className="ap-switch__hint">
+                The faint box and border around the views counter
+              </div>
+            </div>
+            <Switch on={viewsGlass} onChange={setViewsGlass} label="Views glass border" />
+          </div>
           {handle ? (
             <a className="ap-view" href={`/${handle}`} target="_blank" rel="noreferrer">
               View your profile

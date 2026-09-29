@@ -560,3 +560,22 @@
   line-height: 1.45;
   color: var(--dash-text-secondary);
 }
+
+/* Avatar shape + views position sit side by side (stack on narrow screens). */
+.ap-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  margin-top: 20px;
+}
+
+.ap-field-row .ap-field--shape {
+  margin-top: 0;
+  flex: 1 1 240px;
+  max-width: 280px;
+}
+
+.ap-views-glass {
+  margin-top: 16px;
+  max-width: 580px;
+}

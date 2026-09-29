@@ -9,6 +9,7 @@ import TimeWidget from "./TimeWidget";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import { buildWidgetStyle } from "../lib/widgets";
 import { withTiltDefaults } from "../lib/tilt";
+import { withViewsDefaults } from "../lib/views";
 import useCardTilt from "./useCardTilt";
 import "./ProfileCard.css";
 
@@ -594,6 +595,29 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       </div>
     ) : null;
 
+  // Views counter: sits in a page corner, or (Card layout only) inside the
+  // card's bottom corner. Minimal has no card, so "card" positions fall
+  // back to the same side of the page.
+  const viewsCfg = withViewsDefaults(profile);
+  const viewsInCard = boxed && viewsCfg.views_position.startsWith("card-");
+  const viewsSide = viewsCfg.views_position.endsWith("-left") ? "left" : "right";
+  const viewsEl =
+    views !== null ? (
+      <div
+        className={[
+          "public-profile-views",
+          `public-profile-views--${viewsSide}`,
+          viewsInCard ? "public-profile-views--card" : "",
+          viewsCfg.views_glass ? "" : "public-profile-views--bare",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <img src="/icons/view.png" alt="" className="public-profile-views__icon" />
+        <span>{views.toLocaleString()}</span>
+      </div>
+    ) : null;
+
   return (
     <main
       className={boxed ? "public-profile-page public-profile-page--boxed" : "public-profile-page"}
@@ -645,6 +669,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             {badgeTooltipEl}
           </div>
           {widgetsEl}
+          {viewsInCard ? viewsEl : null}
           </>
         ) : (
           <>
@@ -678,12 +703,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
         </button>
       ) : null}
 
-      {views !== null ? (
-        <div className="public-profile-views">
-          <img src="/icons/view.png" alt="" className="public-profile-views__icon" />
-          <span>{views.toLocaleString()}</span>
-        </div>
-      ) : null}
+      {!viewsInCard ? viewsEl : null}
     </main>
   );
 }

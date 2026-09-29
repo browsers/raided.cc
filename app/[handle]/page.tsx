@@ -6,6 +6,7 @@ import { getDiscordPresences } from "../lib/discordPresence";
 import { getTwitterProfiles } from "../lib/twitter";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
+import { VIEWS_COLUMNS } from "../lib/views";
 import { TILT_COLUMNS } from "../lib/tilt";
 import {
   WIDGETS_COLUMN,
@@ -72,6 +73,14 @@ export default async function PublicProfilePage({
   const { data: tiltRow } = await supabase
     .from("profiles")
     .select(TILT_COLUMNS)
+    .eq("id", profile.id)
+    .maybeSingle();
+
+  // Views counter placement/look: own query, so the views migration not
+  // being run yet just means the defaults, never a 404.
+  const { data: viewsRow } = await supabase
+    .from("profiles")
+    .select(VIEWS_COLUMNS)
     .eq("id", profile.id)
     .maybeSingle();
 
@@ -149,6 +158,7 @@ export default async function PublicProfilePage({
         ...profile,
         ...((appearanceRow as unknown as Record<string, unknown> | null) ?? {}),
         ...((tiltRow as unknown as Record<string, unknown> | null) ?? {}),
+        ...((viewsRow as unknown as Record<string, unknown> | null) ?? {}),
         badge_glow: badgeGlowRow?.badge_glow ?? "off",
         avatar_shape:
           (avatarShapeRow as unknown as { avatar_shape?: string } | null)?.avatar_shape ?? "rounded",

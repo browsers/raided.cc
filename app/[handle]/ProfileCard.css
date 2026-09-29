@@ -236,6 +236,29 @@
   pointer-events: none;
 }
 
+.public-profile-views--left {
+  right: auto;
+  left: 16px;
+}
+
+/* Inside the card: sits at the bottom of the card, on the chosen side. */
+.public-profile-views--card {
+  position: static;
+  align-self: flex-end;
+  margin-top: 14px;
+}
+
+.public-profile-views--card.public-profile-views--left {
+  align-self: flex-start;
+}
+
+/* Glass border off: no box, no border, just the icon + number. */
+.public-profile-views--bare {
+  padding: 3px 0;
+  background: none;
+  border-color: transparent;
+}
+
 .public-profile-views__icon {
   width: 14px;
   height: 14px;
