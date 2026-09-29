@@ -52,6 +52,16 @@ export default function TwitterWidget({ profile, boxStyle }) {
             <span className="xw__stat-label">Following</span>
           </div>
         </div>
+
+        <a
+          className="xw__follow"
+          href={`https://x.com/${encodeURIComponent(profile.username)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Follow @${profile.username} on X`}
+        >
+          Follow
+        </a>
       </div>
     </div>
   );

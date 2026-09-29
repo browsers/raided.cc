@@ -59,7 +59,7 @@ const PLATFORMS = [
     icon: "/icons/twitter.svg",
     fieldLabel: "X username",
     placeholder: "elonmusk",
-    help: "Just the username, no @ or full link. Shows your profile photo, name, follower/following counts and the verified checkmark if you have one. Needs the site's X API access set up on the backend, so it may show nothing until that's configured.",
+    help: "Just the username, no @ or full link. Shows your profile photo, name, follower/following counts, the verified checkmark if you have one, and a Follow button that opens your account on X. Counts are a snapshot, so they can lag a few minutes.",
     valid: isTwitterHandle,
     numeric: false,
     invalidHelp: "That doesn't look like a valid X username.",
