@@ -51,6 +51,7 @@ export async function getTwitterProfiles(usernames) {
 
   const token = process.env.TWITTER_BEARER_TOKEN;
   if (!token) {
+    console.error("Twitter widget: TWITTER_BEARER_TOKEN is not set — widgets will render nothing.");
     for (const u of want) out[u] = null;
     return out;
   }
@@ -71,6 +72,12 @@ export async function getTwitterProfiles(usernames) {
         `${X_API}/users/by?usernames=${chunk.join(",")}&user.fields=profile_image_url,public_metrics,verified,verified_type`,
         { headers: { Authorization: `Bearer ${token}` }, next: { revalidate: TTL_MS / 1000 } }
       );
+      if (!res.ok) {
+        // Most common cause: the app's API access tier doesn't include the
+        // Users lookup endpoint (401/403), or the token is wrong/expired.
+        const bodyText = await res.text().catch(() => "");
+        console.error(`Twitter widget: X API returned ${res.status} for [${chunk.join(", ")}]: ${bodyText.slice(0, 300)}`);
+      }
       const body = res.ok ? await res.json() : null;
       const found = new Map((body?.data ?? []).map((u) => [String(u.username).toLowerCase(), slim(u)]));
       for (const u of chunk) {
@@ -78,7 +85,8 @@ export async function getTwitterProfiles(usernames) {
         out[u] = value;
         cache.set(u, { at: now, ttl: value ? TTL_MS : FAIL_TTL_MS, value });
       }
-    } catch {
+    } catch (err) {
+      console.error(`Twitter widget: fetch failed for [${chunk.join(", ")}]:`, err);
       for (const u of chunk) {
         out[u] = null;
         cache.set(u, { at: now, ttl: FAIL_TTL_MS, value: null });
