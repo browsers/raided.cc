@@ -185,12 +185,20 @@ export function sanitizeWidgetStyle(raw) {
  * the CSS defaults apply untouched.
  * @param {ReturnType<typeof sanitizeWidgetStyle>} style
  */
+// Hover pop strength by reactivity (1-5) — same idea as the badges'
+// scale(1.05) on hover, just a little bigger since the widget is bigger.
+// No mouse tracking, no tilt: these only ever apply on CSS :hover.
+const HOVER_SCALE = { 1: 1.015, 2: 1.025, 3: 1.035, 4: 1.05, 5: 1.07 };
+const HOVER_GLOW = { 1: 0.12, 2: 0.18, 3: 0.25, 4: 0.32, 5: 0.4 };
+
 export function buildWidgetStyle(style) {
   if (!style) return undefined;
   const out = {
     background: hexToRgba(style.bg_color, style.opacity / 100),
     border: style.border > 0 ? `${style.border}px solid ${style.border_color}` : "none",
     boxShadow: style.shadow > 0 ? `0 0 ${style.shadow}px ${style.shadow_color}` : "none",
+    "--dpw-hover-scale": style.hover_effect ? HOVER_SCALE[style.hover_reactivity] ?? HOVER_SCALE[3] : 1,
+    "--dpw-hover-glow": style.hover_effect ? HOVER_GLOW[style.hover_reactivity] ?? HOVER_GLOW[3] : 0,
   };
   if (style.blur > 0) {
     out.backdropFilter = `blur(${style.blur}px)`;

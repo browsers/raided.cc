@@ -559,13 +559,11 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       >
         {widgets.map((w) => {
           if (w.platform === "discord-presence") {
-            const effectiveStyle = w.style ?? widgetStyle;
             return (
               <DiscordPresence
                 key={w.id}
                 presence={presences[w.accountId] ?? null}
-                boxStyle={buildWidgetStyle(effectiveStyle)}
-                hover={effectiveStyle}
+                boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
                 tag={w.accountId === profile.discord_user_id ? discordTag : null}
               />
             );

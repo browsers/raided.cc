@@ -16,19 +16,19 @@
   color: #f5f5f5;
 }
 
-/* Hover tilt (see useWidgetHover.js). The transform is written directly to
-   the element's inline style by the hook; this just adds the glow that
-   rises with it, and the badges get a matching little pop so the whole
-   widget feels alive rather than just the box rotating. */
-.dpw--hovering {
-  box-shadow: 0 0 24px rgba(255, 255, 255, var(--dpw-hover-glow, 0.2)),
-    0 10px 30px rgba(0, 0, 0, 0.35);
+/* Hover pop (see lib/widgets.js buildWidgetStyle for --dpw-hover-scale/glow).
+   Plain CSS :hover — no JS, no cursor tracking, no tilt. Defaults below
+   (scale 1.035 / glow 0.25) match reactivity 3 and apply when no per-widget
+   style is saved yet. */
+.dpw {
+  --dpw-hover-scale: 1.035;
+  --dpw-hover-glow: 0.25;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.dpw--hovering .dpw__avatar,
-.dpw--hovering .dpw__art {
-  transition: transform 0.2s ease;
-  transform: scale(1.04);
+.dpw:hover {
+  transform: scale(var(--dpw-hover-scale));
+  box-shadow: 0 0 24px rgba(255, 255, 255, var(--dpw-hover-glow)), 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
 .dpw--loading {
