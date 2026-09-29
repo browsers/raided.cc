@@ -527,6 +527,29 @@ function WidgetPicker({ widgets, selectedId, onSelect, disabled }) {
 export default function Widgets() {
   // Widget Style is collapsed until the header is opened.
   const [styleOpen, setStyleOpen] = useState(false);
+  // "settled" = the open animation has finished. Until then (and while
+  // closing) the panel clips its content so the height can animate; once
+  // settled it lets dropdown menus / focus rings spill out again.
+  const [styleSettled, setStyleSettled] = useState(false);
+  const toggleStyle = () => {
+    setStyleSettled(false);
+    setStyleOpen((o) => !o);
+  };
+
+  // Scrollbar: its track is always reserved (no layout jump) and the thumb
+  // fades in when the page starts to overflow, e.g. as the panel opens.
+  const bodyRef = useRef(null);
+  const [scrollable, setScrollable] = useState(false);
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const check = () => setScrollable(el.scrollHeight > el.clientHeight + 1);
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    Array.from(el.children).forEach((c) => ro.observe(c));
+    check();
+    return () => ro.disconnect();
+  }, []);
   const [widgets, setWidgets] = useState([]); // { id, platform, accountId }
   const [modalOpen, setModalOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -707,7 +730,10 @@ export default function Widgets() {
     <div className="dash-profile-shell">
       <TopBar breadcrumb="RAIDED.CC / EDIT" title="Widgets" />
 
-      <div className="dash-profile-body">
+      <div
+        ref={bodyRef}
+        className={`dash-profile-body wg-scroll${scrollable ? " wg-scroll--active" : ""}`}
+      >
         <Card className="dash-profile-section">
           <div className="wg-head">
             <div className="wg-head__text">
@@ -810,7 +836,7 @@ export default function Widgets() {
 
         <Card className="dash-profile-section">
           <div className={`wg-head wg-head--collapsible${styleOpen ? "" : " wg-head--closed"}`}>
-            <div className="wg-head__text" onClick={() => setStyleOpen((o) => !o)}>
+            <div className="wg-head__text" onClick={toggleStyle}>
               <div className="dash-card__eyebrow">STYLE</div>
               <h3 className="wg-head__title">Widget Style</h3>
               <div className="wg-head__sub">
@@ -818,23 +844,22 @@ export default function Widgets() {
               </div>
             </div>
             <div className="wg-head__actions">
-              {styleOpen ? (
-                <button
-                  type="button"
-                  className="wg-btn wg-btn--ghost"
-                  disabled={loading || !selected}
-                  onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
-                >
-                  Reset
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className={`wg-btn wg-btn--ghost wg-reset${styleOpen ? "" : " wg-reset--hidden"}`}
+                disabled={loading || !selected}
+                tabIndex={styleOpen ? 0 : -1}
+                onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
+              >
+                Reset
+              </button>
               <button
                 type="button"
                 className={`wg-chevron${styleOpen ? " wg-chevron--open" : ""}`}
                 aria-expanded={styleOpen}
                 aria-controls="wg-style-body"
                 aria-label={styleOpen ? "Hide widget style" : "Show widget style"}
-                onClick={() => setStyleOpen((o) => !o)}
+                onClick={toggleStyle}
               >
                 <svg width="12" height="8" viewBox="0 0 10 6" aria-hidden="true">
                   <path
@@ -850,8 +875,17 @@ export default function Widgets() {
             </div>
           </div>
 
-          {styleOpen ? (
-          <div id="wg-style-body">
+          <div
+            id="wg-style-body"
+            className={`wg-collapse${styleOpen ? " wg-collapse--open" : ""}${styleSettled ? " wg-collapse--settled" : ""}`}
+            aria-hidden={!styleOpen}
+            onTransitionEnd={(e) => {
+              if (e.target === e.currentTarget && e.propertyName === "grid-template-rows" && styleOpen) {
+                setStyleSettled(true);
+              }
+            }}
+          >
+          <div className="wg-collapse__inner">
 
           <WidgetPicker
             widgets={widgets}
@@ -924,7 +958,7 @@ export default function Widgets() {
             </div>
           </fieldset>
           </div>
-          ) : null}
+          </div>
         </Card>
       </div>
 

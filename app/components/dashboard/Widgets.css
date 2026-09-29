@@ -43,9 +43,91 @@
   cursor: pointer;
 }
 
+/* Same alignment open or closed, so nothing jumps; only the gap under the
+   header animates. */
+.wg-head--collapsible {
+  align-items: center;
+  transition: margin-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .wg-head--closed {
   margin-bottom: 0;
-  align-items: center;
+}
+
+.wg-reset {
+  transition: opacity 0.25s ease, visibility 0s linear 0s, color 0.15s ease, border-color 0.15s ease;
+}
+
+.wg-reset--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
+}
+
+/* Smooth open/close: the grid row animates 0fr <-> 1fr, which lets the
+   height slide to the content's natural size without measuring it. */
+.wg-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease,
+    visibility 0s linear 0.35s;
+}
+
+.wg-collapse--open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    grid-template-rows 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease 0.05s,
+    visibility 0s linear 0s;
+}
+
+.wg-collapse__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Once fully open, stop clipping so menus and focus rings aren't cut off. */
+.wg-collapse--settled .wg-collapse__inner {
+  overflow: visible;
+}
+
+/* Scrollbar for this tab: the track is always reserved, so nothing shifts
+   sideways when it shows up, and the thumb fades in once the page overflows. */
+.dash-profile-body.wg-scroll {
+  scrollbar-gutter: stable;
+  padding-right: 0;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.4s ease;
+}
+
+.dash-profile-body.wg-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  transition: background 0.4s ease;
+}
+
+.dash-profile-body.wg-scroll.wg-scroll--active {
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.dash-profile-body.wg-scroll.wg-scroll--active::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wg-collapse,
+  .wg-collapse--open,
+  .wg-head--collapsible,
+  .wg-chevron svg,
+  .dash-profile-body.wg-scroll {
+    transition: none;
+  }
 }
 
 .wg-chevron {
@@ -69,7 +151,7 @@
 }
 
 .wg-chevron svg {
-  transition: transform 0.2s ease;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .wg-chevron--open svg {
