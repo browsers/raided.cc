@@ -1,23 +1,5 @@
 import "./TwitterWidget.css";
 
-// Simple checkmark-in-circle for verified accounts. Deliberately generic
-// rather than a pixel copy of X's own badge artwork.
-function VerifiedBadge() {
-  return (
-    <svg className="xw__verified" viewBox="0 0 16 16" width="15" height="15" aria-label="Verified" role="img">
-      <circle cx="8" cy="8" r="8" fill="#1d9bf0" />
-      <path
-        d="M4.7 8.3 6.8 10.4 11.3 5.8"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 // 1,234 -> "1.2K", 4,000,000 -> "4M". Matches the shorthand X itself uses.
 function formatCount(n) {
   const v = Number(n) || 0;
@@ -40,8 +22,8 @@ function formatCount(n) {
  * }} props
  */
 export default function TwitterWidget({ profile, boxStyle }) {
-  // No TWITTER_BEARER_TOKEN set, or X couldn't find/return this account —
-  // don't leave visitors looking at an empty box (same rule as Discord).
+  // X (or the public lookup) couldn't return this account — don't leave
+  // visitors looking at an empty box (same rule as Discord).
   if (!profile) return null;
 
   return (
@@ -53,20 +35,22 @@ export default function TwitterWidget({ profile, boxStyle }) {
         <div className="xw__who">
           <div className="xw__name-row">
             <span className="xw__name">{profile.name}</span>
-            {profile.verified ? <VerifiedBadge /> : null}
+            {profile.verified ? (
+              <img className="xw__verified" src="/badges/verified.png" alt="Verified" title="Verified" />
+            ) : null}
           </div>
           <div className="xw__handle">@{profile.username}</div>
         </div>
-      </div>
 
-      <div className="xw__stats">
-        <div className="xw__stat">
-          <span className="xw__stat-num">{formatCount(profile.followers)}</span>
-          <span className="xw__stat-label">Followers</span>
-        </div>
-        <div className="xw__stat">
-          <span className="xw__stat-num">{formatCount(profile.following)}</span>
-          <span className="xw__stat-label">Following</span>
+        <div className="xw__stats">
+          <div className="xw__stat">
+            <span className="xw__stat-num">{formatCount(profile.followers)}</span>
+            <span className="xw__stat-label">Followers</span>
+          </div>
+          <div className="xw__stat">
+            <span className="xw__stat-num">{formatCount(profile.following)}</span>
+            <span className="xw__stat-label">Following</span>
+          </div>
         </div>
       </div>
     </div>
