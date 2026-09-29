@@ -13,6 +13,7 @@ import {
   WIDGET_STYLE_DEFAULTS,
   isDiscordId,
   isTimezone,
+  isTwitterHandle,
   newWidgetId,
   sanitizeClockOptions,
   sanitizeWidgets,
@@ -51,6 +52,17 @@ const PLATFORMS = [
     help: "Pick a timezone from the list (like America/New_York), or use your device's. Visitors see this time no matter where they are. Change the size, layout, 12/24h, seconds, the date line and the place name after adding.",
     valid: isTimezone,
     numeric: false,
+  },
+  {
+    key: "twitter",
+    label: "X (Twitter)",
+    icon: "/icons/twitter.svg",
+    fieldLabel: "X username",
+    placeholder: "elonmusk",
+    help: "Just the username, no @ or full link. Shows your profile photo, name, follower/following counts and the verified checkmark if you have one. Needs the site's X API access set up on the backend, so it may show nothing until that's configured.",
+    valid: isTwitterHandle,
+    numeric: false,
+    invalidHelp: "That doesn't look like a valid X username.",
   },
 ];
 
@@ -225,7 +237,7 @@ function AddWidgetModal({ onClose, onAdd, existing }) {
             <span className="wg-modal__help wg-modal__help--error">
               {platformKey === "current-time"
                 ? "That isn't a timezone name. Try something like Europe/London."
-                : "That doesn't look like a valid ID."}
+                : platform.invalidHelp ?? "That doesn't look like a valid ID."}
             </span>
           ) : null}
           {dup ? (

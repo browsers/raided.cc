@@ -3,6 +3,7 @@ import { createClient } from "../lib/supabase/server";
 import { getBadgeMeta } from "../lib/badgeCatalog";
 import { getDiscordGuildTag } from "../lib/discord";
 import { getDiscordPresences } from "../lib/discordPresence";
+import { getTwitterProfiles } from "../lib/twitter";
 import { getEmbedForHandle, getSiteOrigin } from "../lib/embedServer";
 import { CARD_COLUMNS, AVATAR_SHAPE_COLUMN } from "../lib/cardStyle";
 import { TILT_COLUMNS } from "../lib/tilt";
@@ -123,7 +124,15 @@ export default async function PublicProfilePage({
   const presenceIds = Array.from(
     new Set(widgets.filter((w) => w.platform === "discord-presence").map((w) => w.accountId))
   );
-  const presences = await getDiscordPresences(presenceIds);
+  // Same idea for X (Twitter) widgets: one batched lookup for every
+  // username on the page, keyed lowercase (see lib/twitter.js).
+  const twitterUsernames = Array.from(
+    new Set(widgets.filter((w) => w.platform === "twitter").map((w) => w.accountId))
+  );
+  const [presences, twitterProfiles] = await Promise.all([
+    getDiscordPresences(presenceIds),
+    getTwitterProfiles(twitterUsernames),
+  ]);
 
   const badges: { id: string; icon: string; label: string; glow: string }[] = (badgeRows ?? [])
     .map((row) => {
@@ -151,6 +160,7 @@ export default async function PublicProfilePage({
       discordTag={discordTag}
       widgets={widgets}
       presences={presences}
+      twitterProfiles={twitterProfiles}
       widgetStyle={widgetStyle}
     />
   );

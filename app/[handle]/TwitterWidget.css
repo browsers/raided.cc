@@ -1,0 +1,109 @@
+/* Public X (Twitter) widget. --dpw-radius is set by ProfileCard so it
+   follows the card's corner setting, same as the other widgets. */
+
+.xw {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  border-radius: var(--dpw-radius, 12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f5f5;
+}
+
+/* Hover pop (see lib/widgets.js buildWidgetStyle for --dpw-hover-scale/glow),
+   same plain-CSS-only approach as the Discord widget: no JS, no tilt. */
+.xw {
+  --dpw-hover-scale: 1.035;
+  --dpw-hover-glow: 0.25;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.xw:hover {
+  transform: scale(var(--dpw-hover-scale));
+  box-shadow: 0 0 24px rgba(255, 255, 255, var(--dpw-hover-glow)), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.xw__main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.xw__avatar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+}
+
+.xw__avatar > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.xw__who {
+  flex: 1;
+  min-width: 0;
+}
+
+.xw__name-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.xw__name {
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xw__verified {
+  flex: 0 0 auto;
+}
+
+.xw__handle {
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: rgba(245, 245, 245, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xw__stats {
+  display: flex;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.xw__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  min-width: 0;
+}
+
+.xw__stat-num {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.xw__stat-label {
+  font-size: 12px;
+  color: rgba(245, 245, 245, 0.55);
+}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import FuzzyText from "../components/FuzzyText";
 import WarpText from "../components/WarpText";
 import DiscordPresence from "./DiscordPresence";
+import TwitterWidget from "./TwitterWidget";
 import TimeWidget from "./TimeWidget";
 import { buildCardStyle, isCardLayout, withCardDefaults } from "../lib/cardStyle";
 import { buildWidgetStyle } from "../lib/widgets";
@@ -129,7 +130,7 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   widgetStyle?: object | null,
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {}, widgetStyle = null }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {}, twitterProfiles = {}, widgetStyle = null }) {
   const {
     handle,
     display_name: displayName,
@@ -574,6 +575,15 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
                 key={w.id}
                 zone={w.accountId}
                 options={w.options}
+                boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
+              />
+            );
+          }
+          if (w.platform === "twitter") {
+            return (
+              <TwitterWidget
+                key={w.id}
+                profile={twitterProfiles[w.accountId.toLowerCase()] ?? null}
                 boxStyle={buildWidgetStyle(w.style ?? widgetStyle)}
               />
             );
