@@ -525,6 +525,8 @@ function WidgetPicker({ widgets, selectedId, onSelect, disabled }) {
 }
 
 export default function Widgets() {
+  // Widget Style is collapsed until the header is opened.
+  const [styleOpen, setStyleOpen] = useState(false);
   const [widgets, setWidgets] = useState([]); // { id, platform, accountId }
   const [modalOpen, setModalOpen] = useState(false);
   const [dragId, setDragId] = useState(null);
@@ -807,23 +809,49 @@ export default function Widgets() {
         </Card>
 
         <Card className="dash-profile-section">
-          <div className="wg-head">
-            <div className="wg-head__text">
+          <div className={`wg-head wg-head--collapsible${styleOpen ? "" : " wg-head--closed"}`}>
+            <div className="wg-head__text" onClick={() => setStyleOpen((o) => !o)}>
               <div className="dash-card__eyebrow">STYLE</div>
               <h3 className="wg-head__title">Widget Style</h3>
               <div className="wg-head__sub">
                 Pick a widget, then change how it looks. Changes save automatically.
               </div>
             </div>
-            <button
-              type="button"
-              className="wg-btn wg-btn--ghost"
-              disabled={loading || !selected}
-              onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
-            >
-              Reset
-            </button>
+            <div className="wg-head__actions">
+              {styleOpen ? (
+                <button
+                  type="button"
+                  className="wg-btn wg-btn--ghost"
+                  disabled={loading || !selected}
+                  onClick={() => commitStyle({ ...WIDGET_STYLE_DEFAULTS })}
+                >
+                  Reset
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className={`wg-chevron${styleOpen ? " wg-chevron--open" : ""}`}
+                aria-expanded={styleOpen}
+                aria-controls="wg-style-body"
+                aria-label={styleOpen ? "Hide widget style" : "Show widget style"}
+                onClick={() => setStyleOpen((o) => !o)}
+              >
+                <svg width="12" height="8" viewBox="0 0 10 6" aria-hidden="true">
+                  <path
+                    d="M1 1l4 4 4-4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {styleOpen ? (
+          <div id="wg-style-body">
 
           <WidgetPicker
             widgets={widgets}
@@ -895,6 +923,8 @@ export default function Widgets() {
               </div>
             </div>
           </fieldset>
+          </div>
+          ) : null}
         </Card>
       </div>
 

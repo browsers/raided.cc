@@ -32,10 +32,59 @@
   color: var(--dash-text-secondary);
 }
 
+/* Widget Style header doubles as the open/close control. */
+.wg-head__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wg-head--collapsible .wg-head__text {
+  cursor: pointer;
+}
+
+.wg-head--closed {
+  margin-bottom: 0;
+  align-items: center;
+}
+
+.wg-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-border);
+  background: var(--dash-surface);
+  color: var(--dash-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.wg-chevron:hover {
+  color: var(--dash-text-primary);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.wg-chevron svg {
+  transition: transform 0.2s ease;
+}
+
+.wg-chevron--open svg {
+  transform: rotate(180deg);
+}
+
 @media (max-width: 520px) {
   .wg-head {
     flex-direction: column;
     align-items: stretch;
+  }
+  /* Keep the chevron beside the title on phones (declared after .wg-head). */
+  .wg-head.wg-head--collapsible {
+    flex-direction: row;
+    align-items: center;
   }
 }
 
