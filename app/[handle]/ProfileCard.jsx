@@ -130,9 +130,10 @@ function useTypewriter(lines, active, typeMs, holdMs, deleteMs) {
  *   presences?: Record<string, any>,
  *   twitterProfiles?: Record<string, any>,
  *   widgetStyle?: object | null,
+ *   links?: { iconColor: string, hoverColor: string, items: { platform: string, label: string, icon: string, url: string }[] } | null,
  * }} props
  */
-export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {}, twitterProfiles = {}, widgetStyle = null }) {
+export default function ProfileCard({ profile, bioLines, badges = [], tracks = [], discordTag = null, widgets = [], presences = {}, twitterProfiles = {}, widgetStyle = null, links = null }) {
   const {
     handle,
     display_name: displayName,
@@ -595,6 +596,34 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
       </div>
     ) : null;
 
+  // Social icons from the dashboard's Links tab. They're solid PNGs drawn as
+  // a mask over a background colour, so the icon colour and the hover colour
+  // from the dashboard can tint them. Sits under the bio in both layouts.
+  const linksEl =
+    links && links.items.length > 0 ? (
+      <div
+        className="public-profile-links"
+        style={{ "--pl-icon": links.iconColor, "--pl-hover": links.hoverColor }}
+      >
+        {links.items.map((l) => (
+          <a
+            key={l.platform}
+            className="public-profile-links__item"
+            href={l.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={l.label}
+          >
+            <span
+              className="public-profile-links__glyph"
+              style={{ "--pl-src": `url(${l.icon})` }}
+              aria-hidden="true"
+            />
+          </a>
+        ))}
+      </div>
+    ) : null;
+
   // Views counter: sits in a page corner, or (Card layout only) inside the
   // card's bottom corner. Minimal has no card, so "card" positions fall
   // back to the same side of the page.
@@ -664,7 +693,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
               </div>
               {discordTagLayout !== "inline" ? discordTagEl : null}
               {bio}
-              {/* Profile links go here (under the bio) once that section is built. */}
+              {linksEl}
             </div>
             {badgeTooltipEl}
           </div>
@@ -683,7 +712,7 @@ export default function ProfileCard({ profile, bioLines, badges = [], tracks = [
             {badgeTooltipEl}
             {discordTagLayout === "below_badges" ? discordTagEl : null}
             {bio}
-            {/* Links go here once that section is built. */}
+            {linksEl}
             {widgetsEl}
           </>
         )}

@@ -14,6 +14,7 @@ import {
   sanitizeWidgets,
   sanitizeWidgetStyle,
 } from "../lib/widgets";
+import { LINKS_COLUMN, resolveLinks } from "../lib/links";
 import ProfileCard from "./ProfileCard";
 
 // The public card at raided.cc/[handle]. Server-rendered so it works for
@@ -106,6 +107,17 @@ export default async function PublicProfilePage({
     (widgetStyleRow as unknown as Record<string, unknown> | null)?.[WIDGET_STYLE_COLUMN]
   );
 
+  // Links from the dashboard's Links tab: own query too, so a missing
+  // profile_links column (migration not run) just means no links.
+  const { data: linksRow } = await supabase
+    .from("profiles")
+    .select(LINKS_COLUMN)
+    .eq("id", profile.id)
+    .maybeSingle();
+  const links = resolveLinks(
+    (linksRow as unknown as Record<string, unknown> | null)?.[LINKS_COLUMN]
+  );
+
   const [{ data: bioLines }, { data: badgeRows }, { data: trackRows }, discordTag] = await Promise.all([
     supabase
       .from("profile_bio_lines")
@@ -172,6 +184,7 @@ export default async function PublicProfilePage({
       presences={presences}
       twitterProfiles={twitterProfiles}
       widgetStyle={widgetStyle}
+      links={links}
     />
   );
 }

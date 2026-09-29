@@ -675,3 +675,60 @@
   max-width: none;
   margin-top: 18px;
 }
+
+/* --- Social links (from the dashboard Links tab) ---------------------------
+   --pl-icon / --pl-hover are set inline from the saved colours. The glow
+   follows whichever colour is showing. */
+
+.public-profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.public-profile-card--boxed .public-profile-links {
+  justify-content: flex-start;
+}
+
+.public-profile-card--boxed.public-profile-card--noavatar .public-profile-links {
+  justify-content: center;
+}
+
+.public-profile-links__item {
+  --pl-current: var(--pl-icon, #ffffff);
+  display: inline-flex;
+  position: relative;
+  z-index: 2;
+  line-height: 0;
+}
+
+.public-profile-links__item:hover,
+.public-profile-links__item:focus-visible {
+  --pl-current: var(--pl-hover, #c7c7c7);
+}
+
+.public-profile-links__item:focus-visible {
+  outline: 2px solid var(--pl-current);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.public-profile-links__glyph {
+  display: block;
+  width: 26px;
+  height: 26px;
+  background-color: var(--pl-current);
+  -webkit-mask: var(--pl-src) center / contain no-repeat;
+  mask: var(--pl-src) center / contain no-repeat;
+  filter: drop-shadow(0 0 6px var(--pl-current));
+  transition: background-color 0.15s ease, filter 0.15s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-profile-links__glyph {
+    transition: none;
+  }
+}
