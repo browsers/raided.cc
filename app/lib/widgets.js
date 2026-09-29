@@ -11,6 +11,11 @@ export const MAX_WIDGETS = 8;
 // Discord user IDs are 17-20 digit numbers.
 export const isDiscordId = (v) => /^\d{17,20}$/.test(String(v ?? "").trim());
 
+// X (Twitter) usernames: letters, digits, underscore, 1-15 chars. Case
+// doesn't matter to X, but the profile lookup (lib/twitter.js) lowercases
+// before comparing either way.
+export const isTwitterHandle = (v) => /^\w{1,15}$/.test(String(v ?? "").trim());
+
 // Current-time widget: the "account" is an IANA timezone name, e.g.
 // "Europe/London". Intl throws a RangeError for anything it doesn't know.
 export const isTimezone = (v) => {
@@ -28,6 +33,7 @@ export const isTimezone = (v) => {
 const VALIDATORS = {
   "discord-presence": isDiscordId,
   "current-time": isTimezone,
+  twitter: isTwitterHandle,
 };
 
 // Per-widget settings for the current-time widget (stored on the widget as
